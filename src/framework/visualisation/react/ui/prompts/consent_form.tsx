@@ -191,7 +191,6 @@ export const ConsentForm = (props: Props): JSX.Element => {
               color="bg-success text-white"
               spinning={isDonating}
             />
-            <LabelButton label={cancelButton} onClick={handleCancel} color="text-grey1" />
           </div>
         </div>
       </div>

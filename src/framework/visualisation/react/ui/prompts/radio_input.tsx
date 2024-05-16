@@ -53,15 +53,19 @@ export const RadioInput = (props: Props): JSX.Element => {
 
   return (
     <>
-      <div className='text-title5 font-title5 sm:text-title4 sm:font-title4 lg:text-title3 lg:font-title3 text-grey1'>
-        {title}
-      </div>
       <div className='mt-8' />
       <div id='select-panel'>
         <div className='flex-wrap text-bodylarge font-body text-grey1 text-left'>
-          {description}
+            {description.split('\n').map((line, index) => (
+            <p className="mt-2" key={index}>
+                {line}
+            </p>
+            ))}
         </div>
         <div className='mt-4' />
+        <div className='mb-5 text-title5 font-title5 sm:text-title4 sm:font-title4 lg:text-title3 lg:font-title3 text-grey1'>
+          {title}
+        </div>
         <div>
           <div id='radio-group' className='flex flex-col gap-3'>
             {renderItems(items)}
