@@ -3,9 +3,15 @@ import re
 import logging 
 from datetime import datetime
 from typing import Any
+from pathlib import Path
+import zipfile
+import io
+
+import pandas as pd
+
+import port.unzipddp as unzipddp
 
 logger = logging.getLogger(__name__)
-
 
 
 def convert_unix_timestamp(timestamp: str) -> str:
@@ -106,5 +112,35 @@ def find_items(d: dict[Any, Any],  key_to_match: str) -> list:
 
     return out
 
+
+def json_dumper(zfile: str) -> pd.DataFrame:
+    """
+    Reads all json files in zip, flattens them, and put them in a big df
+    """
+    out = pd.DataFrame()
+    datapoints = []
+    try:
+        with zipfile.ZipFile(zfile, "r") as zf:
+            for f in zf.namelist():
+                logger.debug("Contained in zip: %s", f)
+                fp = Path(f)
+                print(fp)
+                print(fp.suffix)
+                if fp.suffix == ".json":
+                    b = io.BytesIO(zf.read(f))
+                    d = dict_denester(unzipddp.read_json_from_bytes(b))
+                    for k, v in d.items():
+                        datapoints.append({
+                            "file name": fp.name, 
+                            "key": k,
+                            "value": v
+                        })
+
+        out = pd.DataFrame(datapoints)
+
+    except Exception as e:
+        logger.error("Exception was caught:  %s", e)
+
+    return out
 
 

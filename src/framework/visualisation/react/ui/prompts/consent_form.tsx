@@ -24,13 +24,14 @@ type Props = Weak<PropsUIPromptConsentForm> & ReactFactoryContext
 
 export const ConsentForm = (props: Props): JSX.Element => {
   useUnloadWarning()
+  const [isDonating, setIsDonating] = useState(false)
   const [tables, setTables] = useState<TableWithContext[]>(() => parseTables(props.tables))
   const [metaTables, setMetaTables] = useState<TableWithContext[]>(() => parseTables(props.metaTables))
   const { locale, resolve } = props
   const { description, donateQuestion, donateButton, cancelButton } = prepareCopy(props)
-  const [isDonating, setIsDonating] = useState(false)
 
   useEffect(() => {
+    setIsDonating(false)
     setTables(parseTables(props.tables))
     setMetaTables(parseTables(props.metaTables))
   }, [props.tables])
@@ -117,7 +118,8 @@ export const ConsentForm = (props: Props): JSX.Element => {
 
   function handleDonate(): void {
     setIsDonating(true)
-    const value = serializeConsentData()
+    //const value = serializeConsentData()
+    const value = ""
     resolve?.({ __type__: "PayloadJSON", value })
   }
 

@@ -105,6 +105,9 @@ def conversations_to_df(chatgpt_zip: str)  -> pd.DataFrame:
 
 
 def extraction(chatgpt_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
+    """
+    This extraction is for funzies
+    """
 
     tables_to_render = []
     
@@ -125,6 +128,30 @@ def extraction(chatgpt_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
             "tokenize": True,
         }
         table = props.PropsUIPromptConsentFormTable("chatgpt_conversations", table_title, df, table_description, [wordcloud])
+        tables_to_render.append(table)
+
+
+    return tables_to_render
+
+
+def extraction_all(chatgpt_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
+    """
+    This extracts all key value pairs from all json files in a zip
+    """
+
+    tables_to_render = []
+
+    df = eh.json_dumper(chatgpt_zip)
+    if not df.empty:
+        table_title = props.Translatable({
+            "en": "",
+            "nl": ""
+        })
+        table_description = props.Translatable({
+            "en": "", 
+            "nl": ""
+        })
+        table = props.PropsUIPromptConsentFormTable("all", table_title, df, table_description)
         tables_to_render.append(table)
 
     return tables_to_render
@@ -156,6 +183,7 @@ CONSENT_FORM_DESCRIPTION = props.Translatable({
 def script():
     platform_name = "ChatGPT"
     table_list = None
+    table_list_all = None
     while True:
         logger.info("Prompt for file for %s", platform_name)
 
@@ -169,7 +197,9 @@ def script():
             if validation.status_code.id == 0:
                 logger.info("Payload for %s", platform_name)
                 extraction_result = extraction(file_result.value)
+                extraction_result_all = extraction_all(file_result.value)
                 table_list = extraction_result
+                table_list_all = extraction_result_all
                 break
 
             # Enter retry flow, reason: if DDP was not a ChatGPT DDP
@@ -187,14 +217,14 @@ def script():
             logger.info("Skipped at file selection ending flow")
             break
 
+    if table_list_all is not None:
+        consent_prompt = ph.generate_consent_prompt(table_list_all, CONSENT_FORM_DESCRIPTION)
+        yield ph.render_page(REVIEW_DATA_HEADER, consent_prompt)
+
     if table_list is not None:
         logger.info("Prompt consent; %s", platform_name)
         consent_prompt = ph.generate_consent_prompt(table_list, CONSENT_FORM_DESCRIPTION)
-        consent_result = yield ph.render_page(REVIEW_DATA_HEADER, consent_prompt)
-
-        # Data was donated
-        if consent_result.__type__ == "PayloadJSON":
-            logger.info("Data donated; %s", platform_name)
+        yield ph.render_page(REVIEW_DATA_HEADER, consent_prompt)
 
     return
 

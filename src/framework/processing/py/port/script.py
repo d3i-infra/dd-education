@@ -1,13 +1,22 @@
+import logging
+
 import port.api.props as props
 from port.api.commands import (CommandUIRender, CommandSystemExit)
 
 import port.port_helpers as ph
 import port.chatgpt as chatgpt
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s --- %(name)s --- %(levelname)s --- %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%S%z",
+)
+
 HEADER_TEXT = props.Translatable({
     "en": "Data donation for educational purposes",
     "nl": "Data donation for educational purposes",
 })
+
 
 def process(_):
     # Start of the data donation flow
@@ -15,11 +24,8 @@ def process(_):
     selection_result = yield ph.render_page(HEADER_TEXT, selection_prompt)
 
     # If the participant submitted a file: continue
-    print("ASD")
     if selection_result.__type__ == 'PayloadString':
-        print("ASD")
         if selection_result.value == "ChatGPT":
-            print("ASD")
             yield from chatgpt.script()
 
 
