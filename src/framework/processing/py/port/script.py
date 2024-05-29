@@ -19,7 +19,7 @@ HEADER_TEXT = props.Translatable({
 
 
 def process(_):
-    # Start of the data donation flow
+
     selection_prompt = generate_platform_selection_menu()
     selection_result = yield ph.render_page(HEADER_TEXT, selection_prompt)
 
@@ -33,25 +33,24 @@ def process(_):
     yield render_end_page()
 
 
-
 def generate_platform_selection_menu():
     """
     Generate a menu that person can change from to interact with their data from chosen platform
     """
     title = props.Translatable({
-        "en": "Select your platform",
+        "en": "Select the platform",
         "nl": "Select the platform",
     })
 
     description = props.Translatable({
-        "en": "Welcome to the data donation task, a website dedicated to visualizing individuals' data packages obtained from major platforms for educational purposes.\nThis platform offers concise and straightforward visual representations of the data collected, allowing users to gain insights into their digital footprint. Explore your online activities with the data donation task and enhance your understanding of data privacy and digital literacy.\nNote: At no point in the process, data leave your own device. Everything you see on screen happens in your browser.",
-        "nl": "Welcome to the data donation task, a website dedicated to visualizing individuals' data packages obtained from major platforms for educational purposes.\nThis platform offers concise and straightforward visual representations of the data collected, allowing users to gain insights into their digital footprint. Explore your online activities with the data donation task and enhance your understanding of data privacy and digital literacy.\nNote: At no point in the process, data leave your own device. Everything you see on screen happens in your browser.",
+        "en": "Welcome to the data donation task, a website dedicated to visualizing individuals' data packages obtained from major platforms for educational purposes.\nThis platform offers concise and straightforward visual representations of the data collected, allowing users to gain insights into their digital footprint. Explore your online activities with the data donation task and enhance your understanding of data privacy and digital literacy.\n\nIn the menu below, you can select the platform for which you want to inspect your data. Note: At no point in the process will data leave your own device. Everything you see on screen happens in your browser.",
+        "nl": "Welcome to the data donation task, a website dedicated to visualizing individuals' data packages obtained from major platforms for educational purposes.\nThis platform offers concise and straightforward visual representations of the data collected, allowing users to gain insights into their digital footprint. Explore your online activities with the data donation task and enhance your understanding of data privacy and digital literacy.\n\nIn the menu below, you can select the platform for which you want to inspect your data. Note: At no point in the process will data leave your own device. Everything you see on screen happens in your browser.",
     })
 
     items = [
-        props.RadioItem(id = 1, value = "Facebook"),
-        props.RadioItem(id = 2, value = "YouTube"),
-        props.RadioItem(id = 3, value = "ChatGPT"),
+        props.RadioItem(id = 1, value = "ChatGPT"),
+        props.RadioItem(id = 2, value = "Facebook"),
+        props.RadioItem(id = 3, value = "YouTube"),
         props.RadioItem(id = 4, value = "Whatever"),
     ]
     

@@ -118,8 +118,8 @@ def extraction(chatgpt_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
             "nl": "Uw gesprekken met ChatGPT"
         })
         table_description = props.Translatable({
-            "en": "", 
-            "nl": ""
+            "en": "In this table you can find your conversations with ChatGPT sorted by timestamp. This table has a wordcloud attached to it, words that occur more frequently in your data will be bigger in the wordcloud, this should give an indication what you used ChatGPT for.", 
+            "nl": "In this table you can find your conversations with ChatGPT sorted by timestamp. This table has a wordcloud attached to it, words that occur more frequently in your data will be bigger in the wordcloud, this should give an indication what you used ChatGPT for.", 
         })
         wordcloud = {
             "title": {"en": "", "nl": ""},
@@ -144,12 +144,12 @@ def extraction_all(chatgpt_zip: str) -> list[props.PropsUIPromptConsentFormTable
     df = eh.json_dumper(chatgpt_zip)
     if not df.empty:
         table_title = props.Translatable({
-            "en": "",
-            "nl": ""
+            "en": "All key-value pairs from all json files in your ChatGPT data",
+            "nl": "All key-value pairs from all json files in your ChatGPT data",
         })
         table_description = props.Translatable({
-            "en": "", 
-            "nl": ""
+            "en": "In the table below you can find all key value pairs from all json files in your ChatGPT data. Use the search function to explore what is present in your data. The key should give you an indication of what the value is about.", 
+            "nl": "In the table below you can find all key value pairs from all json files in your ChatGPT data. Use the search function to explore what is present in your data. The key should give you an indication of what the value is about.", 
         })
         table = props.PropsUIPromptConsentFormTable("all", table_title, df, table_description)
         tables_to_render.append(table)
@@ -175,8 +175,23 @@ RETRY_HEADER = props.Translatable({
 
 
 CONSENT_FORM_DESCRIPTION = props.Translatable({
-   "en": "Below you will find meta data about the contents of the zip file you submitted. Please review the data carefully and remove any information you do not wish to share. If you would like to share this data, click on the 'Yes, share for research' button at the bottom of this page. By sharing this data, you contribute to research <insert short explanation about your research here>.",
-   "nl": "Hieronder ziet u gegevens over de zip die u heeft ingediend. Bekijk de gegevens zorgvuldig, en verwijder de gegevens die u niet wilt delen. Als u deze gegevens wilt delen, klik dan op de knop 'Ja, deel voor onderzoek' onderaan deze pagina. Door deze gegevens te delen draagt u bij aan onderzoek over <korte zin over het onderzoek>."
+   "en": "Below you will find a currated selection of ChatGPT data. In this case only the conversations you had with ChatGPT are show on screen. The data represented in this way are much more insightfull because you can actually read back the conversations you had with ChatGPT",
+   "nl": "Below you will find a currated selection of ChatGPT data. In this case only the conversations you had with ChatGPT are show on screen. The data represented in this way are much more insightfull because you can actually read back the conversations you had with ChatGPT",
+})
+
+CONSENT_FORM_DESCRIPTION_ALL = props.Translatable({
+   "en": "",
+   "nl": ""
+})
+
+INSTRUCTION_DESCRIPTION = props.Translatable({
+   "en": "Below you can find instruction on how to request and download your data from ChatGPT",
+   "nl": "Below you can find instruction on how to request and download your data from ChatGPT",
+})
+
+INSTRUCTION_HEADER = props.Translatable({
+   "en": "Instructions for requesting your data",
+   "nl": "Instructions for requesting your data",
 })
 
 
@@ -186,6 +201,9 @@ def script():
     table_list_all = None
     while True:
         logger.info("Prompt for file for %s", platform_name)
+
+        instructions_prompt = ph.generate_instructions_prompt(INSTRUCTION_DESCRIPTION, "netflix_instructions.svg")
+        file_result = yield ph.render_page(INSTRUCTION_HEADER, instructions_prompt)
 
         file_prompt = ph.generate_file_prompt(platform_name, "application/zip")
         file_result = yield ph.render_page(SUBMIT_FILE_HEADER, file_prompt)
@@ -218,7 +236,7 @@ def script():
             break
 
     if table_list_all is not None:
-        consent_prompt = ph.generate_consent_prompt(table_list_all, CONSENT_FORM_DESCRIPTION)
+        consent_prompt = ph.generate_consent_prompt(table_list_all, CONSENT_FORM_DESCRIPTION_ALL)
         yield ph.render_page(REVIEW_DATA_HEADER, consent_prompt)
 
     if table_list is not None:

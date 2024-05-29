@@ -32,8 +32,8 @@ def generate_retry_prompt(platform: str) -> props.PropsUIPromptConfirm:
 
 def generate_file_prompt(platform, extensions) -> props.PropsUIPromptFileInput:
     description = props.Translatable({
-        "en": f"Please follow the download instructions and choose the file that you stored on your device. Click “Skip” at the right bottom, if you do not have a {platform} file. ",
-        "nl": f"Volg de download instructies en kies het bestand dat u opgeslagen heeft op uw apparaat. Als u geen {platform} bestand heeft klik dan op “Overslaan” rechts onder."
+        "en": f"Please follow the download instructions from the previous page and choose the file that you stored on your device.",
+        "nl": f"Volg de download instructies van de vorige pagina en kies het bestand dat u opgeslagen heeft op uw apparaat."
     })
     return props.PropsUIPromptFileInput(description, extensions)
 
@@ -69,4 +69,10 @@ def retry_confirmation(platform):
     cancel = props.Translatable({"en": "Continue", "nl": "Verder"})
     return props.PropsUIPromptConfirm(text, ok, cancel)
 
+
+def generate_instructions_prompt(description: props.Translatable, image_url: str) -> props.PropsUIPromptInstructions:
+    return props.PropsUIPromptInstructions(
+        description=description,
+        imageUrl=image_url
+    )
 

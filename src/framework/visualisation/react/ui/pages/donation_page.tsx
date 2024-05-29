@@ -8,7 +8,8 @@ import {
     isPropsUIPromptConsentForm,
     isPropsUIPromptFileInput,
     isPropsUIPromptRadioInput,
-    isPropsUIPromptQuestionnaire 
+    isPropsUIPromptInstructions,
+    isPropsUIPromptQuestionnaire,
 } from '../../../../types/prompts'
 import { ReactFactoryContext } from '../../factory'
 import { ForwardButton } from '../elements/button'
@@ -18,6 +19,7 @@ import { ConsentForm } from '../prompts/consent_form'
 import { FileInput } from '../prompts/file_input'
 import { Questionnaire } from '../prompts/questionnaire'
 import { RadioInput } from '../prompts/radio_input'
+import { Instructions } from '../prompts/instructions'
 import { Footer } from './templates/footer'
 import { Page } from './templates/page'
 
@@ -44,6 +46,9 @@ export const DonationPage = (props: Props): JSX.Element => {
     }
     if (isPropsUIPromptQuestionnaire(body)) {
       return <Questionnaire {...body} {...context} />
+    }
+    if (isPropsUIPromptInstructions(body)) {
+      return <Instructions {...body} {...context} />
     }
     throw new TypeError('Unknown body type')
   }

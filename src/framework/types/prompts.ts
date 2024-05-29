@@ -10,12 +10,14 @@ export type PropsUIPrompt =
   | PropsUIPromptRadioInput
   | PropsUIPromptConsentForm
   | PropsUIPromptConfirm
+  | PropsUIPromptInstructions
 
 export function isPropsUIPrompt(arg: any): arg is PropsUIPrompt {
   return (
     isPropsUIPromptFileInput(arg) ||
     isPropsUIPromptRadioInput(arg) ||
     isPropsUIPromptConsentForm(arg) ||
+    isPropsUIPromptInstructions(arg) ||
     isPropsUIPromptQuestionnaire(arg)
   )
 }
@@ -78,6 +80,15 @@ export function isPropsUIPromptConsentFormTable(arg: any): arg is PropsUIPromptC
   ])
 }
 
+ export interface PropsUIPromptInstructions {
+  __type__: 'PropsUIPromptInstructions'
+  description: Text
+  imageUrl: string
+ }
+ export function isPropsUIPromptInstructions (arg: any): arg is PropsUIPromptInstructions {
+  return isInstanceOf<PropsUIPromptInstructions>(arg, 'PropsUIPromptInstructions', ['description', 'imageUrl'])
+ }
+
  export interface PropsUIPromptQuestionnaire {
   __type__: 'PropsUIPromptQuestionnaire'
   questions: PropsUIQuestionMultipleChoice[]
@@ -86,3 +97,4 @@ export function isPropsUIPromptConsentFormTable(arg: any): arg is PropsUIPromptC
  export function isPropsUIPromptQuestionnaire (arg: any): arg is PropsUIPromptQuestionnaire {
   return isInstanceOf<PropsUIPromptQuestionnaire>(arg, 'PropsUIPromptQuestionnaire', ['questions', 'description'])
  }
+

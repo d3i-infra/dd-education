@@ -277,6 +277,22 @@ class PropsUIPromptQuestionnaire:
 
 
 @dataclass
+class PropsUIPromptInstructions:
+    """
+    NO DOCS YET
+    """
+    description: Translatable
+    imageUrl: str
+
+    def toDict(self):
+        dict = {}
+        dict["__type__"] = "PropsUIPromptInstructions"
+        dict["description"] = self.description.toDict()
+        dict["imageUrl"] = self.imageUrl
+        return dict
+
+
+@dataclass
 class PropsUIPageDonation:
     """A multi-purpose page that gets shown to the user
 
@@ -294,6 +310,7 @@ class PropsUIPageDonation:
         | PropsUIPromptFileInput
         | PropsUIPromptConfirm
         | PropsUIPromptQuestionnaire
+        | PropsUIPromptInstructions
     )
     footer: Optional[PropsUIFooter] = None
 

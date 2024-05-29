@@ -8,7 +8,8 @@ import {
     PropsUIPromptConfirm,
     PropsUIPromptConsentForm,
     PropsUIPromptRadioInput,
-    PropsUIPromptQuestionnaire 
+    PropsUIPromptQuestionnaire,
+    PropsUIPromptInstructions
 } from './prompts'
 
 export type PropsUIPage =
@@ -33,7 +34,7 @@ export interface PropsUIPageDonation {
   __type__: 'PropsUIPageDonation'
   platform: string
   header: PropsUIHeader
-  body: PropsUIPromptFileInput | PropsUIPromptConfirm | PropsUIPromptConsentForm | PropsUIPromptRadioInput | PropsUIPromptQuestionnaire
+  body: PropsUIPromptFileInput | PropsUIPromptConfirm | PropsUIPromptConsentForm | PropsUIPromptRadioInput | PropsUIPromptQuestionnaire | PropsUIPromptInstructions
   footer: PropsUIFooter
 }
 export function isPropsUIPageDonation (arg: any): arg is PropsUIPageDonation {
