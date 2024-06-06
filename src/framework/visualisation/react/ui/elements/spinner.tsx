@@ -16,9 +16,7 @@ export const Spinner = ({ spinning = true, color = 'light', size = "5" }: Props)
 
   return (
     <div id='spinner' className='flex flex-row items-center'>
-         <div className={`w-[${size}px] h-[${size}px]`}>
-            <Lottie animationData={animationData()} loop={spinning} />
-        </div>
+        <Lottie animationData={animationData()} loop={spinning} className={`w-${size}`}/>
     </div>
   )
 }
