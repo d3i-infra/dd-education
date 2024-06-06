@@ -4,6 +4,7 @@ import { Response, Payload, CommandUIRender } from '../../types/commands'
 import { PropsUIPage } from '../../types/pages'
 import VisualisationFactory from './factory'
 import { Main } from './main'
+import { Spinner } from './ui/elements/spinner'
 
 export default class ReactEngine implements VisualisationEngine {
   factory: VisualisationFactory
@@ -18,6 +19,7 @@ export default class ReactEngine implements VisualisationEngine {
   start (rootElement: HTMLElement, locale: string): void {
     console.log('[ReactEngine] started')
     this.root = ReactDOM.createRoot(rootElement)
+    this.root.render(<LoadingScreen />)
     this.locale = locale
   }
 
@@ -49,3 +51,20 @@ export default class ReactEngine implements VisualisationEngine {
     this.root.render(<Main elements={elements} />)
   }
 }
+
+const LoadingScreen = () => {
+  return (
+    <div>
+     <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="text-center">
+       <Spinner color="dark" spinning={true} size="300" />
+        <p className="mt-4 text-xl font-semibold text-gray-700">Loading...</p>
+        <div className="mt-4 p-2 bg-gray-200 text-left text-sm text-gray-600 rounded-lg shadow-inner max-w-md mx-auto">
+          <pre id="consoleOutput">Check the browser console for more details</pre>
+        </div>
+      </div>
+    </div>
+    </div>
+  );
+};
+

@@ -318,9 +318,10 @@ export interface PropsUISpinner {
   __type__: "PropsUISpinner"
   spinning?: boolean
   color?: string
+  size?: string
 }
 export function isPropsUISpinner(arg: any): arg is PropsUISpinner {
-  return isInstanceOf<PropsUISpinner>(arg, "PropsUISpinner", ["color", "spinning"])
+  return isInstanceOf<PropsUISpinner>(arg, "PropsUISpinner", ["color", "spinning", "size"])
 }
 
 // PROGRESS
