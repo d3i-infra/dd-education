@@ -564,8 +564,8 @@ def extraction(chatgpt_zip: str, validation: ValidateInput) -> list[props.PropsU
 
 # TEXTS and script
 SUBMIT_FILE_HEADER = props.Translatable({
-    "en": "Select your YouTube Takout zip", 
-    "nl": "Select your YouTube Takout zip", 
+    "en": "Select your YouTube Takeout zip file", 
+    "nl": "Select your YouTube Takeout zip file", 
 })
 
 REVIEW_DATA_HEADER = props.Translatable({

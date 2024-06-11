@@ -6,6 +6,7 @@ from port.api.commands import (CommandUIRender, CommandSystemExit)
 import port.port_helpers as ph
 import port.chatgpt as chatgpt
 import port.youtube as youtube
+import port.instagram as instagram
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,6 +33,9 @@ def process(_):
         if selection_result.value == "YouTube":
             yield from youtube.script()
 
+        if selection_result.value == "Instagram":
+            yield from instagram.script()
+
     yield exit_port(0, "Success")
     yield render_end_page()
 
@@ -53,6 +57,7 @@ def generate_platform_selection_menu():
     items = [
         props.RadioItem(id = 1, value = "ChatGPT"),
         props.RadioItem(id = 2, value = "YouTube"),
+        props.RadioItem(id = 3, value = "Instagram"),
     ]
     
     return props.PropsUIPromptRadioInput(title = title, description = description, items = items)

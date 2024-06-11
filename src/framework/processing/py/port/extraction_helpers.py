@@ -1,13 +1,14 @@
 import math
 import re
 import logging 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 from pathlib import Path
 import zipfile
 import io
 
 import pandas as pd
+import numpy as np
 from dateutil.parser import parse
 
 import port.unzipddp as unzipddp
@@ -125,8 +126,6 @@ def json_dumper(zfile: str) -> pd.DataFrame:
             for f in zf.namelist():
                 logger.debug("Contained in zip: %s", f)
                 fp = Path(f)
-                print(fp)
-                print(fp.suffix)
                 if fp.suffix == ".json":
                     b = io.BytesIO(zf.read(f))
                     d = dict_denester(unzipddp.read_json_from_bytes(b))
@@ -194,3 +193,57 @@ def try_to_convert_any_timestamp_to_iso8601(timestamp: str) -> str:
     except Exception as e:
         timestamp = ""
     return timestamp
+
+
+def epoch_to_iso(epoch_timestamp: str | int) -> str:
+    """
+    Convert epoch timestamp to an ISO 8601 string. Assumes UTC.
+    """
+
+    out = str(epoch_timestamp)
+    try:
+        epoch_timestamp = int(epoch_timestamp)
+        out = datetime.fromtimestamp(epoch_timestamp, tz=timezone.utc).isoformat()
+    except (OverflowError, OSError, ValueError, TypeError) as e:
+        logger.error("Could not convert epoch time timestamp, %s", e)
+
+    return out
+
+
+def sort_isotimestamp_empty_timestamp_last(timestamp_series: pd.Series) -> pd.Series:
+    """
+    Can be used as follows:
+
+    df = df.sort_values(by="Date", key=sort_isotimestamp_empty_timestamp_last)
+    """
+
+    def convert_timestamp(timestamp):
+        out = np.inf
+        try:
+            if isinstance(timestamp, str) and len(timestamp) > 0:
+                dt = datetime.fromisoformat(timestamp)
+                out = -dt.timestamp()
+        except Exception as e:
+            logger.debug("Cannot convert timestamp: %s", e)
+
+        return out
+
+    return timestamp_series.apply(convert_timestamp)
+
+
+def fix_latin1_string(input: str) -> str:
+    """
+    Fixes the string encoding by attempting to encode it using the 'latin1' encoding and then decoding it.
+
+    Args:
+        input (str): The input string that needs to be fixed.
+
+    Returns:
+        str: The fixed string after encoding and decoding, or the original string if an exception occurs.
+    """
+    try:
+        fixed_string = input.encode("latin1").decode()
+        return fixed_string
+    except Exception:
+        return input
+
