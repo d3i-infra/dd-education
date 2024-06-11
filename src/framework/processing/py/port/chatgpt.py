@@ -105,10 +105,6 @@ def conversations_to_df(chatgpt_zip: str)  -> pd.DataFrame:
 
 
 def extraction(chatgpt_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
-    """
-    This extraction is for funzies
-    """
-
     tables_to_render = []
     
     df = conversations_to_df(chatgpt_zip)

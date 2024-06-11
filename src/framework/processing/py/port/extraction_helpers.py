@@ -8,6 +8,7 @@ import zipfile
 import io
 
 import pandas as pd
+from dateutil.parser import parse
 
 import port.unzipddp as unzipddp
 
@@ -144,3 +145,52 @@ def json_dumper(zfile: str) -> pd.DataFrame:
     return out
 
 
+def fix_ascii_string(input: str) -> str:
+    """
+    Fixes the string encoding by attempting to encode it ignoring all ascii characters and then decoding it.
+
+    Args:
+        input (str): The input string that needs to be fixed.
+
+    Returns:
+        str: The fixed string after encoding and decoding, or the original string if an exception occurs.
+    """
+    try:
+        fixed_string = input.encode("ascii", 'ignore').decode()
+        return fixed_string
+    except Exception:
+        return input
+
+
+def replace_months(input_string):
+
+    month_mapping = {
+        'mrt': 'mar',
+        'mei': 'may',
+        'okt': 'oct',
+    }
+
+    for dutch_month, english_month in month_mapping.items():
+        if dutch_month in input_string:
+            replaced_string = input_string.replace(dutch_month, english_month, 1)
+            return replaced_string
+
+    return input_string
+
+
+def try_to_convert_any_timestamp_to_iso8601(timestamp: str) -> str:
+    """
+    WARNING 
+
+    Use this function with caution and only as a last resort
+    Conversion can go wrong when datetime formats are ambiguous
+    When ambiguity occurs it chooses MM/DD instead of DD/MM
+
+    Checkout: dateutil.parsers parse
+    """
+    timestamp = replace_months(timestamp)
+    try:
+       timestamp = parse(timestamp, dayfirst=False).isoformat()
+    except Exception as e:
+        timestamp = ""
+    return timestamp
