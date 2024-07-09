@@ -606,7 +606,7 @@ def script():
     while True:
         logger.info("Prompt for file for %s", platform_name)
 
-        instructions_prompt = ph.generate_instructions_prompt(INSTRUCTION_DESCRIPTION, "netflix_instructions.svg")
+        instructions_prompt = ph.generate_instructions_prompt(INSTRUCTION_DESCRIPTION, "youtube_instructions.svg")
         file_result = yield ph.render_page(INSTRUCTION_HEADER, instructions_prompt)
 
         file_prompt = ph.generate_file_prompt(platform_name, "application/zip")
