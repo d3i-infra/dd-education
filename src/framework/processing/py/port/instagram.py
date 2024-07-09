@@ -340,11 +340,12 @@ def liked_comments_to_df(instagram_zip: str) -> pd.DataFrame:
         for item in items:
             d = eh.dict_denester(item)
             datapoints.append((
+                eh.fix_latin1_string(eh.find_item(d, "title")),
                 eh.fix_latin1_string(eh.find_item(d, "value")),
                 eh.find_items(d, "href"),
                 eh.epoch_to_iso(eh.find_item(d, "timestamp"))
             ))
-        out = pd.DataFrame(datapoints, columns=["Value", "Link", "Date"])
+        out = pd.DataFrame(datapoints, columns=["Account name", "Value", "Link", "Date"])
         out = out.sort_values(by="Date", key=eh.sort_isotimestamp_empty_timestamp_last)
 
     except Exception as e:
@@ -366,11 +367,12 @@ def liked_posts_to_df(instagram_zip: str) -> pd.DataFrame:
         for item in items:
             d = eh.dict_denester(item)
             datapoints.append((
+                eh.fix_latin1_string(eh.find_item(d, "title")),
                 eh.fix_latin1_string(eh.find_item(d, "value")),
                 eh.find_items(d, "href"),
                 eh.epoch_to_iso(eh.find_item(d, "timestamp"))
             ))
-        out = pd.DataFrame(datapoints, columns=["Value", "Link", "Date"])
+        out = pd.DataFrame(datapoints, columns=["Account name", "Value", "Link", "Date"])
         out = out.sort_values(by="Date", key=eh.sort_isotimestamp_empty_timestamp_last)
 
     except Exception as e:
@@ -379,7 +381,6 @@ def liked_posts_to_df(instagram_zip: str) -> pd.DataFrame:
     return out
 
 
-### CONTINUE HERE ADD EXTRACTION
 
 def extraction(instagram_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
     tables_to_render = []
@@ -536,15 +537,37 @@ def extraction(instagram_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
             "en": "Instagram liked comments",
             "nl": "Instagram liked comments",
         })
+        wordcloud = {
+            "title": {
+                "en": "Accounts who's comments you liked most", 
+                "nl": "Accounts who's comments you liked most", 
+              },
+            "type": "wordcloud",
+            "textColumn": "Account name",
+            "tokenize": False,
+        }
         table_description = props.Translatable({
             "en": "", 
             "nl": "", 
         })
-        table =  props.PropsUIPromptConsentFormTable("instagram_liked_comments", table_title, df, table_description) 
+        table =  props.PropsUIPromptConsentFormTable("instagram_liked_comments", table_title, df, table_description, [wordcloud]) 
         tables_to_render.append(table)
 
     df = liked_posts_to_df(instagram_zip)
     if not df.empty:
+        table_description = props.Translatable({
+            "en": "", 
+            "nl": "", 
+        })
+        wordcloud = {
+            "title": {
+                "en": "Most liked accounts", 
+                "nl": "Most liked accounts", 
+              },
+            "type": "wordcloud",
+            "textColumn": "Account name",
+            "tokenize": False,
+        }
         table_title = props.Translatable({
             "en": "Instagram liked posts",
             "nl": "Instagram liked posts",
@@ -553,7 +576,7 @@ def extraction(instagram_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
             "en": "", 
             "nl": "", 
         })
-        table =  props.PropsUIPromptConsentFormTable("instagram_liked_posts", table_title, df, table_description) 
+        table =  props.PropsUIPromptConsentFormTable("instagram_liked_posts", table_title, df, table_description, [wordcloud]) 
         tables_to_render.append(table)
 
     return tables_to_render
