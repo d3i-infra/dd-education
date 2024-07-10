@@ -406,7 +406,8 @@ def extraction(instagram_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
                 "dateFormat": "auto"
             },
             "values": [{
-                "label": "count"
+                "label": "count",
+                "aggregate": "count",
             }]
         }
 
@@ -448,6 +449,7 @@ def extraction(instagram_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
                 "dateFormat": "auto"
             },
             "values": [{
+                "aggregate": "count",
                 "label": "count"
             }]
         }

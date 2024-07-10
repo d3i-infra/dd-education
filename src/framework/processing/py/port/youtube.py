@@ -465,7 +465,13 @@ def extraction(chatgpt_zip: str, validation: ValidateInput) -> list[props.PropsU
                 "column": "Date standard format",
                 "dateFormat": "month"
             },
-            "values": [{}]
+            "values": [{
+                "aggregate": "count", 
+                "label": {
+                    "en": "number of views", 
+                    "nl": "aantal keer gekeken"
+                }
+            }]
         }
 
         hour_of_the_day = {

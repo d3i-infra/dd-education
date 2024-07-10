@@ -50,24 +50,34 @@ def generate_platform_selection_menu():
     })
 
     description = props.Translatable({
-        "en": """Welcome! The Digital Footprint Explorer visualizes the digital traces that you leave behind on the platforms that you use. With this tool you can gain a better understanding of your own digital footprint.
-        It works as follows:
-                ○    You request a digital copy of your personal data at a platform.
-                ○    You store this data at your own personal device.
-                ○    Next, you open the data using this tool and start exploring!
-                ○    When you are done, you simply close the page.
-        The tool works locally in the browser of your computer. Never, at any moment, will the data leave your computer! 
-        Click on one of the platforms below and start exploring!""",
-        "nl": """Welcome! The Digital Footprint Explorer visualizes the digital traces that you leave behind on the platforms that you use. With this tool you can gain a better understanding of your own digital footprint.
-        It works as follows:
-                ○    You request a digital copy of your personal data at a platform.
-                ○    You store this data at your own personal device.
-                ○    Next, you open the data using this tool and start exploring!
-                ○    When you are done, you simply close the page.
-         
-        The tool works locally in the browser of your computer. Never, at any moment, will the data leave your computer! 
-         
-        Click on one of the platforms below and start exploring!""",
+"en": """
+Welcome! The Digital Footprint Explorer visualizes the digital traces that you leave behind on the platforms that you use. With this tool you can gain a better understanding of your own digital footprint.
+
+It works as follows:
+
+* You request a digital copy of your personal data at a platform.
+* You store this data at your own personal device.
+* Next, you open the data using this tool and start exploring!
+* When you are done, you simply close the page.
+
+The tool works locally in the browser of your computer. Never, at any moment, will the data leave your computer! 
+
+Click on one of the platforms below and start exploring!
+""",
+"nl": """
+Welcome! The Digital Footprint Explorer visualizes the digital traces that you leave behind on the platforms that you use. With this tool you can gain a better understanding of your own digital footprint.
+
+It works as follows:
+
+* You request a digital copy of your personal data at a platform.
+* You store this data at your own personal device.
+* Next, you open the data using this tool and start exploring!
+* When you are done, you simply close the page.
+
+The tool works locally in the browser of your computer. Never, at any moment, will the data leave your computer! 
+
+Click on one of the platforms below and start exploring!
+""",
     })
 
     items = [
