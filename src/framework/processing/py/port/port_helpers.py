@@ -32,7 +32,7 @@ def generate_retry_prompt(platform: str) -> props.PropsUIPromptConfirm:
 
 def generate_file_prompt(platform, extensions) -> props.PropsUIPromptFileInput:
     description = props.Translatable({
-        "en": f"Please follow the download instructions from the previous page and choose the file that you stored on your device.",
+        "en": f"Select the .zip file you received from the platform and stored on your device, and press \"Continue\".",
         "nl": f"Volg de download instructies van de vorige pagina en kies het bestand dat u opgeslagen heeft op uw apparaat."
     })
     return props.PropsUIPromptFileInput(description, extensions)

@@ -388,17 +388,17 @@ def extraction(instagram_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
     df = posts_viewed_to_df(instagram_zip)
     if not df.empty:
         table_title = props.Translatable({
-            "en": "Instagram posts viewed",
-            "nl": "Instagram posts viewed"
+            "en": "Posts viewed on Instagram",
+            "nl": "Posts viewed on Instagram"
         })
         table_description = props.Translatable({
-            "en": "", 
-            "nl": "", 
+            "en": "In this table you find the accounts of posts you viewed on Instagram sorted over time. Below, you find visualizations of different parts of this table. First, you find a timeline showing you the number of posts you viewed over time. Next, you find a histogram indicating how many posts you have viewed per hour of the day.", 
+            "nl": "In this table you find the accounts of posts you viewed on Instagram sorted over time. Below, you find visualizations of different parts of this table. First, you find a timeline showing you the number of posts you viewed over time. Next, you find a histogram indicating how many posts you have viewed per hour of the day.", 
         })
         total_watched = {
             "title": {
-                "en": "Total posts viewed by unit of time", 
-                "nl": "Total posts viewed by unit of time", 
+                "en": "The total number of Instagram posts you viewed over time", 
+                "nl": "The total number of Instagram posts you viewed over time", 
             },
             "type": "area",
             "group": {
@@ -412,8 +412,8 @@ def extraction(instagram_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
 
         hour_of_the_day = {
             "title": {
-                "en": "At what hour of the day you watched", 
-                "nl": "At what hour of the day you watched", 
+                "en": "The total number of Instagram posts you have viewed per hour of the day", 
+                "nl": "The total number of Instagram posts you have viewed per hour of the day", 
             },
             "type": "bar",
             "group": {
@@ -429,18 +429,18 @@ def extraction(instagram_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
     df = videos_watched_to_df(instagram_zip)
     if not df.empty:
         table_title = props.Translatable({
-            "en": "Instagram videos watched",
-            "nl": "Instagram videos watched"
+            "en": "Videos watched on Instagram",
+            "nl": "Videos watched on Instagram"
         })
         table_description = props.Translatable({
-            "en": "", 
-            "nl": "", 
+            "en": "In this table you find the accounts of videos you watched on Instagram sorted over time. Below, you find a timeline showing you the number of videos you watched over time.", 
+            "nl": "In this table you find the accounts of videos you watched on Instagram sorted over time. Below, you find a timeline showing you the number of videos you watched over time. ", 
         })
 
         total_watched = {
             "title": {
-                "en": "Total videos watched by unit of time", 
-                "nl": "Total videos watched by unit of time", 
+                "en": "The total number of videos watched on Instagram over time", 
+                "nl": "The total number of videos watched on Instagram over time", 
             },
             "type": "area",
             "group": {
@@ -459,12 +459,12 @@ def extraction(instagram_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
     df = post_comments_to_df(instagram_zip)
     if not df.empty:
         table_title = props.Translatable({
-            "en": "Instagram comments on posts",
-            "nl": "Instagram comments on posts",
+            "en": "Comments on Instagram posts",
+            "nl": "Comments on Instagram posts",
         })
         table_description = props.Translatable({
-            "en": "", 
-            "nl": "", 
+            "en": "In this table, you find the comments that you left behind on Instagram posts sorted over time. Below, you find a wordcloud, where the size of the word indicates how frequently that word has been used in these comments.", 
+            "nl": "In this table, you find the comments that you left behind on Instagram posts sorted over time. Below, you find a wordcloud, where the size of the word indicates how frequently that word has been used in these comments.", 
         })
         wordcloud = {
             "title": {
@@ -494,12 +494,12 @@ def extraction(instagram_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
     df = ads_viewed_to_df(instagram_zip)
     if not df.empty:
         table_title = props.Translatable({
-            "en": "Instagram ads viewed",
-            "nl": "Instagram ads viewed"
+            "en": "Ads you viewed on Instagram",
+            "nl": "Ads you viewed on Instagram"
         })
         table_description = props.Translatable({
-            "en": "", 
-            "nl": "", 
+            "en": "In this table, you find the ads that you viewed on Instagram sorted over time.", 
+            "nl": "In this table, you find the ads that you viewed on Instagram sorted over time.", 
         })
         table =  props.PropsUIPromptConsentFormTable("instagram_ads_viewed", table_title, df, table_description) 
         tables_to_render.append(table)
@@ -521,12 +521,12 @@ def extraction(instagram_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
     df = following_to_df(instagram_zip)
     if not df.empty:
         table_title = props.Translatable({
-            "en": "Instagram following",
-            "nl": "Instagram following"
+            "en": "Accounts that you follow on Instagram",
+            "nl": "Accounts that you follow on Instagram"
         })
         table_description = props.Translatable({
-            "en": "", 
-            "nl": "", 
+            "en": "In this table, you find the accounts that you follow on Instagram.", 
+            "nl": "In this table, you find the accounts that you follow on Instagram.", 
         })
         table =  props.PropsUIPromptConsentFormTable("instagram_following", table_title, df, table_description) 
         tables_to_render.append(table)
@@ -595,12 +595,12 @@ def extraction_all(zip: str) -> list[props.PropsUIPromptConsentFormTable]:
     df = eh.json_dumper(zip)
     if not df.empty:
         table_title = props.Translatable({
-            "en": "All key-value pairs from all json files in your Instagram data",
-            "nl": "All key-value pairs from all json files in your Instagram data",
+            "en": "Your Instagram data",
+            "nl": "Your Instagram data",
         })
         table_description = props.Translatable({
-            "en": "In the table below you can find all key value pairs from all json files in your Instagram data. Use the search function to explore what is present in your data. The key should give you an indication of what the value is about.", 
-            "nl": "In the table below you can find all key value pairs from all json files in your Instagram data. Use the search function to explore what is present in your data. The key should give you an indication of what the value is about.", 
+            "en": "Your Instagram .zip file consists of a number of .json files and files containing the .jpeg and .mp4 files of photos and videos you posted on Instagram. These .json files consists of key-value pairs. In this table, you can find all key–value pairs from all .json files present in your .zip file.", 
+            "nl": "Your Instagram .zip file consists of a number of .json files and files containing the .jpeg and .mp4 files of photos and videos you posted on Instagram. These .json files consists of key-value pairs. In this table, you can find all key–value pairs from all .json files present in your .zip file.", 
         })
         table = props.PropsUIPromptConsentFormTable("all", table_title, df, table_description)
         tables_to_render.append(table)
@@ -627,8 +627,8 @@ RETRY_HEADER = props.Translatable({
 
 
 CONSENT_FORM_DESCRIPTION = props.Translatable({
-   "en": "Below you will find a currated selection of Instagram data. In this case only the conversations you had with Instagram are show on screen. The data represented in this way are much more insightfull because you can actually read back the conversations you had with Instagram",
-   "nl": "Below you will find a currated selection of Instagram data. In this case only the conversations you had with Instagram are show on screen. The data represented in this way are much more insightfull because you can actually read back the conversations you had with Instagram",
+   "en": "Below you will find a curated selection of Instagram data. In this case only the conversations you had with Instagram are show on screen. The data represented in this way are much more insightful because you can actually read back the conversations you had with Instagram.",
+   "nl": "Below you will find a curated selection of Instagram data. In this case only the conversations you had with Instagram are show on screen. The data represented in this way are much more insightful because you can actually read back the conversations you had with Instagram.",
 })
 
 CONSENT_FORM_DESCRIPTION_ALL = props.Translatable({
@@ -637,13 +637,13 @@ CONSENT_FORM_DESCRIPTION_ALL = props.Translatable({
 })
 
 INSTRUCTION_DESCRIPTION = props.Translatable({
-   "en": "Below you can find instruction on how to request and download your data from Instagram",
-   "nl": "Below you can find instruction on how to request and download your data from Instagram",
+   "en": "Please follow the instructions below carefully! \nClick on the button “Continue” at the bottom of this page when you are ready to go to the next step.",
+   "nl": "Please follow the instructions below carefully! \nClick on the button “Continue” at the bottom of this page when you are ready to go to the next step.",
 })
 
 INSTRUCTION_HEADER = props.Translatable({
-   "en": "Instructions for requesting your data",
-   "nl": "Instructions for requesting your data",
+   "en": "Instructions to request your Instagram data",
+   "nl": "Instructions to request your Instagram data",
 })
 
 

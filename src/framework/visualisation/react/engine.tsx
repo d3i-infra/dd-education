@@ -60,7 +60,7 @@ const LoadingScreen = () => {
         <Spinner color="dark" spinning={true} size="full" />
         <p className="mt-4 text-xl font-semibold text-gray-700">Loading...</p>
         <div className="mt-4 p-2 bg-gray-200 text-left text-sm text-gray-600 rounded-lg shadow-inner max-w-md mx-auto">
-          <pre id="consoleOutput">Check the browser console for more details</pre>
+          <pre id="consoleOutput">Please hold on for a couple of seconds...</pre>
         </div>
       </div>
     </div>

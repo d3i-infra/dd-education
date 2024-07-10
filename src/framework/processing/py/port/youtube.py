@@ -442,13 +442,13 @@ def extraction(chatgpt_zip: str, validation: ValidateInput) -> list[props.PropsU
             "nl": "Your YouTube watch history",
         })
         table_description = props.Translatable({
-            "en": "", 
-            "nl": "", 
+            "en": "In this table you find the videos you watched on YouTube sorted over time. Below, you find visualizations of different parts of this table. First, you find a timeline showing you the number of videos you watched per month. Second, you find a wordcloud of the YouTube channels you viewed, where the size of the words represents how frequently viewed YouTube channels. Third, you find a histogram indicating how many videos you have watched per hour of the day.", 
+            "nl": "In this table you find the videos you watched on YouTube sorted over time. Below, you find visualizations of different parts of this table. First, you find a timeline showing you the number of videos you watched per month. Second, you find a wordcloud of the YouTube channels you viewed, where the size of the words represents how frequently viewed YouTube channels. Third, you find a histogram indicating how many videos you have watched per hour of the day.", 
         })
         wordcloud = {
             "title": {
-                "en": "Your most viewed YouTube channels", 
-                "nl": "Your most viewed YouTube channels", 
+                "en": "The most frequently watched YouTube channels", 
+                "nl": "The most frequently watched YouTube channels", 
             },
             "type": "wordcloud",
             "textColumn": "Channel",
@@ -457,8 +457,8 @@ def extraction(chatgpt_zip: str, validation: ValidateInput) -> list[props.PropsU
 
         total_watched = {
             "title": {
-                "en": "Total videos watched by month of the year", 
-                "nl": "Total videos watched by month of the year", 
+                "en": "The total number of YouTube videos you have watched per month", 
+                "nl": "The total number of YouTube videos you have watched per month", 
             },
             "type": "area",
             "group": {
@@ -470,8 +470,8 @@ def extraction(chatgpt_zip: str, validation: ValidateInput) -> list[props.PropsU
 
         hour_of_the_day = {
             "title": {
-                "en": "At what hour of the day you watched", 
-                "nl": "At what hour of the day you watched", 
+                "en": "The total number of YouTube videos you have watched per hour of the day", 
+                "nl": "The total number of YouTube videos you have watched per hour of the day", 
             },
             "type": "bar",
             "group": {
@@ -491,8 +491,8 @@ def extraction(chatgpt_zip: str, validation: ValidateInput) -> list[props.PropsU
             "nl": "Your YouTube search history",
         })
         table_description = props.Translatable({
-            "en": "", 
-            "nl": "", 
+            "en": "In this table you find the search terms you have used on YouTube sorted over time. Below, you find a wordcloud of the search terms you used, where the size of the words represents how frequently you used a search term.", 
+            "nl": "In this table you find the search terms you have used on YouTube sorted over time. Below, you find a wordcloud of the search terms you used, where the size of the words represents how frequently you used a search term.", 
         })
         wordcloud = {
             "title": {
@@ -535,12 +535,12 @@ def extraction(chatgpt_zip: str, validation: ValidateInput) -> list[props.PropsU
     df = subscriptions_to_df(chatgpt_zip, validation)
     if not df.empty:
         table_title = props.Translatable({
-            "en": "YouTube channels you are subscribed to",
-            "nl": "YouTube channels you are subscribed to",
+            "en": "Your YouTube channel subscriptions",
+            "nl": "Your YouTube channel subscriptions",
         })
         table_description = props.Translatable({
-            "en": "", 
-            "nl": "", 
+            "en": "In this table, you find the YouTube channels you are subscribed to.", 
+            "nl": "In this table, you find the YouTube channels you are subscribed to.", 
         })
         table = props.PropsUIPromptConsentFormTable("idasjdhj1", table_title, df, table_description, [])
         tables_to_render.append(table)
@@ -564,8 +564,8 @@ def extraction(chatgpt_zip: str, validation: ValidateInput) -> list[props.PropsU
 
 # TEXTS and script
 SUBMIT_FILE_HEADER = props.Translatable({
-    "en": "Select your YouTube Takeout zip file", 
-    "nl": "Select your YouTube Takeout zip file", 
+    "en": "Select your YouTube file", 
+    "nl": "Select your YouTube file", 
 })
 
 REVIEW_DATA_HEADER = props.Translatable({
@@ -590,13 +590,13 @@ CONSENT_FORM_DESCRIPTION_ALL = props.Translatable({
 })
 
 INSTRUCTION_DESCRIPTION = props.Translatable({
-    "en": "Below you can find instruction on how to request and download your data from YouTube. When requesting your takeout untick everything except youtube and don't include video's in your takeout (it could get too large that way). For filetype you can stick to the default settings",
-    "nl": "Below you can find instruction on how to request and download your data from YouTube. When requesting your takeout untick everything except youtube and don't include video's in your takeout (it could get too large that way). For filetype you can stick to the default settings",
+    "en": "Please follow the instructions below carefully! \nClick on the button “Continue” at the bottom of this page when you are ready to go to the next step.",
+    "nl": "Please follow the instructions below carefully! \nClick on the button “Continue” at the bottom of this page when you are ready to go to the next step.",
 })
 
 INSTRUCTION_HEADER = props.Translatable({
-   "en": "Instructions for requesting your data",
-   "nl": "Instructions for requesting your data",
+   "en": "Instructions to request your YouTube data",
+   "nl": "Instructions to request your YouTube data",
 })
 
 

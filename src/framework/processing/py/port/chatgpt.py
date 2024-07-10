@@ -114,8 +114,8 @@ def extraction(chatgpt_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
             "nl": "Uw gesprekken met ChatGPT"
         })
         table_description = props.Translatable({
-            "en": "In this table you can find your conversations with ChatGPT sorted by timestamp. This table has a wordcloud attached to it, words that occur more frequently in your data will be bigger in the wordcloud, this should give an indication what you used ChatGPT for.", 
-            "nl": "In this table you can find your conversations with ChatGPT sorted by timestamp. This table has a wordcloud attached to it, words that occur more frequently in your data will be bigger in the wordcloud, this should give an indication what you used ChatGPT for.", 
+            "en": "In this table you find your conversations with ChatGPT sorted over time. Below, you find a wordcloud, where the size of the words represents how frequent these words have been used in the conversations.", 
+            "nl": "In this table you find your conversations with ChatGPT sorted over time. Below, you find a wordcloud, where the size of the words represents how frequent these words have been used in the conversations.", 
         })
         wordcloud = {
             "title": {"en": "", "nl": ""},
@@ -140,12 +140,12 @@ def extraction_all(chatgpt_zip: str) -> list[props.PropsUIPromptConsentFormTable
     df = eh.json_dumper(chatgpt_zip)
     if not df.empty:
         table_title = props.Translatable({
-            "en": "All key-value pairs from all json files in your ChatGPT data",
-            "nl": "All key-value pairs from all json files in your ChatGPT data",
+            "en": "Data extracted from all .json files in your ChatGPT .zip file",
+            "nl": "Data extracted from all .json files in your ChatGPT .zip file",
         })
         table_description = props.Translatable({
-            "en": "In the table below you can find all key value pairs from all json files in your ChatGPT data. Use the search function to explore what is present in your data. The key should give you an indication of what the value is about.", 
-            "nl": "In the table below you can find all key value pairs from all json files in your ChatGPT data. Use the search function to explore what is present in your data. The key should give you an indication of what the value is about.", 
+            "en": "Your ChatGPT .zip file consists of a number of .json files. These .json files consists of key-value pairs. In this table, you can find all key–value pairs from all .json files present in your .zip file.", 
+            "nl": "Your ChatGPT .zip file consists of a number of .json files. These .json files consists of key-value pairs. In this table, you can find all key–value pairs from all .json files present in your .zip file.", 
         })
         table = props.PropsUIPromptConsentFormTable("all", table_title, df, table_description)
         tables_to_render.append(table)
@@ -181,13 +181,13 @@ CONSENT_FORM_DESCRIPTION_ALL = props.Translatable({
 })
 
 INSTRUCTION_DESCRIPTION = props.Translatable({
-   "en": "Below you can find instruction on how to request and download your data from ChatGPT",
-   "nl": "Below you can find instruction on how to request and download your data from ChatGPT",
+   "en": "Please follow the instructions below carefully! \nClick on the button “Continue” at the bottom of this page when you are ready to go to the next step.",
+   "nl": "Please follow the instructions below carefully! \nClick on the button “Continue” at the bottom of this page when you are ready to go to the next step.",
 })
 
 INSTRUCTION_HEADER = props.Translatable({
-   "en": "Instructions for requesting your data",
-   "nl": "Instructions for requesting your data",
+   "en": "Instructions to request your ChatGPT data",
+   "nl": "Instructions to request your ChatGPT data",
 })
 
 
