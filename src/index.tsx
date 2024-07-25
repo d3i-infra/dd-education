@@ -3,6 +3,7 @@ import * as ReactDOM from "react-dom/client";
 import {
   createBrowserRouter,
   RouterProvider,
+  MemoryRouter,
 } from "react-router-dom";
 
 import './fonts.css'
@@ -33,13 +34,16 @@ const router = createBrowserRouter([
     path: "/port",
     element: <ReactEngineComponent root={root} locale="en"/>
   },
-]);
+],
+{
+  basename: "/dd-education"
+});
 
 
 root.render(
-  <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>
+<React.StrictMode>
+  <RouterProvider router={router} />
+</React.StrictMode>
 );
 
 
