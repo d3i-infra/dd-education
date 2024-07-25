@@ -1,9 +1,9 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
 import {
+  createHashRouter,
   createBrowserRouter,
   RouterProvider,
-  MemoryRouter,
 } from "react-router-dom";
 
 import './fonts.css'
@@ -17,7 +17,7 @@ import { PrivacyPolicy } from "./routes/privacyPolicy"
 const rootElement = document.getElementById('root') as HTMLElement
 const root =  ReactDOM.createRoot(rootElement)
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: "/",
     element: <LandingPage />
@@ -35,15 +35,13 @@ const router = createBrowserRouter([
     element: <ReactEngineComponent root={root} locale="en"/>
   },
 ],
-{
-  basename: "/dd-education"
-});
+);
 
 
 root.render(
-<React.StrictMode>
-  <RouterProvider router={router} />
-</React.StrictMode>
+    <React.StrictMode>
+      <RouterProvider router={router} />
+    </React.StrictMode>
 );
 
 
