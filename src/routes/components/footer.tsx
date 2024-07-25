@@ -11,9 +11,9 @@ export const Footer = () => {
     </div>
     <div className="flex items-center space-x-4">
       <span className="text-sm text-gray-600">Funded by PDI-SSH</span>
-      <img src="/pdi_ssh_logo.png" alt="PDI-SSH" className="h-34 w-34 object-contain" />
-      <img src="/uva_logo.png" alt="University of Amsterdam" className="h-34 w-34 object-contain" />
-      <img src="/uu_logo.png" alt="Utrecht University" className="h-34 w-34 object-contain" />
+      <img src="pdi_ssh_logo.png" alt="PDI-SSH" className="h-34 w-34 object-contain" />
+      <img src="uva_logo.png" alt="University of Amsterdam" className="h-34 w-34 object-contain" />
+      <img src="uu_logo.png" alt="Utrecht University" className="h-34 w-34 object-contain" />
     </div>
   </div>
 </footer>

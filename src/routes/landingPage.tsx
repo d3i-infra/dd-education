@@ -3,6 +3,7 @@ import { PrimaryButton } from "../framework/visualisation/react/ui/elements/butt
 import { useNavigate } from 'react-router-dom';
 import { Footer } from "./components/footer"
 import { NavBar } from "./components/navbar"
+import hero from './icons/hero.svg'
 
 
 export const LandingPage = () => {
@@ -23,7 +24,7 @@ export const LandingPage = () => {
           {/* Left side - Banner Image */}
           <div className="w-1/2 h-full flex items-center justify-center overflow-hidden">
             <img 
-              src="/hero.svg" 
+              src={hero}
               alt="Digital Footprint Banner" 
               className="max-w-full max-h-full object-contain"
             />
