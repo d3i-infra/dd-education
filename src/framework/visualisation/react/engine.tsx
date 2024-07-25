@@ -1,4 +1,4 @@
-import * as ReactDOM from 'react-dom/client'
+import ReactDOM from 'react-dom/client';
 import { VisualisationEngine } from '../../types/modules'
 import { Response, Payload, CommandUIRender } from '../../types/commands'
 import { PropsUIPage } from '../../types/pages'
@@ -16,9 +16,10 @@ export default class ReactEngine implements VisualisationEngine {
     this.factory = factory
   }
 
-  start (rootElement: HTMLElement, locale: string): void {
+  start (rootElement: ReactDOM.Root, locale: string): void {
+
     console.log('[ReactEngine] started')
-    this.root = ReactDOM.createRoot(rootElement)
+    this.root = rootElement
     this.root.render(<LoadingScreen />)
     this.locale = locale
   }

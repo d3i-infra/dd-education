@@ -1,4 +1,5 @@
 import { Command, Response, CommandSystem, CommandUI } from './commands'
+import ReactDOM from 'react-dom/client';
 
 export interface ProcessingEngine {
   start: () => void
@@ -7,7 +8,7 @@ export interface ProcessingEngine {
 }
 
 export interface VisualisationEngine {
-  start: (rootElement: HTMLElement, locale: string) => void
+  start: (rootElement: ReactDOM.Root, locale: string) => void
   render: (command: CommandUI) => Promise<Response>
   terminate: () => void
 }

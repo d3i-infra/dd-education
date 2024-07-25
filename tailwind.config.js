@@ -13,31 +13,31 @@ module.exports = {
       top2px: 'inset 0 2px 0 0 rgba(0, 0, 0, 0.15)',
       '2xl': '0 5px 20px 0px rgba(0, 0, 0, 0.10)'
     },
-    colors: {
-      primary: '#4272EF',
-      primarylight: '#E3EAFD',
-      secondary: '#FF5E5E',
-      tertiary: '#FFCF60',
-      success: '#6FCA37',
-      successlight: '#EBFFDF',
-      warning: '#F28D15',
-      warninglight: '#FFEFDC',
-      delete: '#DB1E1E',
-      deletelight: '#FFECEC',
-      error: '#DB1E1E',
-      errorlight: '#FFECEC',
-      black: '#000000',
-      grey1: '#222222',
-      grey2: '#999999',
-      grey3: '#CCCCCC',
-      grey4: '#EEEEEE',
-      grey5: '#F6F6F6',
-      grey6: '#FAFAFA',
-      white: '#FFFFFF'
-    },
     extend: {
       opacity: {
         shadow: '.15'
+      },
+      colors: {
+        primary: '#4272EF',
+        primarylight: '#E3EAFD',
+        secondary: '#FF5E5E',
+        tertiary: '#FFCF60',
+        success: '#6FCA37',
+        successlight: '#EBFFDF',
+        warning: '#F28D15',
+        warninglight: '#FFEFDC',
+        delete: '#DB1E1E',
+        deletelight: '#FFECEC',
+        error: '#DB1E1E',
+        errorlight: '#FFECEC',
+        black: '#000000',
+        grey1: '#222222',
+        grey2: '#999999',
+        grey3: '#CCCCCC',
+        grey4: '#EEEEEE',
+        grey5: '#F6F6F6',
+        grey6: '#FAFAFA',
+        white: '#FFFFFF'
       },
       spacing: {
         '1px': '1px',

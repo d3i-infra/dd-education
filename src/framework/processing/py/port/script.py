@@ -21,23 +21,22 @@ HEADER_TEXT = props.Translatable({
 
 
 def process(_):
+    while True:
+        selection_prompt = generate_platform_selection_menu()
+        selection_result = yield ph.render_page(HEADER_TEXT, selection_prompt)
 
-    selection_prompt = generate_platform_selection_menu()
-    selection_result = yield ph.render_page(HEADER_TEXT, selection_prompt)
+        # If the participant submitted a file: continue
+        if selection_result.__type__ == 'PayloadString':
+            if selection_result.value == "ChatGPT":
+                yield from chatgpt.script()
 
-    # If the participant submitted a file: continue
-    if selection_result.__type__ == 'PayloadString':
-        if selection_result.value == "ChatGPT":
-            yield from chatgpt.script()
+            if selection_result.value == "YouTube":
+                yield from youtube.script()
 
-        if selection_result.value == "YouTube":
-            yield from youtube.script()
+            if selection_result.value == "Instagram":
+                yield from instagram.script()
 
-        if selection_result.value == "Instagram":
-            yield from instagram.script()
-
-    yield exit_port(0, "Success")
-    yield render_end_page()
+        yield render_end_page()
 
 
 def generate_platform_selection_menu():

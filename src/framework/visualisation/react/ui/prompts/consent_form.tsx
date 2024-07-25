@@ -8,7 +8,7 @@ import {
   TableContext,
 } from "../../../../types/elements"
 import { PropsUIPromptConsentForm, PropsUIPromptConsentFormTable } from "../../../../types/prompts"
-import { LabelButton, PrimaryButton } from "../elements/button"
+import { PrimaryButton } from "../elements/button"
 import { BodyLarge } from "../elements/text"
 import TextBundle from "../../../../text_bundle"
 import { Translator } from "../../../../translator"

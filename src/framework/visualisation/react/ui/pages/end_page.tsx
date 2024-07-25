@@ -5,11 +5,20 @@ import { Page } from './templates/page'
 import TextBundle from '../../../../text_bundle'
 import { Translator } from '../../../../translator'
 import { BodyLarge, Title1 } from '../elements/text'
+import { PrimaryButton } from '../elements/button'
 
 type Props = Weak<PropsUIPageEnd> & ReactFactoryContext
 
 export const EndPage = (props: Props): JSX.Element => {
   const { title, text } = prepareCopy(props)
+  const { resolve } = props
+
+  function handleClick(): void {
+    //const value = serializeConsentData()
+    const value = ""
+    resolve?.({ __type__: "PayloadJSON", value })
+  }
+
 
   const body: JSX.Element = (
     <>
@@ -19,9 +28,19 @@ export const EndPage = (props: Props): JSX.Element => {
   )
 
   return (
+    <>
     <Page
       body={body}
     />
+  <div className="flex flex-row gap-4">
+    <PrimaryButton
+      label="Restart"
+      onClick={handleClick}
+      color="bg-success text-white"
+      spinning={false}
+    />
+  </div>
+</>
   )
 }
 
@@ -42,5 +61,5 @@ const title = new TextBundle()
   .add('nl', 'Bedankt')
 
 const text = new TextBundle()
-  .add('en', 'We hoped you enjoyed inspecting your data, refresh the page to start again')
-  .add('nl', 'We hoped you enjoyed inspecting your data, refresh the page to start again')
+  .add('en', 'We hoped you enjoyed exploring your data! Click the restart button to start again.')
+  .add('nl', 'We hoped you enjoyed exploring your data! Click the restart button to start again.')
