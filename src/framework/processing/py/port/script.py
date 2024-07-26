@@ -4,9 +4,11 @@ import port.api.props as props
 from port.api.commands import (CommandUIRender, CommandSystemExit)
 
 import port.port_helpers as ph
+
 import port.chatgpt as chatgpt
 import port.youtube as youtube
 import port.instagram as instagram
+import port.netflix as netflix
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,7 +27,6 @@ def process(_):
         selection_prompt = generate_platform_selection_menu()
         selection_result = yield ph.render_page(HEADER_TEXT, selection_prompt)
 
-        # If the participant submitted a file: continue
         if selection_result.__type__ == 'PayloadString':
             if selection_result.value == "ChatGPT":
                 yield from chatgpt.script()
@@ -35,6 +36,9 @@ def process(_):
 
             if selection_result.value == "Instagram":
                 yield from instagram.script()
+
+            if selection_result.value == "Netflix":
+                yield from netflix.script()
 
         yield render_end_page()
 
@@ -83,6 +87,7 @@ Click on one of the platforms below and start exploring!
         props.RadioItem(id = 1, value = "ChatGPT"),
         props.RadioItem(id = 2, value = "YouTube"),
         props.RadioItem(id = 3, value = "Instagram"),
+        props.RadioItem(id = 4, value = "Netflix"),
     ]
     
     return props.PropsUIPromptRadioInput(title = title, description = description, items = items)
