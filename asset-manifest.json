@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/dd-education/static/css/main.fb0070ec.css",
-    "main.js": "/dd-education/static/js/main.3408705a.js",
+    "main.js": "/dd-education/static/js/main.5a35657d.js",
     "static/js/120.a7d39374.chunk.js": "/dd-education/static/js/120.a7d39374.chunk.js",
     "static/media/hero.svg": "/dd-education/static/media/hero.6f5dbc11837457351e4c9fc6a185b311.svg",
     "static/media/Finador-BlackOblique.woff": "/dd-education/static/media/Finador-BlackOblique.8e3feb4617564028ac09.woff",
@@ -46,11 +46,11 @@
     "static/media/check.svg": "/dd-education/static/media/check.62d1e3846cf9f4002c37c986555f222e.svg",
     "static/media/radio.svg": "/dd-education/static/media/radio.a8976f7cd2094465a9e60270572060bb.svg",
     "main.fb0070ec.css.map": "/dd-education/static/css/main.fb0070ec.css.map",
-    "main.3408705a.js.map": "/dd-education/static/js/main.3408705a.js.map",
+    "main.5a35657d.js.map": "/dd-education/static/js/main.5a35657d.js.map",
     "120.a7d39374.chunk.js.map": "/dd-education/static/js/120.a7d39374.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.fb0070ec.css",
-    "static/js/main.3408705a.js"
+    "static/js/main.5a35657d.js"
   ]
 }
