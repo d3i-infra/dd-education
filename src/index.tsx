@@ -8,7 +8,7 @@ import {
 
 import './fonts.css'
 import './framework/styles.css'
-import ReactEngineComponent from "./routes/port"
+import Port from "./routes/port"
 import { LandingPage } from "./routes/landingPage"
 import { About } from "./routes/about"
 import { PrivacyPolicy } from "./routes/privacyPolicy"
@@ -32,7 +32,7 @@ const router = createHashRouter([
   },
   {
     path: "/port",
-    element: <ReactEngineComponent root={root} locale="en"/>
+    element: <Port root={root} locale="en"/>
   },
 ],
 );
