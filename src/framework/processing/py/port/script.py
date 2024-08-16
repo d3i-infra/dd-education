@@ -9,6 +9,7 @@ import port.chatgpt as chatgpt
 import port.youtube as youtube
 import port.instagram as instagram
 import port.netflix as netflix
+import port.whatsapp as whatsapp
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,6 +40,9 @@ def process(_):
 
             if selection_result.value == "Netflix":
                 yield from netflix.script()
+
+            if selection_result.value == "Whatsapp group chat analyzer":
+                yield from whatsapp.script()
 
         yield render_end_page()
 
@@ -88,6 +92,7 @@ Click on one of the platforms below and start exploring!
         props.RadioItem(id = 2, value = "YouTube"),
         props.RadioItem(id = 3, value = "Instagram"),
         props.RadioItem(id = 4, value = "Netflix"),
+        props.RadioItem(id = 5, value = "Whatsapp group chat analyzer"),
     ]
     
     return props.PropsUIPromptRadioInput(title = title, description = description, items = items)

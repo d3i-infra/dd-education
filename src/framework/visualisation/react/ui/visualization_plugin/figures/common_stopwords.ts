@@ -511,8 +511,19 @@ export const de = [
   'zum',
   'zur',
   'zwar',
-  'zwischen'
+  'zwischen',
 ]
 
-const stopwords = [...nl, ...en, ...de]
+export const other = [
+  'votes)',
+  'vote)',
+  '<media',
+  'omitted>',
+  'poll:',
+  'weet',
+  'option:',
+]
+
+
+const stopwords = [...nl, ...en, ...de, ...other]
 export default stopwords
