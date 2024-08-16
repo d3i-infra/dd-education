@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/dd-education/static/css/main.fb0070ec.css",
-    "main.js": "/dd-education/static/js/main.5a35657d.js",
+    "main.js": "/dd-education/static/js/main.714cb2ae.js",
     "static/js/120.a7d39374.chunk.js": "/dd-education/static/js/120.a7d39374.chunk.js",
     "static/media/hero.svg": "/dd-education/static/media/hero.6f5dbc11837457351e4c9fc6a185b311.svg",
     "static/media/Finador-BlackOblique.woff": "/dd-education/static/media/Finador-BlackOblique.8e3feb4617564028ac09.woff",
@@ -37,20 +37,17 @@
     "static/media/uva_logo.png": "/dd-education/static/media/uva_logo.ab45c6079152e9683afe.png",
     "static/media/py_worker.js": "/dd-education/static/media/py_worker.4716db372115667b91cf.js",
     "index.html": "/dd-education/index.html",
-    "static/media/delete.svg": "/dd-education/static/media/delete.52e6851b1a65c25db5a603cd9988d336.svg",
-    "static/media/check_active.svg": "/dd-education/static/media/check_active.960826e06093589f13a939cd11c7a1af.svg",
     "static/media/undo.svg": "/dd-education/static/media/undo.7711178100058d5fe1926827dfdd12d6.svg",
     "static/media/forward.svg": "/dd-education/static/media/forward.34ff20a946ccbd1ece34dd21d7b67753.svg",
     "static/media/radio_active.svg": "/dd-education/static/media/radio_active.c0fc948096ad99ce42251580aa8fd219.svg",
     "static/media/back.svg": "/dd-education/static/media/back.da58add26f133b17074fc3c8bc19b1d4.svg",
-    "static/media/check.svg": "/dd-education/static/media/check.62d1e3846cf9f4002c37c986555f222e.svg",
     "static/media/radio.svg": "/dd-education/static/media/radio.a8976f7cd2094465a9e60270572060bb.svg",
     "main.fb0070ec.css.map": "/dd-education/static/css/main.fb0070ec.css.map",
-    "main.5a35657d.js.map": "/dd-education/static/js/main.5a35657d.js.map",
+    "main.714cb2ae.js.map": "/dd-education/static/js/main.714cb2ae.js.map",
     "120.a7d39374.chunk.js.map": "/dd-education/static/js/120.a7d39374.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.fb0070ec.css",
-    "static/js/main.5a35657d.js"
+    "static/js/main.714cb2ae.js"
   ]
 }
