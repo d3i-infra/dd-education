@@ -39,9 +39,11 @@ export const Instructions = (props: Props): JSX.Element => {
           {description}
         </div>
       </div>
-      <div className='flex items-center justify-center min-h-screen bg-gray-100'>
-        <img src={imageUrl} alt='Instructions' className='max-w-s'></img>
-      </div>
+      {imageUrl && (
+       <div className='flex items-center justify-center min-h-screen bg-gray-100'>
+         <img src={imageUrl} alt='Instructions' className='max-w-s'></img>
+       </div>
+      )}
       <div className='mt-8' />
       <div className='flex flex-row gap-4'>
         <PrimaryButton label={continueButton} onClick={handleConfirm} enabled={true} spinning={waiting} />

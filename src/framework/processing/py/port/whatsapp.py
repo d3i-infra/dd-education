@@ -150,50 +150,41 @@ def remove_empty_chats(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def filter_username(df: pd.DataFrame, username: str) -> pd.DataFrame:
-    """
-    Extracts unique usersnames from chat dataframe
-    """
-    df = df.drop(df[df.name != username].index)
-    df = df.reset_index(drop=True)
-
-    return df
-
-
-def split_dataframe(df: pd.DataFrame, row_count: int) -> list[pd.DataFrame]:
-    """
-    Split a pandas DataFrame into multiple based on a preset row_count.
-    """
-    print('split_dataframe test')
-    # Calculate the number of splits needed.
-    num_splits = int(len(df) / row_count) + (len(df) % row_count > 0)
-
-    # Split the DataFrame into chunks of size row_count.
-    df_splits = [df[i*row_count:(i+1)*row_count].reset_index(drop=True) for i in range(num_splits)]
-
-    return df_splits
-
-
 def extract_users(df: pd.DataFrame) -> list[str]:
     """
+    Extracts unique usernames from chat dataframe
+    Because parsing chats through regex is unreliable
+
+    Non users can be detected This is an attempt to filter those out
+    Non users are detected in the following case:
+
+    timestamp - henk changed group name from bla to "blabla:
+    everything from "- " up to ":" is detected as a username
+    which in case of this system message is false
+    one could go and account for all system messages in all languages. 
+    But thats a fools errand
+    """
+    detected_users: list[str] = list(set(df["name"]))
+
+    non_users = []
+    for user in detected_users:
+        for entry in detected_users:
+            if bool(re.match(f"{user} ", f"{entry}")):
+                non_users.append(entry)
+
+                
+    real_users = list(set(detected_users) - set(non_users))
+
+    return real_users # pyright: ignore
+
+
+def keep_users(df: pd.DataFrame, usernames: [str]) -> pd.DataFrame: # pyright: ignore
+    """
     Extracts unique usersnames from chat dataframe
     """
-    return list(set(df["name"]))
+    df = df[df.name.isin(usernames)] # pyright: ignore
+    df = df.reset_index(drop=True)
 
-
-def reverse_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Extracts unique usersnames from chat dataframe
-    """
-    df = df.sort_values('date',ascending=False)
-    return df
-
-
-def remove_date_column(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Removing the date column from the chat dataframe
-    """
-    df = df.drop(columns=["date"])
     return df
 
 
@@ -299,17 +290,17 @@ def parse_chat(path_to_chat: str) -> pd.DataFrame:
         return pd.DataFrame(out)
 
 
+
 def find_emojis(df):
     out = pd.DataFrame()
     try:
 
         emojis = []
-        for text in df['Message']:
+        for text in df['chat_message']:
             chars = EMOJI_PATTERN.findall(text)
             emojis.extend(chars)
 
         emoji_counter = Counter(emojis)
-        print(emoji_counter)
         most_common_emojis = emoji_counter.most_common(100)
         out = pd.DataFrame(most_common_emojis, columns=['Emoji', 'Count'])
 
@@ -319,79 +310,174 @@ def find_emojis(df):
     return out
 
 
+# USER STATISTIC EXTRACTION
+
+
+def who_reacted_to_you_the_most(df: pd.DataFrame, name_react: str) -> str:
+    reacted = []
+    names = df["name"]
+    for i, name in enumerate(names):
+        if i > 0:
+            if name != name_react and names[i-1] == name_react:
+                reacted.append(name)
+
+    r = Counter(reacted).most_common(1)
+    who_reacted_to_you_the_most = ""
+    if len(r) > 0:
+        who_reacted_to_you_the_most, _ = r[0]
+
+    return who_reacted_to_you_the_most
+
+
+def who_you_reacted_to_the_most(df: pd.DataFrame, name_react: str) -> str:
+    reacted = []
+    names = df["name"]
+    for i, name in enumerate(names):
+        if i > 0:
+            if name == name_react and names[i-1] != name_react:
+                reacted.append(names[i-1])
+
+    r = Counter(reacted).most_common(1)
+    who_you_reacted_to_the_most = ""
+    if len(r) > 0:
+        who_you_reacted_to_the_most, _ = r[0]
+
+    return who_you_reacted_to_the_most
+
+
+def total_number_of_messages(df: pd.DataFrame, name: str) -> int:
+    messages = df[df["name"] == name]["chat_message"]
+    return(len(messages))
+
+
+def total_number_of_words(df: pd.DataFrame, name: str) -> int:
+    messages = df[df["name"] == name]["chat_message"]
+    total_number_of_words = 0
+
+    for message in messages:
+        total_number_of_words += len(message.split())
+
+    return total_number_of_words
+
+
+def favorite_emoji(df: pd.DataFrame, name: str) -> str:
+    messages = df[df["name"] == name]["chat_message"]
+    emojis = []
+
+    for message in messages:
+        emojis.extend(EMOJI_PATTERN.findall(message))
+
+    emoji_counter_list = Counter(emojis).most_common(1)
+    most_common_emoji = ""
+    if len(emoji_counter_list) > 0:
+        most_common_emoji, _ = emoji_counter_list[0]
+
+    return most_common_emoji
+
+
+def user_statistics_to_df(df, user):
+    statistics = [
+        ("who reacted to you the most", who_reacted_to_you_the_most(df, user)),
+        ("who you reacted to the most", who_you_reacted_to_the_most(df, user)),
+        ("total number of messages you send", total_number_of_messages(df, user)),
+        ("total number of words you send", total_number_of_words(df, user)),
+        ("The emoji you used most", favorite_emoji(df, user)),
+    ]
+    return pd.DataFrame(statistics, columns=["Description", "Statistic"])
+
+
+
 
 # EXTRACTION LOGIC
 
 def extraction(df: pd.DataFrame) -> list[props.PropsUIPromptConsentFormTable]:
     tables_to_render = []
     
-    # column names of df are:
-    # * date 
-    # * name
-    # * chat_message
-    df = df.rename(columns={
-        "date": "Timestamp",
-        "name": "Name",
-        "chat_message": "Message",
-    })
-	
-    wordcloud = {
-        "title": {
-            "en": "Most common words in your chats", 
-            "nl": "Most common words in your chats", 
-          },
-        "type": "wordcloud",
-        "textColumn": "Message",
-        "tokenize": True,
-    }
+    if not df.empty:
 
-    which_month = {
-    "title": {
-        "en": "Total chats per month of the year",
-        "nl": "Total chats per month of the year",
-    },
-    "type": "area",
-    "group": {
-        "column": "Timestamp",
-        "dateFormat": "month"
-    },
-    "values": [{}]
-    }
+        # column names of df are:
+        # * date 
+        # * name
+        # * chat_message
+        df_chat = df.rename(columns={
+            "date": "Timestamp",
+            "name": "Name",
+            "chat_message": "Message",
+        })
+        
+        wordcloud = {
+            "title": {
+                "en": "Most common words in your chats", 
+                "nl": "Most common words in your chats", 
+              },
+            "type": "wordcloud",
+            "textColumn": "Message",
+            "tokenize": True,
+        }
 
-    at_what_time = {
+        which_month = {
         "title": {
-            "en": "Total chats per hour of the day",
-            "nl": "Total chats per hour of the day"
+            "en": "Total chats per month of the year",
+            "nl": "Total chats per month of the year",
         },
-        "type": "bar",
+        "type": "area",
         "group": {
             "column": "Timestamp",
-            "dateFormat": "hour_cycle"
+            "dateFormat": "month"
         },
         "values": [{}]
-    }
+        }
 
-    table_title = props.Translatable({"en": "Your group chat", "nl": "Your group chat"})
-    table_description = props.Translatable({
-        "en": "The contents of your group chat. Try searching for stuff in your group chat, the figures should change accordingly! Timestamps (and therefore some tables) can be incorrect as it assumes the European format.",
-        "nl": "The contents of your group chat. Try searching for stuff in your group chat, the figures should change accordingly! Timestamps (and therefore some tables) can be incorrect as it assumes the European format.",
-    })
-    table = props.PropsUIPromptConsentFormTable("whatsapp", table_title, df, table_description, [wordcloud, which_month, at_what_time])
-    tables_to_render.append(table)
+        at_what_time = {
+            "title": {
+                "en": "Total chats per hour of the day",
+                "nl": "Total chats per hour of the day"
+            },
+            "type": "bar",
+            "group": {
+                "column": "Timestamp",
+                "dateFormat": "hour_cycle"
+            },
+            "values": [{}]
+        }
 
-    df = find_emojis(df)
-    if not df.empty:
+        table_title = props.Translatable({"en": "Your group chat", "nl": "Your group chat"})
+        table_description = props.Translatable({
+            "en": "The contents of your group chat. Try searching for stuff in your group chat, the figures should change accordingly! Timestamps (and therefore some tables) can be incorrect as it assumes the European format.",
+            "nl": "The contents of your group chat. Try searching for stuff in your group chat, the figures should change accordingly! Timestamps (and therefore some tables) can be incorrect as it assumes the European format.",
+        })
+        table = props.PropsUIPromptConsentFormTable("jdjdj", table_title, df_chat, table_description, [wordcloud, which_month, at_what_time])
+        tables_to_render.append(table)
+
+    df_emoji = find_emojis(df)
+    if not df_emoji.empty:
         table_title = props.Translatable(
             {
                 "en": "The 100 most used emojis in the group",
-                "nl": "The 100 most emojis used in the group"
+                "nl": "The 100 most used emojis in the group",
             }
         )
         table_description = props.Translatable({
             "en": "",
             "nl": "",
         })
-        table = props.PropsUIPromptConsentFormTable("whaasdtsapp", table_title, df, table_description, [])
+        table = props.PropsUIPromptConsentFormTable("ksdksd", table_title, df_emoji, table_description, [])
+        tables_to_render.append(table)
+
+    users = extract_users(df)
+    for i, user in enumerate(users):
+        df_statistics = user_statistics_to_df(df, user)
+        table_title = props.Translatable(
+            {
+                "en": f"Chat statistics for user: {user}",
+                "nl": f"Chat statistics for user: {user}",
+            }
+        )
+        table_description = props.Translatable({
+            "en": f"",
+            "nl": f"",
+        })
+        table = props.PropsUIPromptConsentFormTable(f"asd{i}", table_title, df_statistics, table_description, [])
         tables_to_render.append(table)
 
     return tables_to_render
@@ -416,13 +502,13 @@ RETRY_HEADER = props.Translatable({
 
 
 CONSENT_FORM_DESCRIPTION = props.Translatable({
-   "en": "Below you will find a the contents of your group chat", 
-   "nl": "Below you will find a the contents of your group chat", 
+   "en": "Below you will find a the contents of your group chat and some fun statistics about your group!", 
+   "nl": "Below you will find a the contents of your group chat and some fun statistics about your group", 
 })
 
 INSTRUCTION_DESCRIPTION = props.Translatable({
-    "en": "Please follow the instructions below carefully! \nClick on the button “Continue” at the bottom of this page when you are ready to go to the next step.",
-    "nl": "Please follow the instructions below carefully! \nClick on the button “Continue” at the bottom of this page when you are ready to go to the next step.",
+    "en": "In order to download a group chat from WhatsApp. Go to Whatsapp on your Android of iOS device, and export the group chat. If it went well you should have receive a zipfile containing your chat. You can use this module to analyze your group chat and provide you with some insight into your group. Such as, which emoji's you used most. Or who is the most active in the group! Note that data will never leave your own personal device. If you encounter problems or crashes please let us know!",
+    "nl": "In order to download a group chat from WhatsApp. Go to Whatsapp on your Android of iOS device, and export the group chat. If it went well you should have receive a zipfile containing your chat. You can use this module to analyze your group chat and provide you with some insight into your group. Such as, which emoji's you used most. Or who is the most active in the group! Note that data will never leave your own personal device. If you encounter problems or crashes please let us know!",
 })
 
 INSTRUCTION_HEADER = props.Translatable({
@@ -448,7 +534,10 @@ def script():
 
             df = parse_chat(file_result.value)
             if not df.empty:
+
                 df = remove_empty_chats(df)
+                users = extract_users(df)
+                df = keep_users(df, users)
                 table_list = extraction(df)
 
             if df.empty:
