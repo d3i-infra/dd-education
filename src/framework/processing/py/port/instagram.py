@@ -403,10 +403,10 @@ def extraction(instagram_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
             "type": "area",
             "group": {
                 "column": "Date",
-                "dateFormat": "auto"
+                "dateFormat": "auto",
             },
             "values": [{
-                "label": "count",
+                "label": "Count",
                 "aggregate": "count",
             }]
         }
@@ -419,9 +419,12 @@ def extraction(instagram_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
             "type": "bar",
             "group": {
                 "column": "Date",
-                "dateFormat": "hour_cycle"
+                "dateFormat": "hour_cycle",
+                "label": "Hour of the day",
             },
-            "values": [{}]
+            "values": [{
+                "label": "Count"
+            }]
         }
 
         table =  props.PropsUIPromptConsentFormTable("instagram_posts_viewed", table_title, df, table_description, [total_watched, hour_of_the_day]) 
@@ -450,7 +453,7 @@ def extraction(instagram_zip: str) -> list[props.PropsUIPromptConsentFormTable]:
             },
             "values": [{
                 "aggregate": "count",
-                "label": "count"
+                "label": "Count"
             }]
         }
 
