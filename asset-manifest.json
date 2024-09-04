@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/dd-education/static/css/main.fb0070ec.css",
-    "main.js": "/dd-education/static/js/main.714cb2ae.js",
+    "main.js": "/dd-education/static/js/main.d2c59ac7.js",
     "static/js/120.a7d39374.chunk.js": "/dd-education/static/js/120.a7d39374.chunk.js",
     "static/media/hero.svg": "/dd-education/static/media/hero.6f5dbc11837457351e4c9fc6a185b311.svg",
     "static/media/Finador-BlackOblique.woff": "/dd-education/static/media/Finador-BlackOblique.8e3feb4617564028ac09.woff",
@@ -43,11 +43,11 @@
     "static/media/back.svg": "/dd-education/static/media/back.da58add26f133b17074fc3c8bc19b1d4.svg",
     "static/media/radio.svg": "/dd-education/static/media/radio.a8976f7cd2094465a9e60270572060bb.svg",
     "main.fb0070ec.css.map": "/dd-education/static/css/main.fb0070ec.css.map",
-    "main.714cb2ae.js.map": "/dd-education/static/js/main.714cb2ae.js.map",
+    "main.d2c59ac7.js.map": "/dd-education/static/js/main.d2c59ac7.js.map",
     "120.a7d39374.chunk.js.map": "/dd-education/static/js/120.a7d39374.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.fb0070ec.css",
-    "static/js/main.714cb2ae.js"
+    "static/js/main.d2c59ac7.js"
   ]
 }
