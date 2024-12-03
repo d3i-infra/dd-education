@@ -169,7 +169,7 @@ def extract_users(df: pd.DataFrame) -> list[str]:
     non_users = []
     for user in detected_users:
         for entry in detected_users:
-            if bool(re.match(f"{user} ", f"{entry}")):
+            if bool(re.match(f"{re.escape(user)} ", f"{entry}")):
                 non_users.append(entry)
 
                 

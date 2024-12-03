@@ -463,7 +463,7 @@ def extraction(chatgpt_zip: str, validation: ValidateInput) -> list[props.PropsU
             "type": "area",
             "group": {
                 "column": "Date standard format",
-                "dateFormat": "month"
+                "dateFormat": "auto"
             },
             "values": [{
                 "aggregate": "count", 
