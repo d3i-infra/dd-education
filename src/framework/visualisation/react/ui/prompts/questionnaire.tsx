@@ -68,13 +68,13 @@ export const Questionnaire = (props: Props): JSX.Element => {
 
   return (
     <div>
-      <div className='flex-wrap text-bodylarge font-body text-grey1 text-left'>
+      <div class='flex-wrap text-bodylarge font-body text-grey1 text-left'>
         {copy.description}
       </div>
       <div>
         {renderQuestions()}
       </div>
-      <div className='flex flex-row gap-4 mt-4 mb-4'>
+      <div class='flex flex-row gap-4 mt-4 mb-4'>
         <PrimaryButton label={copy.continueLabel} onClick={handleDonate} color='bg-success text-white' />
       </div>
     </div>

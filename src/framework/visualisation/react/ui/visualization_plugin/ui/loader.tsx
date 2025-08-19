@@ -1,11 +1,11 @@
 export function Loader (): JSX.Element {
   return (
-    <div className='flex justify-center items-center gap-6'>
-      <div className='w-10 h-10'>
+    <div class='flex justify-center items-center gap-6'>
+      <div class='w-10 h-10'>
         <div role='status'>
           <svg
             aria-hidden='true'
-            className='w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-primary'
+            class='w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-primary'
             viewBox='0 0 100 101'
             fill='none'
             xmlns='http://www.w3.org/2000/svg'
@@ -19,7 +19,7 @@ export function Loader (): JSX.Element {
               fill='currentFill'
             />
           </svg>
-          <span className='sr-only'>Loading...</span>
+          <span class='sr-only'>Loading...</span>
         </div>
       </div>
     </div>

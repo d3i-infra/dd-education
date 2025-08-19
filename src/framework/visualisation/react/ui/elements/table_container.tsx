@@ -75,37 +75,37 @@ export const TableContainer = ({ id, table, updateTable, locale }: TableContaine
   return (
     <div
       key={table.id}
-      className="p-3 md:p-4 lg:p-6 flex flex-col gap-4 w-full overflow-hidden border-[0.2rem] border-grey4 rounded-lg"
+      class="p-3 md:p-4 lg:p-6 flex flex-col gap-4 w-full overflow-hidden border-[0.2rem] border-grey4 rounded-lg"
     >
-      <div className="flex flex-wrap ">
-        <div key="Title" className="flex sm:flex-row justify-between w-full gap-1 mb-2">
+      <div class="flex flex-wrap ">
+        <div key="Title" class="flex sm:flex-row justify-between w-full gap-1 mb-2">
           <Title4 text={table.title} margin="" />
 
           {unfilteredRows > 0 ? (
             <SearchBar placeholder={text.searchPlaceholder} search={search} onSearch={setSearch} />
           ) : null}
         </div>
-        <div key="Description" className="flex flex-col w-full mb-2 text-base md:text-lg font-body max-w-2xl">
+        <div key="Description" class="flex flex-col w-full mb-2 text-base md:text-lg font-body max-w-2xl">
           <p>{table.description}</p>
         </div>
-        <div key="TableSummary" className="flex items-center justify-between w-full mt-1 pt-1 rounded ">
+        <div key="TableSummary" class="flex items-center justify-between w-full mt-1 pt-1 rounded ">
           <TableItems table={table} searchedTable={searchedTable} handleUndo={handleUndo} locale={locale} />
 
           <button
             key={show ? "animate" : ""}
-            className={`flex end gap-3 animate-fadeIn ${unfilteredRows === 0 ? "hidden" : ""}`}
+            class={`flex end gap-3 animate-fadeIn ${unfilteredRows === 0 ? "hidden" : ""}`}
             onClick={() => setShow(!show)}
           >
-            <div key="zoomIcon" className="text-primary">
+            <div key="zoomIcon" class="text-primary">
               {show ? zoomOutIcon : zoomInIcon}
             </div>
-            <div key="zoomText" className="text-right hidden md:block">
+            <div key="zoomText" class="text-right hidden md:block">
               {show ? text.hideTable : text.showTable}
             </div>
           </button>
         </div>
-        <div key="Table" className="w-full">
-          <div className="">
+        <div key="Table" class="w-full">
+          <div class="">
             <Table
               show={show}
               table={searchedTable}
@@ -119,7 +119,7 @@ export const TableContainer = ({ id, table, updateTable, locale }: TableContaine
         </div>
         <div
           key="Visualizations"
-          className={`pt-2 grid w-full gap-4 transition-all ${
+          class={`pt-2 grid w-full gap-4 transition-all ${
             tableVisualizations.length > 0 && unfilteredRows > 0 ? "" : "hidden"
           }`}
         >
@@ -192,7 +192,7 @@ function searchRows(rows: PropsUITableRow[], search: string): Set<string> | unde
 
 const zoomInIcon = (
   <svg
-    className="h-6 w-6"
+    class="h-6 w-6"
     fill="none"
     stroke="currentColor"
     strokeWidth="2"
@@ -210,7 +210,7 @@ const zoomInIcon = (
 
 const zoomOutIcon = (
   <svg
-    className="h-6 w-6"
+    class="h-6 w-6"
     fill="none"
     stroke="currentColor"
     strokeWidth="2"

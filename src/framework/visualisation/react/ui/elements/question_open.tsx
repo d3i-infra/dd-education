@@ -33,13 +33,13 @@ export const OpenQuestion = (props: Props): JSX.Element => {
   })
 
   return (
-    <div className="p-4">
+    <div class="p-4">
       <Title3 text={copy.question} />
       <input
         type="text"
         value={userAnswer}
         onChange={handleInputChange}
-        className="w-full px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-md resize-none h-16"
+        class="w-full px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-md resize-none h-16"
       />
     </div>
   );

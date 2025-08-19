@@ -51,7 +51,7 @@ export default function RechartsGraph ({ visualizationData, locale }: Props): JS
     return (
       <>
         <XAxis dataKey={visualizationData.xKey} minTickGap={minTickGap} fontSize={12}>
-          <Label className=' font-bold text-sm' value={xLabel} offset={-6} position='insideBottom' />
+          <Label class=' font-bold text-sm' value={xLabel} offset={-6} position='insideBottom' />
         </XAxis>
         <YAxis yAxisId='left' tickFormatter={tickFormatter} fontSize={12} />
       </>

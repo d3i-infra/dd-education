@@ -31,25 +31,25 @@ export const TableItems = ({ table, searchedTable, handleUndo, locale }: Props):
   }
 
   return (
-    <div className='flex  min-w-[200px] gap-1'>
-      <div className='flex items-center'>{tableIcon}</div>
+    <div class='flex  min-w-[200px] gap-1'>
+      <div class='flex items-center'>{tableIcon}</div>
       <div
         key={`${totalLabel}_${deleted}`}
-        className='flex flex-wrap items-center px-2  gap-x-2 animate-fadeIn text-title7 md:text-title6 font-label'
+        class='flex flex-wrap items-center px-2  gap-x-2 animate-fadeIn text-title7 md:text-title6 font-label'
       >
-        <div className={n > 0 ? '' : 'hidden'}>
+        <div class={n > 0 ? '' : 'hidden'}>
           {table.head.cells.length} {text.columns},
         </div>
-        <div key={totalLabel} className='animate-fadeIn'>
+        <div key={totalLabel} class='animate-fadeIn'>
           {rowsLabel()}
           {deleted > 0 ? ',' : ''}
         </div>
 
-        <div className={`flex text-grey2 ${deleted > 0 ? '' : 'hidden'}`}>
+        <div class={`flex text-grey2 ${deleted > 0 ? '' : 'hidden'}`}>
           {deletedLabel}
           <img
             src={UndoSvg}
-            className='w-5 h-5 -translate-y-[2px] md:-translate-y-0 -translate-x-[3px] ml-2'
+            class='w-5 h-5 -translate-y-[2px] md:-translate-y-0 -translate-x-[3px] ml-2'
             onClick={handleUndo}
           />
         </div>
@@ -59,7 +59,7 @@ export const TableItems = ({ table, searchedTable, handleUndo, locale }: Props):
 }
 
 const tableIcon = (
-  <svg className='h-9' viewBox='4 4 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'>
+  <svg class='h-9' viewBox='4 4 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'>
     <rect x='9' y='9' width='4' height='2' fill='#4272EF' />
     <rect x='9' y='13' width='4' height='2' fill='#4272EF' />
     <rect x='9' y='17' width='4' height='2' fill='#4272EF' />

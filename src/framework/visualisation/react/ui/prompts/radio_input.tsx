@@ -54,25 +54,25 @@ export const RadioInput = (props: Props): JSX.Element => {
 
   return (
     <>
-      <div className='mt-8' />
+      <div class='mt-8' />
       <div id='select-panel'>
-        <div className='flex-wrap text-bodylarge'>
-            <ReactMarkdown className="prose lg:prose-xl">
+        <div class='flex-wrap text-bodylarge'>
+            <ReactMarkdown class="prose lg:prose-xl">
                 { description }
             </ReactMarkdown>
         </div>
-        <div className='mt-4' />
-        <div className='mb-5 text-title5 font-title5 sm:text-title4 sm:font-title4 lg:text-title3 lg:font-title3 text-grey1'>
+        <div class='mt-4' />
+        <div class='mb-5 text-title5 font-title5 sm:text-title4 sm:font-title4 lg:text-title3 lg:font-title3 text-grey1'>
           {title}
         </div>
         <div>
-          <div id='radio-group' className='flex flex-col gap-3'>
+          <div id='radio-group' class='flex flex-col gap-3'>
             {renderItems(items)}
           </div>
         </div>
       </div>
-      <div className='mt-8' />
-      <div className={`flex flex-row gap-4 ${checked ? '' : 'opacity-30'}`}>
+      <div class='mt-8' />
+      <div class={`flex flex-row gap-4 ${checked ? '' : 'opacity-30'}`}>
         <PrimaryButton label={continueButton} onClick={handleConfirm} enabled={checked} spinning={waiting} />
       </div>
     </>

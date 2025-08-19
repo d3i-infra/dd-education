@@ -32,7 +32,7 @@ export const EndPage = (props: Props): JSX.Element => {
     <Page
       body={body}
     />
-  <div className="flex flex-row gap-4">
+  <div class="flex flex-row gap-4">
     <PrimaryButton
       label="Restart"
       onClick={handleClick}

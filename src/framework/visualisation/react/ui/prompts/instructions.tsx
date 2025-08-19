@@ -35,17 +35,17 @@ export const Instructions = (props: Props): JSX.Element => {
   return (
     <>
       <div id='select-panel'>
-        <div className='flex-wrap text-bodylarge font-body text-grey1 text-left'>
+        <div class='flex-wrap text-bodylarge font-body text-grey1 text-left'>
           {description}
         </div>
       </div>
       {imageUrl && (
-       <div className='flex items-center justify-center min-h-screen bg-gray-100'>
-         <img src={imageUrl} alt='Instructions' className='max-w-s'></img>
+       <div class='flex items-center justify-center min-h-screen bg-gray-100'>
+         <img src={imageUrl} alt='Instructions' class='max-w-s'></img>
        </div>
       )}
-      <div className='mt-8' />
-      <div className='flex flex-row gap-4'>
+      <div class='mt-8' />
+      <div class='flex flex-row gap-4'>
         <PrimaryButton label={continueButton} onClick={handleConfirm} enabled={true} spinning={waiting} />
       </div>
     </>

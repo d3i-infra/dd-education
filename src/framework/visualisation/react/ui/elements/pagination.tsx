@@ -11,22 +11,22 @@ export const Pagination = ({ page, setPage, nPages }: Props): JSX.Element => {
   }
 
   return (
-    <div className={`flex items-center gap-1 lg:gap-3 p-3 ${nPages <= 1 ? 'invisible' : ''}`}>
-      <button className={activeButton(page > 0)} onClick={() => setPage(Math.max(page - 10, 0))}>
+    <div class={`flex items-center gap-1 lg:gap-3 p-3 ${nPages <= 1 ? 'invisible' : ''}`}>
+      <button class={activeButton(page > 0)} onClick={() => setPage(Math.max(page - 10, 0))}>
         {doubleBackward}
       </button>
-      <button className={activeButton(page > 0)} onClick={() => setPage(Math.max(page - 1, 0))}>
+      <button class={activeButton(page > 0)} onClick={() => setPage(Math.max(page - 1, 0))}>
         {backward}
       </button>
-      <div className='text-center min-w-[2rem] font-title6 text-title6 h-5'>{page + 1}</div>
+      <div class='text-center min-w-[2rem] font-title6 text-title6 h-5'>{page + 1}</div>
       <button
-        className={activeButton(page < nPages - 1)}
+        class={activeButton(page < nPages - 1)}
         onClick={() => setPage(Math.min(page + 1, nPages - 1))}
       >
         {forward}
       </button>
       <button
-        className={activeButton(page < nPages - 1)}
+        class={activeButton(page < nPages - 1)}
         onClick={() => setPage(Math.min(page + 10, nPages - 1))}
       >
         {doubleForward}
@@ -37,7 +37,7 @@ export const Pagination = ({ page, setPage, nPages }: Props): JSX.Element => {
 
 const backward = (
   <svg
-    className=' h-4'
+    class=' h-4'
     aria-hidden='true'
     xmlns='http://www.w3.org/2000/svg'
     fill='none'
@@ -54,7 +54,7 @@ const backward = (
 )
 const doubleBackward = (
   <svg
-    className='h-4'
+    class='h-4'
     aria-hidden='true'
     xmlns='http://www.w3.org/2000/svg'
     fill='none'
@@ -71,7 +71,7 @@ const doubleBackward = (
 )
 const forward = (
   <svg
-    className='h-4 '
+    class='h-4 '
     aria-hidden='true'
     xmlns='http://www.w3.org/2000/svg'
     fill='none'
@@ -88,7 +88,7 @@ const forward = (
 )
 const doubleForward = (
   <svg
-    className='h-4 '
+    class='h-4 '
     aria-hidden='true'
     xmlns='http://www.w3.org/2000/svg'
     fill='none'

@@ -14,9 +14,9 @@ export const PageIcon = ({ index, selected, onClick }: Props): JSX.Element => {
   }
 
   return (
-    <div className={`rounded ${width()} h-8 cursor-pointer flex-shrink-0 overflow-hidden ${selected ? 'bg-primary' : 'bg-grey5 '}`} onClick={onClick}>
-      <div className='flex flex-row items-center justify-center w-full h-full'>
-        <div className={`text-label font-label ${selected ? 'text-white' : 'text-grey2'}`}>
+    <div class={`rounded ${width()} h-8 cursor-pointer flex-shrink-0 overflow-hidden ${selected ? 'bg-primary' : 'bg-grey5 '}`} onClick={onClick}>
+      <div class='flex flex-row items-center justify-center w-full h-full'>
+        <div class={`text-label font-label ${selected ? 'text-white' : 'text-grey2'}`}>
           {`${index}`}
         </div>
       </div>

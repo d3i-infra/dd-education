@@ -10,9 +10,9 @@ export const SearchBar = ({ search, onSearch, placeholder }: Weak<PropsUISearchB
 
   return (
     <form>
-      <div className='flex flex-row '>
+      <div class='flex flex-row '>
         <input
-          className={`text-grey1  font-body pl-3 pr-3 w-full border-2 border-solid border-grey3 
+          class={`text-grey1  font-body pl-3 pr-3 w-full border-2 border-solid border-grey3 
           focus:outline-none focus:border-primary rounded-lg h-44px`}
           placeholder={placeholder ?? ''}
           // name="query"  // autcomplete popup is annoying

@@ -100,25 +100,25 @@ export const FigureComponent = ({
     return <div />
   }
   if (status === 'error') {
-    return <div className='flex justify-center items-center text-error'>{errorMsg}</div>
+    return <div class='flex justify-center items-center text-error'>{errorMsg}</div>
   }
 
   let height = visualization.height ?? 250
   if (showStatus === 'double') height = height * 2
 
   return (
-    <div className=' max-w overflow-hidden  bg-grey6 rounded-md border-[0.2rem] border-grey4'>
-      <div className='flex justify-between'>
-        <h6 className='font-bold p-3 mb-2'>{translate(visualization.title, locale)}</h6>
-        <button onClick={toggleDouble} className={showStatus !== 'hidden' && canDouble ? 'text-primary' : 'hidden'}>
+    <div class=' max-w overflow-hidden  bg-grey6 rounded-md border-[0.2rem] border-grey4'>
+      <div class='flex justify-between'>
+        <h6 class='font-bold p-3 mb-2'>{translate(visualization.title, locale)}</h6>
+        <button onClick={toggleDouble} class={showStatus !== 'hidden' && canDouble ? 'text-primary' : 'hidden'}>
           {showStatus === 'double' ? zoomOutIcon : zoomInIcon}
         </button>
       </div>
-      <div className='w-full overflow-auto'>
-        <div className='flex flex-col '>
+      <div class='w-full overflow-auto'>
+        <div class='flex flex-col '>
           <div
             // ref={ref}
-            className='grid relative z-50 w-full pr-1  min-w-[500px]'
+            class='grid relative z-50 w-full pr-1  min-w-[500px]'
             style={{ gridTemplateRows: String(height) + 'px' }}
           >
             <RenderVisualization
@@ -148,7 +148,7 @@ export const RenderVisualization = memo(
   }): JSX.Element | null => {
     if (visualizationData == null) return null
 
-    const fallback = <div className='m-auto font-bodybold text-4xl text-grey2 '>{fallbackMessage}</div>
+    const fallback = <div class='m-auto font-bodybold text-4xl text-grey2 '>{fallbackMessage}</div>
 
     if (loading) return null
 

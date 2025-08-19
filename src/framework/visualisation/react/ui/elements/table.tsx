@@ -99,7 +99,7 @@ export const Table = ({
   function renderHeaderCell (value: string, i: number): JSX.Element {
     return (
       <th key={`header ${i}`}>
-        <div className={`text-left ${cellClass}`}>
+        <div class={`text-left ${cellClass}`}>
           <div>{value}</div>
         </div>
       </th>
@@ -110,15 +110,15 @@ export const Table = ({
     if (item == null && i >= unfilteredRows) return null
     if (item == null) {
       return (
-        <tr key={`{empty ${i}`} className='border-b-2 border-grey4'>
+        <tr key={`{empty ${i}`} class='border-b-2 border-grey4'>
           <td>
-            <div className={cellClass} />
+            <div class={cellClass} />
           </td>
         </tr>
       )
     }
     return (
-      <tr key={item.id} className='border-b-2 border-grey4 border-solid'>
+      <tr key={item.id} class='border-b-2 border-grey4 border-solid'>
         <td key='select'>
         </td>
 
@@ -151,15 +151,15 @@ export const Table = ({
   return (
     <div
       ref={ref}
-      className='grid grid-cols-1 transition-[grid,color] duration-500 relative overflow-hidden text-sm md:text-base'
+      class='grid grid-cols-1 transition-[grid,color] duration-500 relative overflow-hidden text-sm md:text-base'
     >
-      <div ref={innerRef} className={`h-min ${unfilteredRows === 0 ? 'invisible' : ''}`}>
-        <div className='my-2 bg-grey6 rounded-md border-grey4 border-[0.2rem]'>
-          <div className='p-3 pt-1 pb-2 max-w-full overflow-x-auto'>
-            <table className='table-fixed min-w-full '>
-              <thead className=''>
-                <tr className='border-b-2 border-grey4 border-solid'>
-                  <td className='w-8'>
+      <div ref={innerRef} class={`h-min ${unfilteredRows === 0 ? 'invisible' : ''}`}>
+        <div class='my-2 bg-grey6 rounded-md border-grey4 border-[0.2rem]'>
+          <div class='p-3 pt-1 pb-2 max-w-full overflow-x-auto'>
+            <table class='table-fixed min-w-full '>
+              <thead class=''>
+                <tr class='border-b-2 border-grey4 border-solid'>
+                  <td class='w-8'>
                   </td>
                   {columnNames.map(renderHeaderCell)}
                 </tr>
@@ -167,12 +167,12 @@ export const Table = ({
               <tbody>{items.map(renderRow)}</tbody>
             </table>
           </div>
-          <div className='px-3 pb-1 flex justify-between min-h-[2.5rem]'>
+          <div class='px-3 pb-1 flex justify-between min-h-[2.5rem]'>
             <Pagination page={page} setPage={setPage} nPages={nPages} />
           </div>
         </div>
         <div
-          className={`${
+          class={`${
             tooltip.show ? '' : 'invisible'
           } break-all fixed bg-[#222a] -translate-x-2 -translate-y-2 p-2  rounded text-white backdrop-blur-[2px] z-20 max-w-[20rem] pointer-events-none overflow-auto font-table-row`}
           style={{ left: tooltip.x, top: tooltip.y } as any}
@@ -239,15 +239,15 @@ function Cell ({
 
   return (
     <div
-      className={`relative ${cellClass}`}
+      class={`relative ${cellClass}`}
       onMouseEnter={onSetTooltip}
       onMouseLeave={onRmTooltip}
       onClick={onSetTooltip}
     >
-      <div ref={textRef} className='whitespace-nowrap max-w-[15rem] overflow-hidden overflow-ellipsis z-10'>
+      <div ref={textRef} class='whitespace-nowrap max-w-[15rem] overflow-hidden overflow-ellipsis z-10'>
         {isUrl
           ? (
-            <a href={cell} className='text-primary' target='_blank' rel='noopener noreferrer'>
+            <a href={cell} class='text-primary' target='_blank' rel='noopener noreferrer'>
               <Highlighter
                 searchWords={searchWords}
                 autoEscape
@@ -273,7 +273,7 @@ function Cell ({
 function TooltipIcon (): JSX.Element {
   return (
     <svg
-      className='w-3 h-3 mb-1 text-gray-800 dark:text-white'
+      class='w-3 h-3 mb-1 text-gray-800 dark:text-white'
       aria-hidden='true'
       xmlns='http://www.w3.org/2000/svg'
       fill='none'
@@ -302,12 +302,12 @@ function IconButton (props: {
   const disabled = props.disabled ?? false
   return (
     <div
-      className={`flex items-center gap-2 cursor-pointer  ${props.color} animate-fadeIn md:text-button ${
+      class={`flex items-center gap-2 cursor-pointer  ${props.color} animate-fadeIn md:text-button ${
         disabled ? 'opacity-50' : ''
       }`}
       onClick={() => !disabled && props.onClick()}
     >
-      <img src={props.icon} className='w-7 h-7 ml-1 md:w-9 md:h-9 md:ml-0 -translate-x-[3px]' />
+      <img src={props.icon} class='w-7 h-7 ml-1 md:w-9 md:h-9 md:ml-0 -translate-x-[3px]' />
       {props.label}
     </div>
   )

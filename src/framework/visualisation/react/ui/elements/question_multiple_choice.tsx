@@ -34,19 +34,19 @@ export const MultipleChoiceQuestion = (props: Props): JSX.Element => {
   })
 
   return (
-    <div className="p-4">
+    <div class="p-4">
       <Title3 text={copy.question}/>
-      <ul className="mt-4 space-y-1">
+      <ul class="mt-4 space-y-1">
         {copy.choices.map((choice, index) => (
           <li key={index}>
-            <label className="inline-flex items-center">
+            <label class="inline-flex items-center">
               <input
                 type="radio"
                 name={`${index}-${id}`}
                 value={choice}
                 checked={checkedArray.at(index)}
                 onChange={() => handleChoiceSelect(choice, index)}
-                className="mr-1 form-radio"
+                class="mr-1 form-radio"
               />
             </label>
             {choice}

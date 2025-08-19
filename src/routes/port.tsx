@@ -14,6 +14,14 @@ const Port = ({ root, locale }: { root: ReactDOM.Root, locale: string }) => {
     if (!workerRef.current) {
       const workerFile = new URL('../framework/processing/py_worker.js', import.meta.url);
       workerRef.current = new Worker(workerFile);
+      
+      // Pass only the URL to the worker
+      const portUrl = import.meta.env.VITE_PORT_URL || "https://d3i-infra.github.io/dd-education/port-0.0.0-py3-none-any.whl"
+      
+      workerRef.current.postMessage({
+        eventType: 'sendPortUrl',
+        portUrl: portUrl
+      })
     }
 
     const run = (bridge: Bridge, locale: string): void => {

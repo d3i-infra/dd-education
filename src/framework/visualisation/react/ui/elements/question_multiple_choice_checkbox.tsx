@@ -43,19 +43,19 @@ export const MultipleChoiceQuestionCheckbox = (props: Props): JSX.Element => {
   };
 
   return (
-    <div className="p-4">
+    <div class="p-4">
       <Title3 text={copy.question} />
-      <ul className="mt-4 space-y-1">
+      <ul class="mt-4 space-y-1">
         {copy.choices.map((choice, index) => (
           <li key={index}>
-            <label className="flex items-center">
+            <label class="flex items-center">
               <input
                 type="checkbox"
                 name="choice"
                 value={choice}
                 checked={selectedChoices.includes(choice)}
                 onChange={handleChoiceSelect}
-                className="mr-1 form-checkbox"
+                class="mr-1 form-checkbox"
               />
               {choice}
             </label>

@@ -1,6 +1,6 @@
 export const zoomInIcon = (
   <svg
-    className='h-6 w-6'
+    class='h-6 w-6'
     fill='none'
     stroke='currentColor'
     strokeWidth='2'
@@ -18,7 +18,7 @@ export const zoomInIcon = (
 
 export const zoomOutIcon = (
   <svg
-    className='h-6 w-6'
+    class='h-6 w-6'
     fill='none'
     stroke='currentColor'
     strokeWidth='2'

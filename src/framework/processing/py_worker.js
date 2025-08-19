@@ -1,4 +1,5 @@
 let pyScript
+let portUrl
 
 onmessage = (event) => {
   const { eventType } = event.data
@@ -7,6 +8,11 @@ onmessage = (event) => {
       initialise().then(() => {
         self.postMessage({ eventType: 'initialiseDone' })
       })
+      break
+
+    case 'sendPortUrl':
+      portUrl = event.data.portUrl
+      console.log('[ProcessingWorker] port url received: ', portUrl)
       break
 
     case 'firstRunCycle':
@@ -107,7 +113,7 @@ function installPortPackage() {
   console.log('[ProcessingWorker] load port package')
   return self.pyodide.runPythonAsync(`
     import micropip
-    await micropip.install("/port-0.0.0-py3-none-any.whl", deps=False)
+    await micropip.install("${portUrl}", deps=False)
     import port
   `);  
 }

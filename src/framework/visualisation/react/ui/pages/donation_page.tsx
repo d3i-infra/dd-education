@@ -61,8 +61,8 @@ export const DonationPage = (props: Props): JSX.Element => {
     if (props.footer != null) {
       return <Footer
       right={
-        <div className='flex flex-row'>
-          <div className='flex-grow' />
+        <div class='flex flex-row'>
+          <div class='flex-grow' />
           <ForwardButton label={forwardButton} onClick={handleSkip} />
         </div>
       } />

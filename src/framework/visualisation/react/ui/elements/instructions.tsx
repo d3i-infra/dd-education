@@ -32,7 +32,7 @@ export const Instructions = (props: Props): JSX.Element => {
   function renderContent (): JSX.Element {
     return (
       <>
-        <div className='flex flex-col gap-4 text-bodymedium font-body text-grey2'>
+        <div class='flex flex-col gap-4 text-bodymedium font-body text-grey2'>
           {renderBullets(bullets[platform][locale])}
           {links[platform][locale]}
         </div>
@@ -41,13 +41,13 @@ export const Instructions = (props: Props): JSX.Element => {
   }
 
   return (
-    <div className='flex flex-col gap-6 p-8 border-2 border-grey4 rounded'>
-      <div className='flex flex-row gap-8 items-center'>
-        <div className='flex-grow'>
+    <div class='flex flex-col gap-6 p-8 border-2 border-grey4 rounded'>
+      <div class='flex flex-row gap-8 items-center'>
+        <div class='flex-grow'>
           <Title3 text={title} margin='' />
         </div>
-        <div className='h-12'>
-          <img className='h-12' src={icon[platform]} />
+        <div class='h-12'>
+          <img class='h-12' src={icon[platform]} />
         </div>
       </div>
       {renderContent()}
@@ -145,11 +145,11 @@ const bullets: Record<string, Record<string, string[]>> = {
 }
 
 function linkEn (link: string): JSX.Element {
-  return <div>Click <span className='text-primary underline'><a href={link} target='_blank' rel='noreferrer'>here</a></span> for more extensive instructions</div>
+  return <div>Click <span class='text-primary underline'><a href={link} target='_blank' rel='noreferrer'>here</a></span> for more extensive instructions</div>
 }
 
 function linkNl (link: string): JSX.Element {
-  return <div>Klik <span className='text-primary underline'><a href={link} target='_blank' rel='noreferrer'>hier</a></span> voor uitgebreidere instructies</div>
+  return <div>Klik <span class='text-primary underline'><a href={link} target='_blank' rel='noreferrer'>hier</a></span> voor uitgebreidere instructies</div>
 }
 
 const links: Record<string, Record<string, JSX.Element>> = {

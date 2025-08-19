@@ -170,13 +170,13 @@ export const ConsentForm = (props: Props): JSX.Element => {
 
   return (
     <>
-      <div className="max-w-3xl">
+      <div class="max-w-3xl">
         {description.split("\n").map((line, index) => (
           <BodyLarge key={"description" + String(index)} text={line} />
         ))}
       </div>
-      <div className="flex flex-col gap-16 w-full">
-        <div className="grid gap-8 max-w-full">
+      <div class="flex flex-col gap-16 w-full">
+        <div class="grid gap-8 max-w-full">
           {tables.map((table) => {
             return (
               <TableContainer key={table.id} id={table.id} table={table} updateTable={updateTable} locale={locale} />
@@ -186,7 +186,7 @@ export const ConsentForm = (props: Props): JSX.Element => {
         <div>
           <BodyLarge margin="" text={donateQuestion} />
 
-          <div className="flex flex-row gap-4 mt-4 mb-4">
+          <div class="flex flex-row gap-4 mt-4 mb-4">
             <PrimaryButton
               label={donateButton}
               onClick={handleDonate}

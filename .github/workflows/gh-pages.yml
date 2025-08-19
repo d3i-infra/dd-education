@@ -1,32 +1,39 @@
 name: Build and Deploy to GitHub Pages
-
 on:
   push:
     branches:
       - master
-
 permissions:
   contents: write
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
       REACT_APP_BUILD: standalone
       NODE_ENV: development
-
     steps:
       - uses: actions/checkout@v3
-
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.3.0'
+          cache: 'npm'
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11.3'
+      
       - name: Install dependencies
-        run: npm i && pip3 install poetry
-
+        run: npm i --legacy-peer-deps && pip3 install poetry
+      
       - name: Build release
         run: npm run release
-
+      
       - name: Unpack release
         run: unzip -o release.zip -d build
-
+      
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
