@@ -1,5 +1,6 @@
 import { VisualizationType, VisualizationData, Table } from '../types'
 import { useEffect, useState } from 'react'
+import VisualizationWorker from './visualizationDataWorker.ts?worker&inline'
 
 type Status = 'loading' | 'success' | 'error'
 
@@ -12,7 +13,7 @@ export default function useVisualizationData (
   const [worker, setWorker] = useState<Worker>()
 
   useEffect(() => {
-    const worker = new Worker(new URL('./visualizationDataWorker.ts', import.meta.url))
+    const worker = new VisualizationWorker()
     setWorker(worker)
     return () => {
       worker.terminate()

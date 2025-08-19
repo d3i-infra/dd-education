@@ -27,23 +27,16 @@
     "zod": "^3.22.4"
   },
   "scripts": {
-    "prepare": "husky install",
-    "check:ts": "ts-standard --env jest",
-    "fix:ts": "ts-standard --env jest --fix",
-    "clean": "rm -rf ./build",
     "build:css": "NODE_ENV=production tailwindcss build -i ./src/framework/styles.css -o ./build/styles.css --minify",
     "build:wheel": "cd src/framework/processing/py && poetry build --format wheel",
     "build:install-wheel": "cp -R src/framework/processing/py/dist/. ./public",
     "build:py": "npm run build:wheel && npm run build:install-wheel",
-    "build:app": "react-scripts build",
+    "build:app": "vite build",
     "start:py": "nodemon --ext py --exec \"npm run build:py\"",
-    "start:app": "react-scripts start",
-    "start": "concurrently 'npm run start:py' 'npm run start:app'",
+    "start": "concurrently 'npm run start:py' 'vite'",
     "build": "npm run build:py && npm run build:app && npm run build:css",
     "archive": "cd build && rm -f release.zip && zip -r ../release.zip .",
-    "release": "npm run build && npm run archive",
-    "test": "react-scripts test",
-    "lint": "npm run fix:ts"
+    "release": "npm run build && npm run archive"
   },
   "browserslist": {
     "production": [
@@ -61,15 +54,16 @@
     "@tailwindcss/typography": "^0.5.13",
     "@types/lodash": "^4.14.185",
     "@types/react-highlight-words": "^0.16.7",
+    "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.12",
     "husky": "^8.0.1",
     "nodemon": "^2.0.20",
     "postcss": "^8.4.16",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
     "tailwindcss": "^3.1.8",
-    "ts-standard": "^11.0.0"
+    "ts-standard": "^11.0.0",
+    "vite": "^7.1.2"
   },
   "ts-standard": {
     "project": "./tsconfig.json",
