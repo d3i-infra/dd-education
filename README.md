@@ -6,8 +6,8 @@
 
 # Digital Footprint Explorer
 
-![GitHub last commit](https://img.shields.io/github/last-commit/trbKnl/dd-education)
-![Website](https://img.shields.io/website?url=https%3A%2F%2FtrbKnl.github.io%2Fdd-education)
+![GitHub last commit](https://img.shields.io/github/last-commit/d3i-infra/dd-education)
+![Website](https://img.shields.io/website?url=https%3A%2F%2Fd3i-infra.github.io%2Fdd-education)
 
 Welcome to Digital Footprint Explorer, a tool designed to help you analyze and explore your digital presence across various platforms. This tool provides insights into your online activities, helping you make informed decisions about your digital life.
 
@@ -35,7 +35,7 @@ After the requested data has been retrieved it can be searched and visualized us
 
 ## Getting Started
 
-To use Digital Footprint Explorer, simply visit our [website](https://trbKnl.github.io/dd-education) and click the "Start" button.
+To use Digital Footprint Explorer, simply visit our [website](https://d3i-infra.github.io/dd-education) and click the "Start" button.
 
 ## Usage
 
@@ -46,18 +46,12 @@ To use Digital Footprint Explorer, simply visit our [website](https://trbKnl.git
 
 ## Contributing
 
-We welcome contributions to improve Digital Footprint Explorer. If you'd like to contribute, please follow these steps:
-
-1. Fork the repository
-2. Create a new branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+We welcome contributions to improve Digital Footprint Explorer.
 
 
 ## Contact
 
-Project Link: [datadonation.eu](https://github.com/trbKnl/dd-education)
+Project Link: [datadonation.eu](https://github.com/d3i-infra/dd-education)
 
 ---
 
