@@ -46,7 +46,7 @@ export const LandingPage = () => {
           activities on various platforms, helping you make informed decisions about your digital life.
         </p>
         <p className="text-lg mb-3 text-gray-700">
-                    The tool enables you to explore and visualize data from various platforms, helping you gain insights into your behavior and understand what these platforms collect about you. It provides instructions on how to request and download your data in the correct format. If there are any platforms missing that you’d like to see included—such as for educational purposes or data awareness—please contact us. We’d be happy to add them!
+                    The tool enables you to explore and visualize data from various platforms, helping you gain insights into your behavior and understand what these platforms collect about you. It provides instructions on how to request and download your data in the correct format. If there are any platforms missing that you’d like to see included, such as for educational purposes or data awareness please contact us. We’d be happy to add them!
         </p>
         <p className="text-lg mb-3 text-gray-700">
 Click the button below to start exploring!
@@ -61,6 +61,17 @@ Click the button below to start exploring!
             />
           </div>
 
+                <p className="text-lg mb-3 text-gray-700">
+  The digital footprint explorer is part of{" "}
+      <a
+        href="https://datadonation.eu"
+        className="text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors duration-200"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+    datadonation.eu
+      </a>
+</p>
       </main>
 
       {/* Footer */}

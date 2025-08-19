@@ -22,14 +22,14 @@ export const PrivacyPolicy = () => {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">2. Information We Collect</h2>
           <p className="text-lg text-gray-700 mb-4">
-            We collect no information about you in any form whatsoever
+            We collect <strong>no information about you</strong> in any form whatsoever. No data will be shared with anyone when using the digital footprint explorer.
           </p>
         </section>
 
         <section>
           <h2 className="text-2xl font-semibold mb-4">3. Your Rights</h2>
           <p className="text-lg text-gray-700 mb-4">
-            If you have any questions or remarks please contact: email@email.com
+            If you have any questions or remarks please contact l.boeschoten@uu.nl
           </p>
         </section>
       </main>
