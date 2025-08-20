@@ -7,7 +7,6 @@ import { ReactFactoryContext } from '../../factory'
 import { PropsUIPromptRadioInput } from '../../../../types/prompts'
 import { RadioItem } from '../elements/radio_item'
 import { PrimaryButton } from '../elements/button'
-import ReactMarkdown from "react-markdown";
 
 interface Copy {
   title: string
@@ -53,13 +52,12 @@ export const RadioInput = (props: Props): JSX.Element => {
   }
 
   return (
+
     <>
       <div class='mt-8' />
       <div id='select-panel'>
-        <div class='flex-wrap text-bodylarge'>
-            <ReactMarkdown class="prose lg:prose-xl">
-                { description }
-            </ReactMarkdown>
+        <div class='prose lg:prose-lg flex-wrap text-bodylarge'>
+            <div dangerouslySetInnerHTML={{ __html: description }} />
         </div>
         <div class='mt-4' />
         <div class='mb-5 text-title5 font-title5 sm:text-title4 sm:font-title4 lg:text-title3 lg:font-title3 text-grey1'>

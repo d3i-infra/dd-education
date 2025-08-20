@@ -62,10 +62,12 @@ Welcome! The Digital Footprint Explorer visualizes the digital traces that you l
 
 It works as follows:
 
-* You request a digital copy of your personal data at a platform.
-* You store this data at your own personal device.
-* Next, you open the data using this tool and start exploring!
-* When you are done, you simply close the page.
+<ul>
+  <li>You request a digital copy of your personal data at a platform.</li>
+  <li>You store this data on your own personal device.</li>
+  <li>Next, you open the data using this tool and start exploring!</li>
+  <li>When you are done, you simply close the page.</li>
+</ul>
 
 The tool works locally in the browser of your computer. Never, at any moment, will the data leave your computer! 
 

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 @config "../../tailwind.config.js";
 
 /* Hide scrollbars, because this looks better within Next */
