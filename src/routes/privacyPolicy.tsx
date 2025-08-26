@@ -1,4 +1,3 @@
-import React from 'react';
 import { Footer } from "./components/footer"
 import { NavBar } from "./components/navbar"
 
@@ -29,7 +28,8 @@ export const PrivacyPolicy = () => {
         <section>
           <h2 class="text-2xl font-semibold mb-4">3. Your Rights</h2>
           <p class="text-lg text-gray-700 mb-4">
-            If you have any questions or remarks please contact l.boeschoten@uu.nl
+            If you have any questions or remarks{" "}
+            <a class="underline" href="mailto:l.boeschoten@uu.nl">please contact us</a>
           </p>
         </section>
       </main>
