@@ -6,6 +6,7 @@ import { PropsUIPageDonation } from '../../../../types/pages'
 import { 
     isPropsUIPromptConfirm, 
     isPropsUIPromptConsentForm,
+    isPropsUIPromptIssueForm,
     isPropsUIPromptFileInput,
     isPropsUIPromptRadioInput,
     isPropsUIPromptInstructions,
@@ -16,6 +17,7 @@ import { ForwardButton } from '../elements/button'
 import { Title1 } from '../elements/text'
 import { Confirm } from '../prompts/confirm'
 import { ConsentForm } from '../prompts/consent_form'
+import { IssueForm } from '../prompts/issue_form'
 import { FileInput } from '../prompts/file_input'
 import { Questionnaire } from '../prompts/questionnaire'
 import { RadioInput } from '../prompts/radio_input'
@@ -49,6 +51,9 @@ export const DonationPage = (props: Props): JSX.Element => {
     }
     if (isPropsUIPromptInstructions(body)) {
       return <Instructions {...body} {...context} />
+    }
+    if (isPropsUIPromptIssueForm(body)) {
+      return <IssueForm {...body} {...context} />
     }
     throw new TypeError('Unknown body type')
   }

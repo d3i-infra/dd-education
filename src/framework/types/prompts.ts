@@ -62,6 +62,15 @@ export function isPropsUIPromptConsentForm(arg: any): arg is PropsUIPromptConsen
   return isInstanceOf<PropsUIPromptConsentForm>(arg, "PropsUIPromptConsentForm", ["tables", "metaTables"])
 }
 
+export interface PropsUIPromptIssueForm {
+  __type__: "PropsUIPromptIssueForm"
+  description?: Text
+  tables: PropsUIPromptConsentFormTable[]
+}
+export function isPropsUIPromptIssueForm(arg: any): arg is PropsUIPromptIssueForm {
+  return isInstanceOf<PropsUIPromptIssueForm>(arg, "PropsUIPromptIssueForm", ["tables"])
+}
+
 export interface PropsUIPromptConsentFormTable {
   __type__: "PropsUIPromptConsentFormTable"
   id: string

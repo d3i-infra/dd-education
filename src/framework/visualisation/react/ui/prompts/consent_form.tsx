@@ -9,7 +9,10 @@ import {
 } from "../../../../types/elements"
 import { PropsUIPromptConsentForm, PropsUIPromptConsentFormTable } from "../../../../types/prompts"
 import { PrimaryButton } from "../elements/button"
-import { BodyLarge } from "../elements/text"
+import { 
+    BodyLarge,
+    BodySmall,
+} from "../elements/text"
 import TextBundle from "../../../../text_bundle"
 import { Translator } from "../../../../translator"
 import { ReactFactoryContext } from "../../factory"
@@ -127,6 +130,10 @@ export const ConsentForm = (props: Props): JSX.Element => {
     resolve?.({ __type__: "PayloadFalse", value: false })
   }
 
+  function handleReportIssues(): void {
+    resolve?.({ __type__: "PayloadString", value: "show issue form"})
+  }
+
   function serializeConsentData(): string {
     const array = serializeTables().concat(serializeMetaData())
     return JSON.stringify(array)
@@ -186,13 +193,19 @@ export const ConsentForm = (props: Props): JSX.Element => {
         <div>
           <BodyLarge margin="" text={donateQuestion} />
 
-          <div class="flex flex-row gap-4 mt-4 mb-4">
+          <div class="flex flex-row justify-between items-center mt-4 mb-4">
             <PrimaryButton
               label={donateButton}
               onClick={handleDonate}
               color="bg-success text-white"
               spinning={isDonating}
             />
+            <div class="flex flex-col items-end gap-2">
+              <PrimaryButton
+                label={Translator.translate(reportIssuesButtonLabel, locale)}
+                onClick={handleReportIssues}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -233,3 +246,11 @@ const defaultDescription = new TextBundle()
   )
 
 const cancelButtonLabel = new TextBundle().add("en", "No").add("nl", "Nee")
+
+const reportIssuesButtonLabel = new TextBundle()
+  .add("en", "Report issues")
+  .add("nl", "Rapporteer problemen")
+
+const reportIssuesTextLabel = new TextBundle()
+  .add("en", "Experience problems?")
+  .add("nl", "Problemen?")

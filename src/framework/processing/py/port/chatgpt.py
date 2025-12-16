@@ -210,10 +210,8 @@ def script():
             # Happy flow: Valid DDP
             if validation.status_code.id == 0:
                 logger.info("Payload for %s", platform_name)
-                extraction_result = extraction(file_result.value)
-                extraction_result_all = extraction_all(file_result.value)
-                table_list = extraction_result
-                table_list_all = extraction_result_all
+                table_list = extraction(file_result.value)
+                table_list_all = extraction_all(file_result.value)
                 break
 
             # Enter retry flow, reason: if DDP was not a ChatGPT DDP
@@ -230,6 +228,8 @@ def script():
         else:
             logger.info("Skipped at file selection ending flow")
             break
+
+    yield ph.render_issue_page(file_result.value)
 
     if table_list_all is not None:
         consent_prompt = ph.generate_consent_prompt(table_list_all, CONSENT_FORM_DESCRIPTION_ALL)

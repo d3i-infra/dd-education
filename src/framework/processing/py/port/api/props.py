@@ -152,6 +152,31 @@ class PropsUIPromptConsentForm:
 
 
 @dataclass
+class PropsUIPromptIssueForm:
+    """If persons clicks Report issue form, this is the form that should be shown
+
+    Attributes:
+        tables: a list of tables, to donate. Could be extracted structure from a DDP
+    """
+
+    tables: list[PropsUIPromptConsentFormTable]
+    description: Optional[Translatable] = None
+
+    def translate_tables(self):
+        output = []
+        for table in self.tables:
+            output.append(table.toDict())
+        return output
+
+    def toDict(self):
+        dict = {}
+        dict["__type__"] = "PropsUIPromptIssueForm"
+        dict["tables"] = self.translate_tables()
+        dict["description"] = self.description and self.description.toDict()
+        return dict
+
+
+@dataclass
 class PropsUIPromptFileInput:
     """Prompt the user to submit a file
 
