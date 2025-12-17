@@ -17,7 +17,7 @@ def render_page(header_text: props.Translatable, body):
 
 def generate_retry_prompt(platform: str) -> props.PropsUIPromptConfirm:
     text = props.Translatable({
-        "en": f"Unfortunately, we cannot process your {platform} file. Continue, if you are sure that you selected the right file. Try again to select a different file.",
+        "en": f"Unfortunately, we cannot process your {platform} file. Try again to select a different file. If you are sure you selected the right file, consider reporting the issue!",
         "nl": f"Helaas, kunnen we uw {platform} bestand niet verwerken. Weet u zeker dat u het juiste bestand heeft gekozen? Ga dan verder. Probeer opnieuw als u een ander bestand wilt kiezen."
     })
     ok = props.Translatable({

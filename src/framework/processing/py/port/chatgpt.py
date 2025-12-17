@@ -218,9 +218,11 @@ def script():
             if validation.status_code.id != 0:
                 logger.info("Not a valid %s zip; No payload; prompt retry_confirmation", platform_name)
                 retry_result = yield ph.render_page(RETRY_HEADER, ph.retry_confirmation(platform_name))
-
                 if retry_result.__type__ == "PayloadTrue":
                     continue
+                elif retry_result.value == "show issue form":
+                    yield ph.render_issue_page(platform_name, file_result.value)
+                    return
                 else:
                     logger.info("Skipped during retry flow")
                     break

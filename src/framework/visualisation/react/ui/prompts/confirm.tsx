@@ -15,16 +15,18 @@ export const Confirm = (props: Props): JSX.Element => {
     resolve?.({ __type__: 'PayloadTrue', value: true })
   }
 
-  function handleCancel (): void {
-    resolve?.({ __type__: 'PayloadFalse', value: false })
+  function handleReportIssues(): void {
+    resolve?.({ __type__: "PayloadString", value: "show issue form"})
   }
 
   return (
     <>
       <BodyLarge text={text} margin='mb-4' />
-      <div class='flex flex-row gap-4'>
-        <PrimaryButton label={ok} onClick={handleOk} color='text-grey1 bg-tertiary' />
-        <PrimaryButton label={cancel} onClick={handleCancel} color='text-white bg-primary' />
+      <div class='flex flex-row gap-4 justify-between'>
+        <div class='flex flex-row gap-4'>
+          <PrimaryButton label={ok} onClick={handleOk} color='text-grey1 bg-tertiary' />
+        </div>
+        <PrimaryButton label='Report issues' onClick={handleReportIssues} color='text-white bg-primary' />
       </div>
     </>
   )
