@@ -624,7 +624,10 @@ def script():
     if table_list is not None:
         logger.info("Prompt consent; %s", platform_name)
         consent_prompt = ph.generate_consent_prompt(table_list, CONSENT_FORM_DESCRIPTION)
-        yield ph.render_page(REVIEW_DATA_HEADER, consent_prompt)
+        result = yield ph.render_page(REVIEW_DATA_HEADER, consent_prompt)
+        if result.value == "show issue form":
+            yield ph.render_issue_page(platform_name, file_result.value)
+            return
 
     return
 

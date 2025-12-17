@@ -34,6 +34,9 @@ export const IssueForm = (props: Props): JSX.Element => {
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
     setTables(parseTables(props.tables, locale))
   }, [props.tables, locale])
 
@@ -111,15 +114,16 @@ export const IssueForm = (props: Props): JSX.Element => {
         ))}
       </div>
 
-      <div class="max-w-3xl mt-8">
+      <div class="mt-8">
         <Title4 text={"What is not working or wrong with the extraction?"}/>
         <textarea
           value={issueDescription}
           onChange={(e) => setIssueDescription(e.target.value)}
+          maxLength="3000"
           placeholder={locale === "nl" 
             ? "Beschrijf het probleem dat u heeft gevonden..." 
             : "Describe the issue you found..."}
-          class="w-full min-h-[120px] p-4 border-2 border-grey4 rounded-lg focus:border-primary focus:outline-none resize-none"
+          class="w-full min-h-[120px] p-4 border-2 border-grey4 rounded-lg focus:border-primary focus:outline-none resize-none mb-8"
           rows={4}
         />
       </div>
