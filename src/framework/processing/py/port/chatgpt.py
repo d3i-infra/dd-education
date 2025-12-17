@@ -229,7 +229,7 @@ def script():
             logger.info("Skipped at file selection ending flow")
             break
 
-    yield ph.render_issue_page(file_result.value)
+    yield ph.render_issue_page(platform_name, file_result.value)
 
     if table_list_all is not None:
         consent_prompt = ph.generate_consent_prompt(table_list_all, CONSENT_FORM_DESCRIPTION_ALL)

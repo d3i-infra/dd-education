@@ -118,7 +118,7 @@ def generate_instructions_prompt(description: props.Translatable, image_url: str
         imageUrl=image_url
     )
 
-def render_issue_page(zfile: str):
+def render_issue_page(platform_name: str, zfile: str):
     """
     Renders the issue report page for data extraction problems
     """
@@ -136,8 +136,9 @@ def render_issue_page(zfile: str):
             "Receiving examples of these new file structures is extremely helpful for us to fix the extraction. "
             "The data below shows the file structure we detected in your download package.\n\n"
             "Please review the information below and only submit if you're comfortable sharing this data. "
-            "The file structure information will be securely stored in a SurfDrive folder in the Netherlands "
-            "and will only be used to improve our data extraction process."
+            "The report will be securely stored in a SurfDrive folder in the Netherlands, only used for improving this application"
+            "and will only be used to improve our data extraction process, and then deleted. "
+            "For any questions or remarks email DataDonation@uu.nl"
         ),
         "nl": (
             "Bedankt voor uw interesse in het indienen van een probleemrapport!\n\n"
@@ -211,7 +212,8 @@ def render_issue_page(zfile: str):
         tables_to_render.append(table)
     
     body = props.PropsUIPromptIssueForm(
-        tables_to_render, 
+        platform=platform_name,
+        tables=tables_to_render, 
         description=description
     )
     

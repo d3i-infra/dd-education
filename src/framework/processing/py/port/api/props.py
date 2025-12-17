@@ -159,6 +159,7 @@ class PropsUIPromptIssueForm:
         tables: a list of tables, to donate. Could be extracted structure from a DDP
     """
 
+    platform: str
     tables: list[PropsUIPromptConsentFormTable]
     description: Optional[Translatable] = None
 
@@ -171,6 +172,7 @@ class PropsUIPromptIssueForm:
     def toDict(self):
         dict = {}
         dict["__type__"] = "PropsUIPromptIssueForm"
+        dict["platform"] = self.platform
         dict["tables"] = self.translate_tables()
         dict["description"] = self.description and self.description.toDict()
         return dict

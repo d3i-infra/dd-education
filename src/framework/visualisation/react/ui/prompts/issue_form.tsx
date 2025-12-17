@@ -13,6 +13,7 @@ import { BodyLarge } from "../elements/text"
 import TextBundle from "../../../../text_bundle"
 import { Translator } from "../../../../translator"
 import { ReactFactoryContext } from "../../factory"
+import { Title4 } from "../elements/text"
 import { useEffect, useState } from "react"
 import _ from "lodash"
 
@@ -22,13 +23,15 @@ type Props = Weak<PropsUIPromptConsentForm> &
   ReactFactoryContext
 
 export const IssueForm = (props: Props): JSX.Element => {
-  const { locale, resolve } = props
+  const { locale, platform, resolve } = props
+  const [issueDescription, setIssueDescription] = useState("")
 
   const [tables, setTables] = useState<TableWithContext[]>(() =>
     parseTables(props.tables, locale)
   )
 
   const [isUploading, setIsUploading] = useState(false)
+  const [hasSubmitted, setHasSubmitted] = useState(false)
 
   useEffect(() => {
     setTables(parseTables(props.tables, locale))
@@ -41,7 +44,10 @@ export const IssueForm = (props: Props): JSX.Element => {
 
   function serializeConsentData(): string {
     return JSON.stringify(
-      tables.map((table) => serializeTable(table)),
+      {
+        issue_description: issueDescription,
+        tables: tables.map((table) => serializeTable(table)),
+      },
       null,
       2
     )
@@ -51,7 +57,7 @@ export const IssueForm = (props: Props): JSX.Element => {
     setIsUploading(true)
     
     const timestamp = Date.now()
-    const filename = `consent-data-${timestamp}.json`
+    const filename = `${platform}-${timestamp}.json`
     const url = `https://late-sunset-4214.ncdeschipper.workers.dev?filename=${encodeURIComponent(filename)}`
 
     try {
@@ -74,7 +80,11 @@ export const IssueForm = (props: Props): JSX.Element => {
       alert("Failed to upload file, thanks for trying anyway!")
     } finally {
       setIsUploading(false)
+      setHasSubmitted(true)
     }
+  }
+
+  function handleContinue(): void {
     resolve?.({ __type__: "PayloadTrue", value: true })
   }
 
@@ -101,6 +111,19 @@ export const IssueForm = (props: Props): JSX.Element => {
         ))}
       </div>
 
+      <div class="max-w-3xl mt-8">
+        <Title4 text={"What is not working or wrong with the extraction?"}/>
+        <textarea
+          value={issueDescription}
+          onChange={(e) => setIssueDescription(e.target.value)}
+          placeholder={locale === "nl" 
+            ? "Beschrijf het probleem dat u heeft gevonden..." 
+            : "Describe the issue you found..."}
+          class="w-full min-h-[120px] p-4 border-2 border-grey4 rounded-lg focus:border-primary focus:outline-none resize-none"
+          rows={4}
+        />
+      </div>
+
       <div class="flex flex-col gap-16 w-full">
         <div class="grid gap-8">
           {tables.map((table) => (
@@ -119,12 +142,21 @@ export const IssueForm = (props: Props): JSX.Element => {
         </div>
 
         <div class="flex flex-col items-start gap-2">
+        {!hasSubmitted && (
         <PrimaryButton
           label={isUploading ? "Sending report..." : "Send issue report"}
           onClick={handleUploadData}
-          color="bg-success text-white"
-          disabled={isUploading}
+          color="bg-primary text-white"
+          disabled={isUploading || hasSubmitted}
         />
+        )}
+        {hasSubmitted && (
+          <PrimaryButton
+            label="Continue"
+            onClick={handleContinue}
+            color="bg-success text-white"
+          />
+        )}
       </div>
       </div>
     </>

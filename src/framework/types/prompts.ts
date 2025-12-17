@@ -64,11 +64,12 @@ export function isPropsUIPromptConsentForm(arg: any): arg is PropsUIPromptConsen
 
 export interface PropsUIPromptIssueForm {
   __type__: "PropsUIPromptIssueForm"
+  platform: str
   description?: Text
   tables: PropsUIPromptConsentFormTable[]
 }
 export function isPropsUIPromptIssueForm(arg: any): arg is PropsUIPromptIssueForm {
-  return isInstanceOf<PropsUIPromptIssueForm>(arg, "PropsUIPromptIssueForm", ["tables"])
+  return isInstanceOf<PropsUIPromptIssueForm>(arg, "PropsUIPromptIssueForm", ["platform", "tables"])
 }
 
 export interface PropsUIPromptConsentFormTable {

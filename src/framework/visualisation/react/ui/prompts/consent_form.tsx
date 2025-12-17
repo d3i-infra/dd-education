@@ -26,7 +26,6 @@ import { TableContainer } from "../elements/table_container"
 type Props = Weak<PropsUIPromptConsentForm> & ReactFactoryContext
 
 export const ConsentForm = (props: Props): JSX.Element => {
-  useUnloadWarning()
   const [isDonating, setIsDonating] = useState(false)
   const [tables, setTables] = useState<TableWithContext[]>(() => parseTables(props.tables))
   const [metaTables, setMetaTables] = useState<TableWithContext[]>(() => parseTables(props.metaTables))
@@ -34,6 +33,9 @@ export const ConsentForm = (props: Props): JSX.Element => {
   const { description, donateQuestion, donateButton, cancelButton } = prepareCopy(props)
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
     setIsDonating(false)
     setTables(parseTables(props.tables))
     setMetaTables(parseTables(props.metaTables))
