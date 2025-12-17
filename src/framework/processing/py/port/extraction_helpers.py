@@ -116,35 +116,6 @@ def find_items(d: dict[Any, Any],  key_to_match: str) -> list:
     return out
 
 
-def json_dumper(zfile: str) -> pd.DataFrame:
-    """
-    Reads all json files in zip, flattens them, and put them in a big df
-    """
-    out = pd.DataFrame()
-    datapoints = []
-    try:
-        with zipfile.ZipFile(zfile, "r") as zf:
-            for f in zf.namelist():
-                logger.debug("Contained in zip: %s", f)
-                fp = Path(f)
-                if fp.suffix == ".json":
-                    b = io.BytesIO(zf.read(f))
-                    d = dict_denester(unzipddp.read_json_from_bytes(b))
-                    for k, v in d.items():
-                        datapoints.append({
-                            "file name": fp.name, 
-                            "key": k,
-                            "value": v
-                        })
-
-        out = pd.DataFrame(datapoints)
-
-    except Exception as e:
-        logger.error("Exception was caught:  %s", e)
-
-    return out
-
-
 def fix_ascii_string(input: str) -> str:
     """
     Fixes the string encoding by attempting to encode it ignoring all ascii characters and then decoding it.
@@ -297,68 +268,74 @@ def infer_type(value: Any) -> str:
     return type(value).__name__
 
 
-def process_json_file(filepath: str, json_bytes: io.BytesIO) -> list[dict[str, Any]]:
+def process_json_file(
+    filepath: str,
+    json_bytes: io.BytesIO,
+    infer_types: bool = True,
+) -> list[dict[str, Any]]:
     """
     Process a JSON file by denesting it and extracting field info.
-    
+
     Returns a list of dicts with:
     - filepath: the file path
     - field_name: the denested field name
-    - value: the actual value
-    - inferred_type: the inferred type of the value
+    - inferred_type: the inferred type of the value (or None if disabled)
     """
     results = []
-    
+
     # Read and denest the JSON
     json_data = unzipddp.read_json_from_bytes(json_bytes)
     denested = dict_denester(json_data)
-    
+
     # Process each field
     for field_name, value in denested.items():
         results.append({
-            'filepath': filepath,
-            'field_name': field_name,
-            'inferred_type': infer_type(value)
+            "filepath": filepath,
+            "field_name": field_name,
+            "value": infer_type(value) if infer_types else value,
         })
-    
+
     return results
 
 
-def process_csv_file(filepath: str, csv_bytes: io.BytesIO) -> list[dict[str, Any]]:
+def process_csv_file(
+    filepath: str,
+    csv_bytes: io.BytesIO,
+    infer_types: bool = True,
+) -> list[dict[str, Any]]:
     """
-    Process a CSV file by extracting column names and first values.
-    
+    Process a CSV file by extracting column names and values.
     Returns a list of dicts with:
     - filepath: the file path
-    - column_name: the column name
-    - first_value: the first value in that column
-    - inferred_type: the inferred type of the first value
+    - field_name: the column name (prefixed with row number if infer_types=False)
+    - value: the inferred type (if infer_types=True) or actual value
+    When infer_types=True: processes first row only
+    When infer_types=False: processes all rows
     """
     results = []
-    
     try:
-        # Read CSV from bytes
         csv_bytes.seek(0)
-        content = csv_bytes.read().decode('utf-8')
+        content = csv_bytes.read().decode("utf-8")
         csv_reader = csv.DictReader(io.StringIO(content))
         
-        # Get first row
-        first_row = next(csv_reader, None)
+        rows_to_process = [next(csv_reader, None)] if infer_types else list(csv_reader)
         
-        if first_row:
-            for col_name, value in first_row.items():
-                results.append({
-                    'filepath': filepath,
-                    'column_name': col_name,
-                    'inferred_type': infer_type(value)
-                })
+        for row_idx, row in enumerate(rows_to_process):
+            if row:
+                for col_name, value in row.items():
+                    field_name = col_name if infer_types else f"{row_idx}-{col_name}"
+                    results.append({
+                        "filepath": filepath,
+                        "field_name": field_name,
+                        "value": infer_type(value) if infer_types else value,
+                    })
+                    
     except Exception as e:
         logger.error("Error processing CSV file %s: %s", filepath, e)
-    
     return results
 
 
-def extract_file_structures_from_zip(zfile: str) -> pd.DataFrame:
+def extract_file_structures_from_zip(zfile: str, infer_types: bool = True) -> pd.DataFrame:
     """
     Process all JSON and CSV files in a zip archive.
     
@@ -380,14 +357,14 @@ def extract_file_structures_from_zip(zfile: str) -> pd.DataFrame:
                 if extension == '.json':
                     json_bytes = unzipddp.extract_file_from_zip(zfile, file_path.name)
                     if json_bytes.getvalue():  # Check if buffer is not empty
-                        results = process_json_file(filename, json_bytes)
+                        results = process_json_file(filename, json_bytes, infer_types)
                         all_results.extend(results)
                 
                 # Process CSV files
                 elif extension == '.csv':
                     csv_bytes = unzipddp.extract_file_from_zip(zfile, file_path.name)
                     if csv_bytes.getvalue():  # Check if buffer is not empty
-                        results = process_csv_file(filename, csv_bytes)
+                        results = process_csv_file(filename, csv_bytes, infer_types)
                         all_results.extend(results)
 
         out = pd.DataFrame(all_results)
@@ -398,16 +375,19 @@ def extract_file_structures_from_zip(zfile: str) -> pd.DataFrame:
     
     return out
 
-
-def extract_zip_file_info(zfile: str) -> pd.DataFrame:
+def extract_zip_file_info(
+        zfile: str,
+        python_magic: bool = False
+) -> pd.DataFrame:
     """
     Reads file metadata from all files in a zip and returns a DataFrame.
     
     Args:
         zfile: Path to the zip file
+        python_magic: If True, analyze files with python-magic and include MIME type
         
     Returns:
-        DataFrame with columns: file_path, modified_time, file_size
+        DataFrame with columns: file_path, modified_time, file_size, and optionally mime_type
     """
     datapoints = []
     try:
@@ -422,17 +402,28 @@ def extract_zip_file_info(zfile: str) -> pd.DataFrame:
                 # Convert date_time tuple to datetime
                 modified_time = datetime(*info.date_time)
                 
-                datapoints.append({
+                datapoint = {
                     "file_path": info.filename,
                     "modified_time": modified_time,
                     "file_size": info.file_size
-                })
+                }
+                
+                # Optionally analyze with python-magic
+                if python_magic:
+                    try:
+                        import magic
+                        file_content = zf.read(info.filename)
+                        mime = magic.from_buffer(file_content, mime=True)
+                        datapoint["mime_type"] = mime
+                    except Exception as e:
+                        logger.warning("Failed to determine MIME type for %s: %s", info.filename, e)
+                        datapoint["mime_type"] = None
+                
+                datapoints.append(datapoint)
         
         out = pd.DataFrame(datapoints)
-
     except Exception as e:
         logger.error("Exception was caught: %s", e)
         out = pd.DataFrame()
     
     return out
-

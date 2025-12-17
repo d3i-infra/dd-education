@@ -10,6 +10,7 @@ import port.youtube as youtube
 import port.instagram as instagram
 import port.netflix as netflix
 import port.whatsapp as whatsapp
+import port.general_ddp_analyzer as general_ddp_analyzer
 
 logging.basicConfig(
     level=logging.INFO,
@@ -43,6 +44,9 @@ def process(_):
 
             if selection_result.value == "Whatsapp group chat":
                 yield from whatsapp.script()
+
+            if selection_result.value == "General DDP Analyzer":
+                yield from general_ddp_analyzer.script()
 
         yield render_end_page()
 
@@ -95,6 +99,7 @@ Click on one of the platforms below and start exploring!
         props.RadioItem(id = 3, value = "Instagram"),
         props.RadioItem(id = 4, value = "Netflix"),
         props.RadioItem(id = 5, value = "Whatsapp group chat"),
+        props.RadioItem(id = 5, value = "General DDP Analyzer"),
     ]
     
     return props.PropsUIPromptRadioInput(title = title, description = description, items = items)
