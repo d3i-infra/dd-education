@@ -27,6 +27,34 @@ def convert_unix_timestamp(timestamp: str) -> str:
     return  out
 
 
+def json_dumper(zfile: str) -> pd.DataFrame:
+    """
+    Reads all json files in zip, flattens them, and put them in a big df
+    """
+    out = pd.DataFrame()
+    datapoints = []
+    try:
+        with zipfile.ZipFile(zfile, "r") as zf:
+            for f in zf.namelist():
+                logger.debug("Contained in zip: %s", f)
+                fp = Path(f)
+                if fp.suffix == ".json":
+                    b = io.BytesIO(zf.read(f))
+                    d = dict_denester(unzipddp.read_json_from_bytes(b))
+                    for k, v in d.items():
+                        datapoints.append({
+                            "file name": fp.name, 
+                            "key": k,
+                            "value": v
+                        })
+
+        out = pd.DataFrame(datapoints)
+
+    except Exception as e:
+        logger.error("Exception was caught:  %s", e)
+
+    return out
+
 
 def dict_denester(
     inp: dict[Any, Any] | list[Any],
