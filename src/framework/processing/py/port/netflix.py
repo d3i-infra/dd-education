@@ -91,7 +91,7 @@ def validate_zip(zfile: Path) -> ValidateInput:
             validation.set_status_code_by_id(1)
 
     except zipfile.BadZipFile:
-        validation.set_status_code_by_id(1)
+        validation.set_status_code_by_id(3)
 
     return validation
 
@@ -516,111 +516,6 @@ def extraction(netflix_zip: str, selected_user: str) -> list[props.PropsUIPrompt
     return tables_to_render
 
 
-def extraction_researcher(netflix_zip: str, selected_user: str) -> list[props.PropsUIPromptConsentFormTable]:
-    """
-    Researcher view: aggregate-only tables derived from viewing activity.
-    No individual titles, devices, or session timestamps — only counts and
-    sums per time bucket, suitable for a real donation study.
-    """
-    tables_to_render = []
-
-    df = viewing_activity_to_df(netflix_zip, selected_user)
-
-    # Table 1: hours watched per month
-    try:
-        if not df.empty:
-            df_month = (
-                df.groupby(df["Start tijd"].str[:7])["Aantal uur gekeken"]
-                .sum()
-                .reset_index()
-                .rename(columns={"Start tijd": "Month", "Aantal uur gekeken": "Hours watched"})
-            )
-            if not df_month.empty:
-                table_title = props.Translatable({
-                    "en": "Hours watched per month",
-                    "nl": "Uur gekeken per maand",
-                })
-                table_description = props.Translatable({
-                    "en": "Total hours of Netflix watched each month.",
-                    "nl": "Totaal aantal uur Netflix gekeken per maand.",
-                })
-                chart = {
-                    "title": {"en": "Hours watched per month", "nl": "Uur gekeken per maand"},
-                    "type": "area",
-                    "group": {"column": "Month"},
-                    "values": [{"column": "Hours watched", "label": {"en": "Hours", "nl": "Uur"}}],
-                }
-                table = props.PropsUIPromptConsentFormTable(
-                    "netflix_researcher_monthly", table_title, df_month, table_description, [chart]
-                )
-                tables_to_render.append(table)
-    except Exception as e:
-        logger.error("extraction_researcher monthly error: %s", e)
-
-    # Table 2: viewing by hour of day
-    try:
-        if not df.empty:
-            df_hour = (
-                df["Start tijd"]
-                .apply(lambda x: x[11:13] if isinstance(x, str) and len(x) >= 13 else None)
-                .dropna()
-                .rename("Hour")
-                .to_frame()
-                .groupby("Hour")
-                .size()
-                .reset_index(name="Count")
-            )
-            if not df_hour.empty:
-                table_title = props.Translatable({
-                    "en": "Viewing by hour of day",
-                    "nl": "Kijken per uur van de dag",
-                })
-                table_description = props.Translatable({
-                    "en": "Number of Netflix viewing sessions started at each hour of the day.",
-                    "nl": "Aantal Netflix-kijksessies gestart per uur van de dag.",
-                })
-                chart = {
-                    "title": {"en": "Viewing by hour of day", "nl": "Kijken per uur van de dag"},
-                    "type": "bar",
-                    "group": {"column": "Hour"},
-                    "values": [{"column": "Count", "label": {"en": "Sessions", "nl": "Sessies"}}],
-                }
-                table = props.PropsUIPromptConsentFormTable(
-                    "netflix_researcher_hourly", table_title, df_hour, table_description, [chart]
-                )
-                tables_to_render.append(table)
-    except Exception as e:
-        logger.error("extraction_researcher hourly error: %s", e)
-
-    # Table 3: most watched titles (wordcloud)
-    try:
-        if not df.empty:
-            df_titles = df[["Titel"]].dropna()
-            if not df_titles.empty:
-                table_title = props.Translatable({
-                    "en": "Most watched titles",
-                    "nl": "Meest bekeken titels",
-                })
-                table_description = props.Translatable({
-                    "en": "Frequency of Netflix titles watched.",
-                    "nl": "Hoe vaak Netflix-titels zijn bekeken.",
-                })
-                wordcloud = {
-                    "title": {"en": "Most watched titles", "nl": "Meest bekeken titels"},
-                    "type": "wordcloud",
-                    "textColumn": "Titel",
-                    "tokenize": False,
-                }
-                table = props.PropsUIPromptConsentFormTable(
-                    "netflix_researcher_titles", table_title, df_titles, table_description, [wordcloud]
-                )
-                tables_to_render.append(table)
-    except Exception as e:
-        logger.error("extraction_researcher titles error: %s", e)
-
-    return tables_to_render
-
-
 
 # TEXTS and script
 SUBMIT_FILE_HEADER = props.Translatable({
@@ -654,16 +549,6 @@ INSTRUCTION_HEADER = props.Translatable({
    "nl": "Instructions to request your Netflix data",
 })
 
-RESEARCHER_VIEW_HEADER = props.Translatable({
-    "en": "Your Netflix data — researcher view",
-    "nl": "Uw Netflix gegevens — onderzoekersweergave",
-})
-
-RESEARCHER_DESCRIPTION = props.Translatable({
-    "en": "This view shows only aggregate statistics — the kind of data a researcher would collect in a real data donation study. No individual titles, devices, or viewing sessions are shown.",
-    "nl": "Deze weergave toont alleen geaggregeerde statistieken — het soort gegevens dat een onderzoeker zou verzamelen in een echte datadoneringsstudie.",
-})
-
 
 def prompt_radio_menu_select_username(users):
     """
@@ -687,7 +572,6 @@ def prompt_radio_menu_select_username(users):
 def script():
     platform_name = "Netflix"
     table_list = None
-    table_list_researcher = None
     while True:
         logger.info("Prompt for file for %s", platform_name)
 
@@ -708,14 +592,14 @@ def script():
 
                 if len(users) == 1:
                     selected_user = users[0]
-                    table_list = extraction(file_result.value, selected_user)
-                    table_list_researcher = extraction_researcher(file_result.value, selected_user)
+                    extraction_result = extraction(file_result.value, selected_user)
+                    table_list = extraction_result
                 elif len(users) > 1:
                     selection = yield prompt_radio_menu_select_username(users)
                     if selection.__type__ == "PayloadString":
                         selected_user = selection.value
-                        table_list = extraction(file_result.value, selected_user)
-                        table_list_researcher = extraction_researcher(file_result.value, selected_user)
+                        extraction_result = extraction(file_result.value, selected_user)
+                        table_list = extraction_result
                     else:
                         pass
                 else:
@@ -743,14 +627,6 @@ def script():
         logger.info("Prompt consent; %s", platform_name)
         consent_prompt = ph.generate_consent_prompt(table_list, CONSENT_FORM_DESCRIPTION)
         result = yield ph.render_page(REVIEW_DATA_HEADER, consent_prompt)
-        if result.value == "show issue form":
-            yield ph.render_issue_page(platform_name, file_result.value)
-            return
-
-    if table_list_researcher:
-        logger.info("Prompt researcher consent; %s", platform_name)
-        consent_prompt = ph.generate_consent_prompt(table_list_researcher, RESEARCHER_DESCRIPTION)
-        result = yield ph.render_page(RESEARCHER_VIEW_HEADER, consent_prompt)
         if result.value == "show issue form":
             yield ph.render_issue_page(platform_name, file_result.value)
             return
