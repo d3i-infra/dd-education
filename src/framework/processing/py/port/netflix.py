@@ -594,26 +594,27 @@ def extraction_researcher(netflix_zip: str, selected_user: str) -> list[props.Pr
 
     # Table 3: most watched titles (wordcloud)
     try:
-        df_titles = df[["Titel"]].dropna()
-        if not df_titles.empty:
-            table_title = props.Translatable({
-                "en": "Most watched titles",
-                "nl": "Meest bekeken titels",
-            })
-            table_description = props.Translatable({
-                "en": "Frequency of Netflix titles watched.",
-                "nl": "Hoe vaak Netflix-titels zijn bekeken.",
-            })
-            wordcloud = {
-                "title": {"en": "Most watched titles", "nl": "Meest bekeken titels"},
-                "type": "wordcloud",
-                "textColumn": "Titel",
-                "tokenize": False,
-            }
-            table = props.PropsUIPromptConsentFormTable(
-                "netflix_researcher_titles", table_title, df_titles, table_description, [wordcloud]
-            )
-            tables_to_render.append(table)
+        if not df.empty:
+            df_titles = df[["Titel"]].dropna()
+            if not df_titles.empty:
+                table_title = props.Translatable({
+                    "en": "Most watched titles",
+                    "nl": "Meest bekeken titels",
+                })
+                table_description = props.Translatable({
+                    "en": "Frequency of Netflix titles watched.",
+                    "nl": "Hoe vaak Netflix-titels zijn bekeken.",
+                })
+                wordcloud = {
+                    "title": {"en": "Most watched titles", "nl": "Meest bekeken titels"},
+                    "type": "wordcloud",
+                    "textColumn": "Titel",
+                    "tokenize": False,
+                }
+                table = props.PropsUIPromptConsentFormTable(
+                    "netflix_researcher_titles", table_title, df_titles, table_description, [wordcloud]
+                )
+                tables_to_render.append(table)
     except Exception as e:
         logger.error("extraction_researcher titles error: %s", e)
 
