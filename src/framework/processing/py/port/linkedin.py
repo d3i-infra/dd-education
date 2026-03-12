@@ -9,6 +9,7 @@ import logging
 import io
 import re
 import zipfile
+from pathlib import Path
 
 import pandas as pd
 
@@ -67,6 +68,7 @@ def strip_notes(b: io.BytesIO) -> io.BytesIO:
         return io.BytesIO(content)
     except Exception as e:
         logger.error("strip_notes error: %s", e)
+        b.seek(0)
         return b
 
 
@@ -75,7 +77,8 @@ def validate_zip(zfile: str) -> ValidateInput:
     try:
         paths = []
         with zipfile.ZipFile(zfile, "r") as zf:
-            paths = zf.namelist()
+            for f in zf.namelist():
+                paths.append(Path(f).name)
         if validation.infer_ddp_category(paths):
             validation.set_status_code_by_id(0)
         else:
