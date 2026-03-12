@@ -568,111 +568,6 @@ def extraction(chatgpt_zip: str, validation: ValidateInput) -> list[props.PropsU
     return tables_to_render
 
 
-def extraction_researcher(youtube_zip: str, validation: ValidateInput) -> list[props.PropsUIPromptConsentFormTable]:
-    """
-    Researcher view: aggregate-only tables derived from watch history.
-    No individual video titles, URLs, or search terms — only counts per
-    time bucket and channel frequency, suitable for a real donation study.
-    """
-    tables_to_render = []
-
-    df = watch_history_to_df(youtube_zip, validation)
-
-    # Table 1: videos watched per month
-    try:
-        if not df.empty:
-            df_month = (
-                df.groupby(df["Date standard format"].str[:7])
-                .size()
-                .reset_index(name="Count")
-                .rename(columns={"Date standard format": "Month"})
-            )
-            if not df_month.empty:
-                table_title = props.Translatable({
-                    "en": "Videos watched per month",
-                    "nl": "Video's bekeken per maand",
-                })
-                table_description = props.Translatable({
-                    "en": "Number of YouTube videos watched each month.",
-                    "nl": "Aantal YouTube-video's bekeken per maand.",
-                })
-                chart = {
-                    "title": {"en": "Videos watched per month", "nl": "Video's bekeken per maand"},
-                    "type": "area",
-                    "group": {"column": "Month"},
-                    "values": [{"column": "Count", "label": {"en": "Videos", "nl": "Video's"}}],
-                }
-                table = props.PropsUIPromptConsentFormTable(
-                    "youtube_researcher_monthly", table_title, df_month, table_description, [chart]
-                )
-                tables_to_render.append(table)
-    except Exception as e:
-        logger.error("extraction_researcher monthly error: %s", e)
-
-    # Table 2: most watched channels (wordcloud)
-    try:
-        if not df.empty:
-            df_channels = df[["Channel"]].dropna()
-            if not df_channels.empty:
-                table_title = props.Translatable({
-                    "en": "Most watched channels",
-                    "nl": "Meest bekeken kanalen",
-                })
-                table_description = props.Translatable({
-                    "en": "Frequency of YouTube channels watched.",
-                    "nl": "Hoe vaak YouTube-kanalen zijn bekeken.",
-                })
-                wordcloud = {
-                    "title": {"en": "Most watched channels", "nl": "Meest bekeken kanalen"},
-                    "type": "wordcloud",
-                    "textColumn": "Channel",
-                    "tokenize": False,
-                }
-                table = props.PropsUIPromptConsentFormTable(
-                    "youtube_researcher_channels", table_title, df_channels, table_description, [wordcloud]
-                )
-                tables_to_render.append(table)
-    except Exception as e:
-        logger.error("extraction_researcher channels error: %s", e)
-
-    # Table 3: videos watched by hour of day
-    try:
-        if not df.empty:
-            df_hour = (
-                df["Date standard format"]
-                .apply(lambda x: x[11:13] if isinstance(x, str) and len(x) >= 13 else None)
-                .dropna()
-                .rename("Hour")
-                .to_frame()
-                .groupby("Hour")
-                .size()
-                .reset_index(name="Count")
-            )
-            if not df_hour.empty:
-                table_title = props.Translatable({
-                    "en": "Videos watched by hour of day",
-                    "nl": "Video's bekeken per uur van de dag",
-                })
-                table_description = props.Translatable({
-                    "en": "Number of YouTube videos watched at each hour of the day.",
-                    "nl": "Aantal YouTube-video's bekeken per uur van de dag.",
-                })
-                chart = {
-                    "title": {"en": "Videos watched by hour of day", "nl": "Video's bekeken per uur van de dag"},
-                    "type": "bar",
-                    "group": {"column": "Hour"},
-                    "values": [{"column": "Count", "label": {"en": "Videos", "nl": "Video's"}}],
-                }
-                table = props.PropsUIPromptConsentFormTable(
-                    "youtube_researcher_hourly", table_title, df_hour, table_description, [chart]
-                )
-                tables_to_render.append(table)
-    except Exception as e:
-        logger.error("extraction_researcher hourly error: %s", e)
-
-    return tables_to_render
-
-
 # TEXTS and script
 SUBMIT_FILE_HEADER = props.Translatable({
     "en": "Select your YouTube file", 
@@ -700,16 +595,6 @@ CONSENT_FORM_DESCRIPTION_ALL = props.Translatable({
    "nl": ""
 })
 
-RESEARCHER_VIEW_HEADER = props.Translatable({
-    "en": "Your YouTube data — researcher view",
-    "nl": "Uw YouTube gegevens — onderzoekersweergave",
-})
-
-RESEARCHER_DESCRIPTION = props.Translatable({
-    "en": "This view shows only aggregate statistics — the kind of data a researcher would collect in a real data donation study. No individual videos, URLs, or search queries are shown.",
-    "nl": "Deze weergave toont alleen geaggregeerde statistieken — het soort gegevens dat een onderzoeker zou verzamelen in een echte datadoneringsstudie. Er worden geen individuele video's, URL's of zoektermen getoond.",
-})
-
 INSTRUCTION_DESCRIPTION = props.Translatable({
     "en": "Please follow the instructions below carefully! \nClick on the button “Continue” at the bottom of this page when you are ready to go to the next step.",
     "nl": "Please follow the instructions below carefully! \nClick on the button “Continue” at the bottom of this page when you are ready to go to the next step.",
@@ -724,7 +609,6 @@ INSTRUCTION_HEADER = props.Translatable({
 def script():
     platform_name = "YouTube"
     table_list = None
-    table_list_researcher = None
     while True:
         logger.info("Prompt for file for %s", platform_name)
 
@@ -742,7 +626,6 @@ def script():
                 logger.info("Payload for %s", platform_name)
                 extraction_result = extraction(file_result.value, validation)
                 table_list = extraction_result
-                table_list_researcher = extraction_researcher(file_result.value, validation)
                 break
 
             # Enter retry flow, reason: if DDP was not a YouTube DDP
@@ -766,14 +649,6 @@ def script():
         logger.info("Prompt consent; %s", platform_name)
         consent_prompt = ph.generate_consent_prompt(table_list, CONSENT_FORM_DESCRIPTION)
         result = yield ph.render_page(REVIEW_DATA_HEADER, consent_prompt)
-        if result.value == "show issue form":
-            yield ph.render_issue_page(platform_name, file_result.value)
-            return
-
-    if table_list_researcher:
-        logger.info("Prompt researcher consent; %s", platform_name)
-        consent_prompt = ph.generate_consent_prompt(table_list_researcher, RESEARCHER_DESCRIPTION)
-        result = yield ph.render_page(RESEARCHER_VIEW_HEADER, consent_prompt)
         if result.value == "show issue form":
             yield ph.render_issue_page(platform_name, file_result.value)
             return
