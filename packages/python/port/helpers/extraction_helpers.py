@@ -722,3 +722,71 @@ class ZipArchiveReader:
 
         b = self._read_member_bytes(member)
         return RawExtractionResult(found=True, data=b, member_path=member)
+
+
+def extract_file_structures_from_zip(
+    zip_path: str, infer_types: bool = True
+) -> pd.DataFrame:
+    """Extract field names and optionally infer value types from all JSON/CSV files in a ZIP.
+
+    Returns a DataFrame with columns: filepath, field_name, value.
+    If infer_types is True, values are replaced with their Python type names.
+    """
+    results = []
+    try:
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            for member in zf.namelist():
+                if member.endswith("/"):
+                    continue
+                lower = member.lower()
+                try:
+                    if lower.endswith(".json"):
+                        raw = zf.read(member)
+                        data = json.loads(raw.decode("utf-8-sig"))
+                        flat = dict_denester(data)
+                        for key, value in flat.items():
+                            v = type(value).__name__ if infer_types else value
+                            results.append({"filepath": member, "field_name": key, "value": v})
+                    elif lower.endswith(".csv"):
+                        raw = zf.read(member).decode("utf-8-sig")
+                        reader = csv.DictReader(io.StringIO(raw))
+                        first_row = next(reader, None)
+                        if first_row:
+                            for key, value in first_row.items():
+                                v = type(value).__name__ if infer_types else value
+                                results.append({"filepath": member, "field_name": key, "value": v})
+                except Exception:
+                    logger.warning("Could not process %s in zip", member)
+    except zipfile.BadZipFile:
+        logger.warning("Bad zip file: %s", zip_path)
+
+    return pd.DataFrame(results) if results else pd.DataFrame(columns=["filepath", "field_name", "value"])
+
+
+def extract_zip_file_info(zip_path: str) -> pd.DataFrame:
+    """Extract metadata for all files in a ZIP archive.
+
+    Returns a DataFrame with columns: file_path, modified_time, file_size, mime_type.
+    Uses mimetypes stdlib for MIME detection (safe for Pyodide).
+    """
+    import mimetypes
+
+    results = []
+    try:
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            for info in zf.infolist():
+                if info.is_dir():
+                    continue
+                mime, _ = mimetypes.guess_type(info.filename)
+                results.append({
+                    "file_path": info.filename,
+                    "modified_time": "{:04d}-{:02d}-{:02d} {:02d}:{:02d}".format(*info.date_time[:5]),
+                    "file_size": info.file_size,
+                    "mime_type": mime or "unknown",
+                })
+    except zipfile.BadZipFile:
+        logger.warning("Bad zip file: %s", zip_path)
+
+    return pd.DataFrame(results) if results else pd.DataFrame(
+        columns=["file_path", "modified_time", "file_size", "mime_type"]
+    )
