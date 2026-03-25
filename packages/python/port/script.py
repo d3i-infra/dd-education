@@ -18,6 +18,7 @@ PLATFORM_MAP: dict[str, tuple[str, str]] = {
     "Instagram": ("port.platforms.instagram", "InstagramFlow"),
     "LinkedIn": ("port.platforms.linkedin", "LinkedInFlow"),
     "WhatsApp": ("port.platforms.whatsapp", "WhatsAppFlow"),
+    "ChatGPT": ("port.platforms.chatgpt", "ChatGPTFlow"),
 }
 
 HEADER = props.Translatable({
