@@ -4,6 +4,7 @@ import { FileInputMultipleFactory } from "./components/file_input_multiple/facto
 import { ErrorPageFactory } from "./components/error_page/factory"
 import { QuestionnaireFactory } from "./components/questionnaire/factory"
 import { RetryPromptFactory } from "./components/retry_prompt/factory"
+import { IssueFormFactory } from "./components/issue_form/factory"
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
                 new ErrorPageFactory(),
                 new QuestionnaireFactory(),
                 new RetryPromptFactory(),
+                new IssueFormFactory(),
             ],
           }),
         ]}
