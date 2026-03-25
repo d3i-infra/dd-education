@@ -14,6 +14,7 @@ import port.helpers.port_helpers as ph
 # Platforms are enabled incrementally — add entries as each platform is validated.
 PLATFORM_MAP: dict[str, tuple[str, str]] = {
     "YouTube": ("port.platforms.youtube", "YouTubeFlow"),
+    "Netflix": ("port.platforms.netflix", "NetflixFlow"),
 }
 
 HEADER = props.Translatable({
