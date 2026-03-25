@@ -3,6 +3,7 @@ import logging
 import port.api.d3i_props as d3i_props
 import port.api.props as props
 from port.api.commands import CommandSystemDonate, CommandSystemExit, CommandSystemLog, CommandUIRender
+from port.api.education_props import PropsUIPromptIssueForm
 
 _logger = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ def render_page(
         | d3i_props.PropsUIPromptFileInputMultiple
         | d3i_props.PropsUIPromptQuestionnaire
         | props.PropsUIPromptConfirm
+        | PropsUIPromptIssueForm
     ),
 ) -> CommandUIRender:
     """
@@ -340,6 +342,111 @@ def render_donate_failure_page(platform_name: str) -> CommandUIRender:
     )
     page = props.PropsUIPageDataSubmission(platform_name, header, body)
     return CommandUIRender(page)
+
+
+def generate_platform_selection_menu(platform_names: list[str]) -> props.PropsUIPromptRadioInput:
+    """Generate the dd-education platform selection radio prompt.
+
+    Args:
+        platform_names: List of platform display names for the radio items.
+    """
+    title = props.Translatable({
+        "en": "Digital Footprint Explorer",
+        "nl": "Digitale Voetafdruk Verkenner",
+    })
+    description = props.Translatable({
+        "en": (
+            "Welcome! The Digital Footprint Explorer visualizes the digital traces "
+            "that you leave behind on the platforms that you use. With this tool you "
+            "can gain a better understanding of your own digital footprint. It works "
+            "as follows:\n\n"
+            "You request a digital copy of your personal data at a platform.\n"
+            "You store this data on your own personal device.\n"
+            "Next, you open the data using this tool and start exploring!\n"
+            "When you are done, you simply close the page.\n\n"
+            "The tool works locally in the browser of your computer. Never, at any "
+            "moment, will the data leave your computer! Click on one of the platforms "
+            "below and start exploring!"
+        ),
+        "nl": (
+            "Welkom! De Digitale Voetafdruk Verkenner visualiseert de digitale sporen "
+            "die je achterlaat op de platforms die je gebruikt. Met deze tool kun je "
+            "een beter begrip krijgen van je eigen digitale voetafdruk. Het werkt "
+            "als volgt:\n\n"
+            "Je vraagt een digitale kopie van je persoonlijke gegevens op bij een platform.\n"
+            "Je slaat deze gegevens op je eigen apparaat op.\n"
+            "Vervolgens open je de gegevens met deze tool en begin je met verkennen!\n"
+            "Als je klaar bent, sluit je gewoon de pagina.\n\n"
+            "De tool werkt lokaal in de browser van je computer. Nooit zullen je "
+            "gegevens je computer verlaten! Klik op een van de platforms hieronder "
+            "en begin met verkennen!"
+        ),
+    })
+    return generate_radio_prompt(title, description, platform_names)
+
+
+def render_issue_page(platform_name: str, zip_path: str) -> CommandUIRender:
+    """Render issue report form with anonymized file structure from the ZIP."""
+    import port.helpers.extraction_helpers as eh
+
+    file_structures_df = eh.extract_file_structures_from_zip(zip_path, infer_types=True)
+    file_info_df = eh.extract_zip_file_info(zip_path)
+
+    tables = []
+    if not file_structures_df.empty:
+        tables.append(
+            d3i_props.PropsUIPromptConsentFormTableViz(
+                id="file_structures",
+                title=props.Translatable({"en": "Detailed File Structure", "nl": "Gedetailleerde Bestandsstructuur"}),
+                data_frame=file_structures_df,
+                description=props.Translatable({
+                    "en": "This table contains the field names and value types found in the data package. "
+                          "Actual values have been replaced with their data types for privacy.",
+                    "nl": "Deze tabel bevat de veldnamen en waardetypen die in het datapakket zijn gevonden. "
+                          "Werkelijke waarden zijn vervangen door hun datatypes voor privacy.",
+                }),
+            )
+        )
+    if not file_info_df.empty:
+        tables.append(
+            d3i_props.PropsUIPromptConsentFormTableViz(
+                id="file_info",
+                title=props.Translatable({"en": "Folder Structure Overview", "nl": "Overzicht Mapstructuur"}),
+                data_frame=file_info_df,
+                description=props.Translatable({
+                    "en": "This table contains an overview of all files in the data package.",
+                    "nl": "Deze tabel bevat een overzicht van alle bestanden in het datapakket.",
+                }),
+            )
+        )
+
+    issue_form = PropsUIPromptIssueForm(
+        description=props.Translatable({
+            "en": (
+                "We are sorry that the extraction did not work as expected. "
+                "To help us improve, you can send an anonymous issue report.\n\n"
+                "The tables below show the structure of your data package. "
+                "Actual values have been replaced with data types to protect your privacy.\n\n"
+                "This data is stored on SurfDrive in the Netherlands and is used only "
+                "to improve the extraction scripts.\n\n"
+                "Contact: DataDonation@uu.nl"
+            ),
+            "nl": (
+                "Het spijt ons dat de extractie niet werkte zoals verwacht. "
+                "Om ons te helpen verbeteren, kunt u een anoniem probleemrapport sturen.\n\n"
+                "De tabellen hieronder tonen de structuur van uw datapakket. "
+                "Werkelijke waarden zijn vervangen door datatypes om uw privacy te beschermen.\n\n"
+                "Deze gegevens worden opgeslagen op SurfDrive in Nederland en worden alleen "
+                "gebruikt om de extractiescripts te verbeteren.\n\n"
+                "Contact: DataDonation@uu.nl"
+            ),
+        }),
+        tables=tables,
+        platform=platform_name,
+    )
+
+    header_text = props.Translatable({"en": "Issue Report", "nl": "Probleemrapport"})
+    return render_page(header_text, issue_form)
 
 
 def handle_donate_result(result) -> bool:
