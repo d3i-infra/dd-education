@@ -15,6 +15,7 @@ import port.helpers.port_helpers as ph
 PLATFORM_MAP: dict[str, tuple[str, str]] = {
     "YouTube": ("port.platforms.youtube", "YouTubeFlow"),
     "Netflix": ("port.platforms.netflix", "NetflixFlow"),
+    "Instagram": ("port.platforms.instagram", "InstagramFlow"),
 }
 
 HEADER = props.Translatable({
