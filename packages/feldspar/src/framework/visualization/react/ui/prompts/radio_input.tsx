@@ -68,12 +68,7 @@ export const RadioInput = (props: Props): JSX.Element => {
       <div className="mt-8" />
       <div id="select-panel">
         <div className="flex-wrap text-bodylarge font-body text-grey1 text-left">
-          {description.split("\n").map((line, index) => (
-            <React.Fragment key={index}>
-              {line}
-              <br />
-            </React.Fragment>
-          ))}
+          {description}
         </div>
         <div className="mt-4" />
         <div>
