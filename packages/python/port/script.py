@@ -12,7 +12,9 @@ import port.helpers.port_helpers as ph
 
 # Map display name -> (module_path, class_name)
 # Platforms are enabled incrementally — add entries as each platform is validated.
-PLATFORM_MAP: dict[str, tuple[str, str]] = {}
+PLATFORM_MAP: dict[str, tuple[str, str]] = {
+    "YouTube": ("port.platforms.youtube", "YouTubeFlow"),
+}
 
 HEADER = props.Translatable({
     "en": "Digital Footprint Explorer",
