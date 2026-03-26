@@ -394,9 +394,15 @@ def generate_platform_selection_menu(platform_names: list[str]) -> PropsUIPrompt
             "Klik op een van de platforms hieronder en begin met verkennen!"
         ),
     })
+    continue_label = props.Translatable({
+        "en": "Continue",
+        "nl": "Doorgaan",
+        "es": "Continuar",
+    })
     radio_items: list[props.RadioItem] = [{"id": i, "value": name} for i, name in enumerate(platform_names)]
     return PropsUIPromptPlatformSelection(
         title=title, intro=intro, instructions=instructions, footer=footer, items=radio_items,
+        continue_label=continue_label,
     )
 
 

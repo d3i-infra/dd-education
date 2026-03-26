@@ -13,6 +13,7 @@ export interface PropsUIPromptPlatformSelection {
   instructions: Translatable[]
   footer: Translatable
   items: { id: number; value: string }[]
+  continueLabel: Translatable
 }
 
 type Props = PropsUIPromptPlatformSelection & ReactFactoryContext
@@ -23,6 +24,7 @@ export function PlatformSelection({
   instructions,
   footer,
   items,
+  continueLabel,
   locale,
   resolve,
 }: Props): JSX.Element {
@@ -32,7 +34,7 @@ export function PlatformSelection({
   const translatedIntro = Translator.translate(intro, locale)
   const translatedInstructions = instructions.map((instr) => Translator.translate(instr, locale))
   const translatedFooter = Translator.translate(footer, locale)
-  const continueLabel = locale === "nl" ? "Doorgaan" : "Continue"
+  const translatedContinueLabel = Translator.translate(continueLabel, locale)
 
   function handleConfirm(): void {
     if (selectedItem !== null) {
@@ -80,7 +82,7 @@ export function PlatformSelection({
 
       <div className={`flex flex-row gap-4 ${selectedItem !== null ? "" : "opacity-30"}`}>
         <PrimaryButton
-          label={continueLabel}
+          label={translatedContinueLabel}
           onClick={handleConfirm}
           enabled={selectedItem !== null}
           color="text-grey1 bg-tertiary"

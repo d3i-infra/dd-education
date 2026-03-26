@@ -15,6 +15,7 @@ class PropsUIPromptPlatformSelection:
         instructions: unordered list items (rendered as <ul>)
         footer: closing paragraph (privacy assurance + call to action)
         items: radio items for platform selection
+        continue_label: label for the Continue/submit button
     """
 
     title: Translatable
@@ -22,6 +23,7 @@ class PropsUIPromptPlatformSelection:
     instructions: list[Translatable]
     footer: Translatable
     items: list[RadioItem]
+    continue_label: Translatable
 
     def toDict(self):
         dict = {}
@@ -30,5 +32,7 @@ class PropsUIPromptPlatformSelection:
         dict["intro"] = self.intro.toDict()
         dict["instructions"] = [item.toDict() for item in self.instructions]
         dict["footer"] = self.footer.toDict()
+        # RadioItem is a TypedDict (plain dict) — no .toDict() needed
         dict["items"] = self.items
+        dict["continueLabel"] = self.continue_label.toDict()
         return dict
