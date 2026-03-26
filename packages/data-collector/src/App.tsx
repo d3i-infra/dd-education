@@ -5,6 +5,7 @@ import { ErrorPageFactory } from "./components/error_page/factory"
 import { QuestionnaireFactory } from "./components/questionnaire/factory"
 import { RetryPromptFactory } from "./components/retry_prompt/factory"
 import { IssueFormFactory } from "./components/issue_form/factory"
+import { PlatformSelectionFactory } from "./components/platform_selection/factory"
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
                 new QuestionnaireFactory(),
                 new RetryPromptFactory(),
                 new IssueFormFactory(),
+                new PlatformSelectionFactory(),
             ],
           }),
         ]}
