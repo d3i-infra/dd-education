@@ -18,7 +18,7 @@ export const LandingPage = () => {
 
       {/* Hero Section with Left Banner Image and Right Text */}
       <header className="bg-primary h-96">
-        <div className="container mx-auto h-full flex">
+        <div className="container mx-auto px-4 h-full flex">
           {/* Left side - Banner Image */}
           <div className="w-1/2 h-full flex items-center justify-center overflow-hidden">
             <img
@@ -36,17 +36,17 @@ export const LandingPage = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow container mx-auto py-8">
-        <p className="text-lg mb-3 text-gray-700">
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <p className="text-lg mb-3 text-grey1">
           Welcome to Digital Footprint Explorer, a tool designed to help you
           analyze and explore your digital presence across various platforms.
           This tool can provide insights into your online
           activities on various platforms, helping you make informed decisions about your digital life.
         </p>
-        <p className="text-lg mb-3 text-gray-700">
+        <p className="text-lg mb-3 text-grey1">
           The tool enables you to explore and visualize data from various platforms, helping you gain insights into your behavior and understand what these platforms collect about you. It provides instructions on how to request and download your data in the correct format. If there are any platforms missing that you'd like to see included, such as for educational purposes or data awareness please contact us. We'd be happy to add them!
         </p>
-        <p className="text-lg mb-3 text-gray-700">
+        <p className="text-lg mb-3 text-grey1">
           Click the button below to start exploring!
         </p>
 
@@ -59,11 +59,11 @@ export const LandingPage = () => {
           />
         </div>
 
-        <p className="text-lg mb-3 text-gray-700">
+        <p className="text-lg mb-3 text-grey1">
           The digital footprint explorer is part of{" "}
           <a
             href="https://datadonation.eu"
-            className="text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors duration-200"
+            className="text-primary hover:text-primary hover:underline font-medium transition-colors duration-200"
             target="_blank"
             rel="noopener noreferrer"
           >

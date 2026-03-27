@@ -6,11 +6,11 @@ export const About = () => {
     <div className="flex flex-col min-h-screen">
       <NavBar />
 
-      <main className="flex-grow container mx-auto py-8">
+      <main className="flex-grow container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">About Digital Footprint Explorer</h1>
 
         <section className="mb-8">
-          <p className="text-lg text-gray-700 mb-4">
+          <p className="text-lg text-grey1 mb-4">
             The <strong>Digital Footprint Explorer</strong> is an application that allows you
             to explore and reflect on the data you receive from various online platforms.
             By inspecting and visualizing your data, you can better understand what information
@@ -20,7 +20,7 @@ export const About = () => {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">What Is Data Donation?</h2>
-          <p className="text-lg text-gray-700 mb-4">
+          <p className="text-lg text-grey1 mb-4">
             This tool uses the data donation framework Port. So what is data donation?
             <br />
             <br />
@@ -35,7 +35,7 @@ export const About = () => {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">How Does This App Work?</h2>
-          <p className="text-lg text-gray-700 mb-4">
+          <p className="text-lg text-grey1 mb-4">
             This application uses the tool <strong>Port</strong>, designed to guide you
             through the data donation workflow entirely in your browser. It helps you extract,
             explore, and review your data before choosing whether to donate it, ensuring you
@@ -48,9 +48,9 @@ export const About = () => {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">The Project</h2>
-          <p className="text-lg text-gray-700 mb-4">
+          <p className="text-lg text-grey1 mb-4">
             The Digital Footprint Explorer is developed as part of the{" "}
-            <a href="https://datadonation.eu" className="text-blue-600 hover:underline">Data Donation Project</a>.
+            <a href="https://datadonation.eu" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Data Donation Project</a>.
             This project builds Europe&apos;s Data Donation Infrastructure (D3I), which enables
             researchers to conduct ethical and transparent data donation studies. It is a
             collaboration between universities including the University of Amsterdam and

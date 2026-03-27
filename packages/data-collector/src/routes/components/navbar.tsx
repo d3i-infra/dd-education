@@ -8,15 +8,15 @@ export const NavBar = () => {
     const isActive = location.pathname === path;
 
     if (isActive) {
-      return `${baseClasses} bg-blue-500 text-white font-medium`;
+      return `${baseClasses} bg-primary text-white font-medium`;
     }
-    return `${baseClasses} hover:bg-blue-100 hover:text-blue-700`;
+    return `${baseClasses} hover:bg-primarylight hover:text-primary`;
   };
 
   return (
-    <nav className="bg-gray-200 text-black p-4 shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
-        <div className="text-xl font-bold text-gray-800">Digital Footprint Explorer</div>
+    <nav className="bg-grey5 text-black p-4 shadow-md">
+      <div className="container mx-auto px-4 flex justify-between items-center">
+        <div className="text-xl font-bold text-grey1">Digital Footprint Explorer</div>
         <ul className="flex space-x-2">
           <li>
             <Link to="/" className={getLinkClasses("/")}>

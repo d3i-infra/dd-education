@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
-import { createHashRouter, RouterProvider } from "react-router-dom";
+import { createHashRouter, RouterProvider, Navigate } from "react-router-dom";
 import App from "./App";
 import { LandingPage } from "./routes/landing_page";
 import { About } from "./routes/about";
@@ -13,6 +13,7 @@ const router = createHashRouter([
   { path: "/about", element: <About /> },
   { path: "/privacy-policy", element: <PrivacyPolicy /> },
   { path: "/port", element: <App /> },
+  { path: "*", element: <Navigate to="/" replace /> },
 ]);
 
 const rootElement = document.getElementById("root");
