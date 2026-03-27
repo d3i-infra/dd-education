@@ -10,7 +10,7 @@ import { InstructionsFactory } from "./components/instructions/factory"
 
 function App() {
   return (
-    <div className="App">
+    <div className="App p-6 sm:p-8">
       <ScriptHostComponent
         workerUrl="./py_worker.js"
         standalone={import.meta.env.DEV}
