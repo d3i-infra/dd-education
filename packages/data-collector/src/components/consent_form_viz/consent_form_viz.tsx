@@ -1,5 +1,4 @@
 import {
-  LabelButton,
   PrimaryButton,
   BodyLarge,
   Translator,
@@ -25,7 +24,7 @@ type Props = PropsUIPromptConsentFormViz & ReactFactoryContext
 export const ConsentFormViz = (props: Props): JSX.Element => {
   const [tables, setTables] = useState<TableWithContext[]>(() => parseTables(props.tables))
   const { locale, resolve } = props
-  const { description, donateQuestion, donateButton, cancelButton } = prepareCopy(props)
+  const { description, donateQuestion, donateButton } = prepareCopy(props)
   const [isDonating, setIsDonating] = useState(false)
 
   useEffect(() => {
@@ -131,8 +130,8 @@ export const ConsentFormViz = (props: Props): JSX.Element => {
     resolve?.({ __type__: "PayloadJSON", "value": value })
   }
 
-  function handleCancel(): void {
-    resolve?.({ __type__: "PayloadFalse", value: false })
+  function handleReportIssues(): void {
+    resolve?.({ __type__: "PayloadString", value: "show issue form" })
   }
 
   function serializeConsentData(): string {
@@ -174,14 +173,18 @@ export const ConsentFormViz = (props: Props): JSX.Element => {
         <div>
           <BodyLarge margin="" text={donateQuestion} />
 
-          <div className="flex flex-row gap-4 mt-4 mb-4">
+          <div className="flex flex-row justify-between items-center mt-4 mb-4">
             <PrimaryButton
               label={donateButton}
               onClick={handleDonate}
               color="bg-success text-white"
               spinning={isDonating}
             />
-            <LabelButton label={cancelButton} onClick={handleCancel} color="text-grey1" />
+            <PrimaryButton
+              label={Translator.translate(reportIssuesButtonLabel, locale)}
+              onClick={handleReportIssues}
+              color="bg-tertiary text-grey1"
+            />
           </div>
         </div>
       </div>
@@ -193,7 +196,6 @@ interface Copy {
   description: string
   donateQuestion: string
   donateButton: string
-  cancelButton: string
 }
 
 function prepareCopy({ donateQuestion, donateButton, description, locale }: Props): Copy {
@@ -201,7 +203,6 @@ function prepareCopy({ donateQuestion, donateButton, description, locale }: Prop
     description: Translator.translate(description ?? defaultDescription, locale),
     donateQuestion: Translator.translate(donateQuestion ?? defaultDonateQuestionLabel, locale),
     donateButton: Translator.translate(donateButton ?? defaultDonateButtonLabel, locale),
-    cancelButton: Translator.translate(defaultCancelButtonLabel, locale),
   }
 }
 
@@ -222,10 +223,10 @@ const defaultDonateButtonLabel = new TextBundle()
   .add('de', 'Ja, für Forschung teilen')
   .add('nl', 'Ja, deel voor onderzoek')
 
-const defaultCancelButtonLabel = new TextBundle()
-  .add('en', 'No')
-  .add('de', 'Nein')
-  .add('nl', 'Nee')
+const reportIssuesButtonLabel = new TextBundle()
+  .add('en', 'Report issues')
+  .add('de', 'Probleme melden')
+  .add('nl', 'Rapporteer problemen')
 
 const defaultDescription = new TextBundle()
   .add('en', 'Determine whether you would like to share the data below. Carefully check the data and adjust when required. With your contribution, you help the previously described research. Thank you in advance.')

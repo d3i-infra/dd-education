@@ -132,6 +132,12 @@ class FlowBuilder:
         review_data_prompt = self.generate_review_data_prompt(result.tables)
         consent_result = yield ph.render_page(self.UI_TEXT["review_data_header"], review_data_prompt)
 
+        # 9b. Handle "Report Issues" — render issue form and return
+        if consent_result.__type__ == "PayloadString" and consent_result.value == "show issue form":
+            yield from ph.emit_log("info", f"[{self.platform_name}] Issue form requested")
+            _ = yield ph.render_issue_page(self.platform_name, path)
+            return
+
         # 10. Donate with per-platform key
         if consent_result.__type__ == "PayloadJSON":
             reviewed_data = consent_result.value

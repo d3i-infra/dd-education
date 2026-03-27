@@ -127,11 +127,8 @@ def generate_review_data_prompt(
         props.PropsUIPromptConsentForm: A structured consent form object containing the provided table list, description,
         and default values for donate question and button.
     """
-    donate_question = props.Translatable(
-        {"en": "Do you want to share this data for research?", "nl": "Wilt u deze gegevens delen voor onderzoek?"}
-    )
-
-    donate_button = props.Translatable({"en": "Yes, share for research", "nl": "Ja, deel voor onderzoek"})
+    donate_question = props.Translatable({"en": "", "nl": ""})
+    donate_button = props.Translatable({"en": "Continue", "nl": "Doorgaan"})
 
     return d3i_props.PropsUIPromptConsentFormViz(
         tables=table_list, description=description, donate_question=donate_question, donate_button=donate_button
