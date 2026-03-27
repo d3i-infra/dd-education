@@ -58,6 +58,28 @@ class FlowBuilder:
         (through emit_log). These must be PII-free. Local logger keeps full
         diagnostic detail in browser console only.
         """
+        # 0. Render instruction page (if platform provides one)
+        instruction_image = self.get_instruction_image()
+        if instruction_image:
+            instruction_header = props.Translatable({
+                "en": f"Instructions to request your {self.platform_name} data",
+                "nl": f"Instructies om uw {self.platform_name} gegevens op te vragen",
+            })
+            instruction_description = props.Translatable({
+                "en": (
+                    "Please follow the instructions below carefully!\n"
+                    "Click on the button \"Continue\" at the bottom of this page "
+                    "when you are ready to go to the next step."
+                ),
+                "nl": (
+                    "Volg de onderstaande instructies zorgvuldig op!\n"
+                    "Klik op de knop \"Doorgaan\" onderaan deze pagina "
+                    "als u klaar bent om naar de volgende stap te gaan."
+                ),
+            })
+            instruction_prompt = ph.generate_instructions_prompt(instruction_description, instruction_image)
+            _ = yield ph.render_page(instruction_header, instruction_prompt)
+
         while True:
             # 1. Render file prompt → receive payload
             logger.info("Prompt for file for %s", self.platform_name)
@@ -193,3 +215,11 @@ class FlowBuilder:
             description=self.UI_TEXT["review_data_description"],
             table_list=table_list,
         )
+
+    def get_instruction_image(self) -> str | None:
+        """Return the URL for instruction image, or None to skip instructions.
+
+        Override in subclass to provide platform-specific instruction images.
+        The base implementation returns None (no instruction page shown).
+        """
+        return None

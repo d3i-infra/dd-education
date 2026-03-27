@@ -330,6 +330,9 @@ class LinkedInFlow(FlowBuilder):
     def __init__(self, session_id: str):
         super().__init__(session_id, "LinkedIn")
 
+    def get_instruction_image(self) -> str | None:
+        return "linkedin_instructions.png"
+
     def validate_file(self, file):
         return validate.validate_zip(DDP_CATEGORIES, file)
 

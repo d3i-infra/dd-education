@@ -34,7 +34,7 @@ export const Instructions = (props: Props): JSX.Element => {
   return (
     <>
       <div id="select-panel">
-        <div className="flex-wrap text-bodylarge font-body text-grey1 text-left">
+        <div className="flex-wrap text-bodylarge font-body text-grey1 text-left whitespace-pre-line">
           {description}
         </div>
       </div>

@@ -862,6 +862,9 @@ class InstagramFlow(FlowBuilder):
     def __init__(self, session_id: str):
         super().__init__(session_id, "Instagram")
 
+    def get_instruction_image(self) -> str | None:
+        return "instagram_instructions.svg"
+
     def validate_file(self, file):
         return validate.validate_zip(DDP_CATEGORIES, file)
 

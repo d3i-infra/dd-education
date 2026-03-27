@@ -183,7 +183,7 @@ export const ConsentFormViz = (props: Props): JSX.Element => {
             <PrimaryButton
               label={Translator.translate(reportIssuesButtonLabel, locale)}
               onClick={handleReportIssues}
-              color="bg-tertiary text-grey1"
+              color="bg-grey4 text-grey1"
             />
           </div>
         </div>

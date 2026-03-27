@@ -224,6 +224,45 @@ class TestDonateFailurePath:
             gen.send(make_payload("PayloadTrue"))
 
 
+class StubFlowWithInstructions(StubFlow):
+    """StubFlow that provides an instruction image."""
+
+    def get_instruction_image(self) -> str | None:
+        return "test_instructions.svg"
+
+
+class TestInstructionPagePath:
+    """Instruction page is shown before file prompt when get_instruction_image() returns non-None."""
+
+    @patch("port.helpers.flow_builder.uploads.check_file_safety")
+    @patch("port.helpers.flow_builder.uploads.materialize_file", return_value="/tmp/test.zip")
+    def test_instruction_page_shown_before_file_prompt(self, mock_mat, mock_safety):
+        flow = StubFlowWithInstructions()
+        gen = flow.start_flow()
+
+        # Step 0: instruction page
+        cmd = start_and_skip_logs(gen)
+        assert isinstance(cmd, CommandUIRender)
+
+        # User clicks Continue → file prompt
+        cmd = advance_past_logs(gen, make_payload("PayloadString", value="continue"))
+        assert isinstance(cmd, CommandUIRender)
+
+        # Upload valid file → milestones → consent form
+        file_payload = make_payload("PayloadFile", value=MagicMock())
+        cmd = advance_past_logs(gen, file_payload)
+        assert isinstance(cmd, CommandUIRender)
+
+    def test_no_instruction_page_when_image_is_none(self):
+        """StubFlow (no override) skips instruction page — file prompt is first."""
+        flow = StubFlow()
+        gen = flow.start_flow()
+
+        cmd = start_and_skip_logs(gen)
+        assert isinstance(cmd, CommandUIRender)
+        # This is the file prompt, not an instruction page
+
+
 class TestSessionIdType:
     def test_session_id_accepts_string(self):
         flow = StubFlow(session_id="abc-123")

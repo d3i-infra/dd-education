@@ -85,7 +85,6 @@ export function PlatformSelection({
           label={translatedContinueLabel}
           onClick={handleConfirm}
           enabled={selectedItem !== null}
-          color="text-grey1 bg-tertiary"
         />
       </div>
     </div>

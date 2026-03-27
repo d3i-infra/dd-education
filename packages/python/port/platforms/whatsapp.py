@@ -475,7 +475,10 @@ def extraction(df: pd.DataFrame) -> ExtractionResult:
 class WhatsAppFlow(FlowBuilder):
     def __init__(self, session_id: str):
         super().__init__(session_id, "WhatsApp Group Chat")
-        
+
+    def get_instruction_image(self) -> str | None:
+        return "whatsapp_instructions.png"
+
     def validate_file(self, file):
         df = parse_chat(file)
         if not df.empty:
