@@ -284,6 +284,26 @@ class PropsUIPromptText:
 
 
 @dataclass
+class PropsUIPromptInstructions:
+    """Instruction page with image and continue button.
+
+    Attributes:
+        description: instructional text
+        imageUrl: relative path to instruction image in public/
+    """
+
+    description: Translatable
+    imageUrl: str
+
+    def toDict(self):
+        dict = {}
+        dict["__type__"] = "PropsUIPromptInstructions"
+        dict["description"] = self.description.toDict()
+        dict["imageUrl"] = self.imageUrl
+        return dict
+
+
+@dataclass
 class PropsUIDataSubmissionButtons:
     """Buttons for data submission actions
 
@@ -327,6 +347,7 @@ class PropsUIPageDataSubmission:
         PropsUIPromptHelloWorld,
         PropsUIPromptConsentFormTable,
         PropsUIDataSubmissionButtons,
+        PropsUIPromptInstructions,
         list,
         Any,
     ]

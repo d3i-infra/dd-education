@@ -21,6 +21,7 @@ def render_page(
         | props.PropsUIPromptConfirm
         | PropsUIPromptIssueForm
         | PropsUIPromptPlatformSelection
+        | props.PropsUIPromptInstructions
     ),
 ) -> CommandUIRender:
     """
@@ -133,6 +134,11 @@ def generate_review_data_prompt(
     return d3i_props.PropsUIPromptConsentFormViz(
         tables=table_list, description=description, donate_question=donate_question, donate_button=donate_button
     )
+
+
+def generate_instructions_prompt(description: props.Translatable, image_url: str) -> props.PropsUIPromptInstructions:
+    """Generate an instruction page prompt with an image."""
+    return props.PropsUIPromptInstructions(description=description, imageUrl=image_url)
 
 
 def donate(key: str, json_string: str) -> CommandSystemDonate:
