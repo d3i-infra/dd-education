@@ -6,6 +6,7 @@ import { QuestionnaireFactory } from "./components/questionnaire/factory"
 import { RetryPromptFactory } from "./components/retry_prompt/factory"
 import { IssueFormFactory } from "./components/issue_form/factory"
 import { PlatformSelectionFactory } from "./components/platform_selection/factory"
+import { InstructionsFactory } from "./components/instructions/factory"
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
                 new RetryPromptFactory(),
                 new IssueFormFactory(),
                 new PlatformSelectionFactory(),
+                new InstructionsFactory(),
             ],
           }),
         ]}
