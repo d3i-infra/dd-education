@@ -42,3 +42,25 @@ def process(session_id: str, platform: str | None = None):
             FlowClass = getattr(mod, class_name)
             flow = FlowClass(session_id)
             yield from flow.start_flow()
+
+            # Show completion page before returning to platform menu
+            _ = yield ph.render_page(
+                props.Translatable({
+                    "en": "Exploration Complete",
+                    "nl": "Verkenning Voltooid",
+                }),
+                props.PropsUIPromptConfirm(
+                    text=props.Translatable({
+                        "en": "We hope you enjoyed exploring your digital footprint!",
+                        "nl": "We hopen dat je hebt genoten van het verkennen van je digitale voetafdruk!",
+                    }),
+                    ok=props.Translatable({
+                        "en": "Explore another platform",
+                        "nl": "Verken een ander platform",
+                    }),
+                    cancel=props.Translatable({
+                        "en": "Explore another platform",
+                        "nl": "Verken een ander platform",
+                    }),
+                ),
+            )

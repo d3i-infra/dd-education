@@ -21,7 +21,12 @@ from port.helpers.validate import ValidateInput
 
 
 class StubFlow(FlowBuilder):
-    """Concrete FlowBuilder for testing."""
+    """Concrete FlowBuilder for testing.
+
+    Re-enables donation so existing donate/decline tests work.
+    The base FlowBuilder defaults to donate_enabled=False for dd-education.
+    """
+    donate_enabled = True
 
     def __init__(self, session_id="test-session", validation_status=0, tables=None):
         super().__init__(session_id, "TestPlatform")
@@ -261,6 +266,52 @@ class TestInstructionPagePath:
         cmd = start_and_skip_logs(gen)
         assert isinstance(cmd, CommandUIRender)
         # This is the file prompt, not an instruction page
+
+
+class StubFlowNoDonate(FlowBuilder):
+    """FlowBuilder with donation disabled (educational mode default)."""
+
+    def __init__(self, session_id="test-session", tables=None):
+        super().__init__(session_id, "TestPlatform")
+        self._tables = tables if tables is not None else [
+            d3i_props.PropsUIPromptConsentFormTableViz(
+                id="test_table",
+                data_frame=__import__("pandas").DataFrame({"col": [1, 2]}),
+                title=props.Translatable({"en": "Test", "nl": "Test"}),
+            )
+        ]
+
+    def validate_file(self, file):
+        v = MagicMock(spec=ValidateInput)
+        v.get_status_code_id.return_value = 0
+        v.current_ddp_category = MagicMock(id="json_en")
+        return v
+
+    def extract_data(self, file, validation):
+        return ExtractionResult(tables=self._tables, errors=Counter())
+
+
+class TestEducationalModePath:
+    """Educational mode: consent accepted but no donation, flow returns cleanly."""
+
+    @patch("port.helpers.flow_builder.uploads.check_file_safety")
+    @patch("port.helpers.flow_builder.uploads.materialize_file", return_value="/tmp/test.zip")
+    def test_no_donate_after_consent(self, mock_mat, mock_safety):
+        flow = StubFlowNoDonate()
+        assert not flow.donate_enabled  # inherits default False
+        gen = flow.start_flow()
+
+        # File prompt
+        cmd = start_and_skip_logs(gen)
+        assert isinstance(cmd, CommandUIRender)
+
+        # Upload valid file → consent form
+        cmd = advance_past_logs(gen, make_payload("PayloadFile", value=MagicMock()))
+        assert isinstance(cmd, CommandUIRender)
+
+        # User clicks Continue → flow returns (no donate command)
+        with pytest.raises(StopIteration):
+            advance_past_logs(gen, make_payload("PayloadJSON", value='{"data": "test"}'))
 
 
 class TestSessionIdType:

@@ -19,6 +19,9 @@ logger = logging.getLogger(__name__)
 
 
 class FlowBuilder:
+    # dd-education: no data donation — set to True in research forks
+    donate_enabled = False
+
     def __init__(self, session_id: str, platform_name: str):
         self.session_id = session_id
         self.platform_name = platform_name
@@ -160,7 +163,11 @@ class FlowBuilder:
             _ = yield ph.render_issue_page(self.platform_name, path)
             return
 
-        # 10. Donate with per-platform key
+        # 10. Donate (skipped when donate_enabled is False)
+        if not self.donate_enabled:
+            yield from ph.emit_log("info", f"[{self.platform_name}] Donation skipped (educational mode)")
+            return
+
         if consent_result.__type__ == "PayloadJSON":
             reviewed_data = consent_result.value
             yield from ph.emit_log("info", f"[{self.platform_name}] Consent: accepted")
