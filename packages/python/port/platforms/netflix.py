@@ -187,8 +187,8 @@ def extraction(reader: ZipArchiveReader, selected_user: str) -> ExtractionResult
                 "nl": "Uw beoordelingen op Netflix",
             }),
             description=props.Translatable({
-                "en": "Titles you have rated on Netflix.",
-                "nl": "Titels die u op Netflix heeft beoordeeld.",
+                "en": "Your ratings on Netflix. These preferences help Netflix learn what you like and influence the recommendations you receive.",
+                "nl": "Uw beoordelingen op Netflix. Deze voorkeuren helpen Netflix te leren wat u leuk vindt en beïnvloeden de aanbevelingen die u ontvangt.",
             }),
             headers={
                 "Title Name": props.Translatable({"en": "Title", "nl": "Titel"}),
@@ -215,8 +215,8 @@ def extraction(reader: ZipArchiveReader, selected_user: str) -> ExtractionResult
                 "nl": "Wat u heeft gekeken",
             }),
             description=props.Translatable({
-                "en": "This table shows what titles you watched, when, and for how long.",
-                "nl": "Deze tabel toont welke titels u heeft gekeken, wanneer, en hoe lang.",
+                "en": "This table shows what you watched, when, for how long, and on what device. It paints a detailed picture of your Netflix viewing habits.",
+                "nl": "Deze tabel toont wat u heeft gekeken, wanneer, hoe lang en op welk apparaat. Het geeft een gedetailleerd beeld van uw Netflix-kijkgedrag.",
             }),
             headers={
                 "Start Time": props.Translatable({"en": "Start time", "nl": "Starttijd"}),
@@ -266,8 +266,8 @@ def extraction(reader: ZipArchiveReader, selected_user: str) -> ExtractionResult
                 "nl": "Uw zoekgeschiedenis op Netflix",
             }),
             description=props.Translatable({
-                "en": "Searches you have performed on Netflix.",
-                "nl": "Zoekopdrachten die u op Netflix heeft uitgevoerd.",
+                "en": "Your search history on Netflix. This reveals what you were looking for, even titles you searched for but never watched.",
+                "nl": "Uw zoekgeschiedenis op Netflix. Dit onthult wat u zocht, zelfs titels die u heeft opgezocht maar nooit heeft gekeken.",
             }),
             headers={
                 "Query Typed": props.Translatable({"en": "Search query", "nl": "Zoekterm"}),
@@ -297,6 +297,10 @@ def extraction(reader: ZipArchiveReader, selected_user: str) -> ExtractionResult
 class NetflixFlow(FlowBuilder):
     def __init__(self, session_id: str):
         super().__init__(session_id, "Netflix")
+        self.UI_TEXT["review_data_description"] = props.Translatable({
+            "en": "Below you will find a curated selection of your Netflix data. This includes your viewing history, ratings, and search activity. Try searching through the tables to explore what Netflix knows about your watching habits.",
+            "nl": "Hieronder vindt u een samengestelde selectie van uw Netflix-gegevens. Dit omvat uw kijkgeschiedenis, beoordelingen en zoekactiviteit. Probeer door de tabellen te zoeken om te ontdekken wat Netflix weet over uw kijkgedrag.",
+        })
 
     def get_instruction_image(self) -> str | None:
         return "netflix_instructions.svg"

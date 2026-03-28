@@ -102,8 +102,8 @@ def generate_file_prompt(
     """
     description = props.Translatable(
         {
-            "en": "Please follow the download instructions and choose the file that you stored on your device.",
-            "nl": "Volg de download instructies en kies het bestand dat u opgeslagen heeft op uw apparaat.",
+            "en": "Select the .zip file you received from the platform and stored on your device, and press \"Continue\".",
+            "nl": "Selecteer het .zip bestand dat u van het platform heeft ontvangen en op uw apparaat heeft opgeslagen, en klik op \"Doorgaan\".",
         }
     )
     if multiple:

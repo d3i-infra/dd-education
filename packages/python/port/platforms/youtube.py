@@ -196,8 +196,8 @@ def extraction(zip: str, validation: ValidateInput) -> ExtractionResult:
                 "nl": "Je kijkgeschiedenis",
             }),
             description=props.Translatable({
-                "en": "Videos you have watched on YouTube, including timestamps.",
-                "nl": "Video's die je op YouTube hebt bekeken, inclusief tijdstippen.",
+                "en": "This table shows the videos you watched on YouTube, sorted over time. Explore it to discover patterns in your viewing habits — what you watch most, and when.",
+                "nl": "Deze tabel toont de video's die u op YouTube heeft bekeken, gesorteerd op tijd. Verken ze om patronen in uw kijkgedrag te ontdekken — wat u het meest kijkt en wanneer.",
             }),
             headers={
                 "Title": props.Translatable({"en": "Title", "nl": "Titel"}),
@@ -254,8 +254,8 @@ def extraction(zip: str, validation: ValidateInput) -> ExtractionResult:
                 "nl": "Je zoek- en kijkgeschiedenis",
             }),
             description=props.Translatable({
-                "en": "Your search queries, videos watched, and ads seen on YouTube, with timestamps.",
-                "nl": "Je zoekopdrachten, bekeken video's en geziene advertenties op YouTube, met tijdstippen.",
+                "en": "This table shows what you searched for on YouTube. Your search terms reveal your interests, curiosities, and how you use the platform to find content.",
+                "nl": "Deze tabel toont wat u op YouTube heeft gezocht. Uw zoektermen onthullen uw interesses, nieuwsgierigheid en hoe u het platform gebruikt om content te vinden.",
             }),
             headers={
                 "Title": props.Translatable({"en": "Title", "nl": "Titel"}),
@@ -283,8 +283,8 @@ def extraction(zip: str, validation: ValidateInput) -> ExtractionResult:
                 "nl": "Je abonnementen",
             }),
             description=props.Translatable({
-                "en": "YouTube channels you are subscribed to.",
-                "nl": "YouTube-kanalen waarop je bent geabonneerd.",
+                "en": "The YouTube channels you are subscribed to. This reflects the content creators you've chosen to follow over time.",
+                "nl": "De YouTube-kanalen waarop u geabonneerd bent. Dit weerspiegelt de contentmakers die u in de loop van de tijd heeft gevolgd.",
             }),
             headers={
                 "Channel Id": props.Translatable({"en": "Channel Id", "nl": "Kanaal-id"}),
@@ -300,8 +300,8 @@ def extraction(zip: str, validation: ValidateInput) -> ExtractionResult:
                 "nl": "Je reacties",
             }),
             description=props.Translatable({
-                "en": "Comments you posted on YouTube videos and posts.",
-                "nl": "Reacties die je op YouTube-video's en -posts hebt geplaatst.",
+                "en": "Comments you posted on YouTube videos. These are the conversations you participated in across the platform.",
+                "nl": "Reacties die u op YouTube-video's heeft geplaatst. Dit zijn de gesprekken waaraan u heeft deelgenomen op het platform.",
             }),
             headers={
                 "Comment ID": props.Translatable({"en": "Comment ID", "nl": "Reactie-ID"}),
@@ -334,6 +334,10 @@ def extraction(zip: str, validation: ValidateInput) -> ExtractionResult:
 class YouTubeFlow(FlowBuilder):
     def __init__(self, session_id: str):
         super().__init__(session_id, "YouTube")
+        self.UI_TEXT["review_data_description"] = props.Translatable({
+            "en": "Below you will find a curated selection of your YouTube data. Most of the data in your takeout package is displayed here. You can use the search function to search through the tables and explore what YouTube knows about your viewing habits.",
+            "nl": "Hieronder vindt u een samengestelde selectie van uw YouTube-gegevens. Het meeste van de gegevens in uw takeout-pakket wordt hier weergegeven. U kunt de zoekfunctie gebruiken om door de tabellen te zoeken en te ontdekken wat YouTube weet over uw kijkgedrag.",
+        })
 
     def get_instruction_image(self) -> str | None:
         return "youtube_instructions.svg"

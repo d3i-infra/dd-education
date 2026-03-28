@@ -395,8 +395,8 @@ def extraction(df: pd.DataFrame) -> ExtractionResult:
                 "nl": "Your group chat"
             }),
             description=props.Translatable({
-                "en": "The contents of your group chat. Try searching for stuff in your group chat, the figures should change accordingly! Timestamps (and therefore some tables) can be incorrect as it assumes the European format.",
-                "nl": "The contents of your group chat. Try searching for stuff in your group chat, the figures should change accordingly! Timestamps (and therefore some tables) can be incorrect as it assumes the European format."
+                "en": "The messages in your group chat, sorted by time. Try searching to filter the messages and see what your group was talking about at different moments.",
+                "nl": "De berichten in uw groepschat, gesorteerd op tijd. Probeer te zoeken om de berichten te filteren en te zien waar uw groep op verschillende momenten over sprak.",
             }),
             visualizations=[
                 {
@@ -475,6 +475,10 @@ def extraction(df: pd.DataFrame) -> ExtractionResult:
 class WhatsAppFlow(FlowBuilder):
     def __init__(self, session_id: str):
         super().__init__(session_id, "WhatsApp Group Chat")
+        self.UI_TEXT["review_data_description"] = props.Translatable({
+            "en": "Below you will find the contents of your group chat and some fun statistics about your group! Try searching through the messages to see what your group has been talking about.",
+            "nl": "Hieronder vindt u de inhoud van uw groepschat en enkele leuke statistieken over uw groep! Probeer door de berichten te zoeken om te zien waar uw groep het over heeft gehad.",
+        })
 
     def get_instruction_image(self) -> str | None:
         return "whatsapp_instructions.png"

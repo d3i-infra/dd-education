@@ -100,8 +100,8 @@ def extraction(chatgpt_zip: str, validation) -> ExtractionResult:
                 "nl": "Uw gesprekken met ChatGPT"
             }),
             description=props.Translatable({
-                "en": "In this table you find your conversations with ChatGPT sorted by time. Below, you find a wordcloud, where the size of the words represents how frequent these words have been used in the conversations.", 
-                "nl": "In this table you find your conversations with ChatGPT sorted by time. Below, you find a wordcloud, where the size of the words represents how frequent these words have been used in the conversations.", 
+                "en": "Your conversations with ChatGPT, sorted over time. You can read back what you discussed and see how you've used AI assistance.",
+                "nl": "Uw gesprekken met ChatGPT, gesorteerd op tijd. U kunt teruglezen wat u heeft besproken en zien hoe u AI-assistentie heeft gebruikt.",
             }),
             visualizations=[
                 {
@@ -129,6 +129,10 @@ def extraction(chatgpt_zip: str, validation) -> ExtractionResult:
 class ChatGPTFlow(FlowBuilder):
     def __init__(self, session_id: str):
         super().__init__(session_id, "ChatGPT")
+        self.UI_TEXT["review_data_description"] = props.Translatable({
+            "en": "Below you will find your conversations with ChatGPT. You can read back what you discussed and see how your usage developed over time.",
+            "nl": "Hieronder vindt u uw gesprekken met ChatGPT. U kunt teruglezen wat u heeft besproken en zien hoe uw gebruik zich in de loop van de tijd heeft ontwikkeld.",
+        })
 
     def get_instruction_image(self) -> str | None:
         return "chatgpt_instructions.svg"

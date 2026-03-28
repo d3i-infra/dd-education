@@ -595,8 +595,8 @@ def extraction(instagram_zip: str, validation) -> ExtractionResult:
                 "nl": "Je Instagram-volgers",
             }),
             description=props.Translatable({
-                "en": "List of accounts that follow you on Instagram.",
-                "nl": "Lijst van accounts die jou op Instagram volgen.",
+                "en": "The accounts that follow you on Instagram. This network grew over time as people found your content.",
+                "nl": "De accounts die u op Instagram volgen. Dit netwerk groeide in de loop van de tijd naarmate mensen uw content ontdekten.",
             }),
             headers={
                 "Account": props.Translatable({"en": "Account", "nl": "Account"}),
@@ -612,8 +612,8 @@ def extraction(instagram_zip: str, validation) -> ExtractionResult:
                 "nl": "Accounts die je volgt op Instagram",
             }),
             description=props.Translatable({
-                "en": "In this table, you find the accounts that you follow on Instagram.",
-                "nl": "In deze tabel zie je de accounts die je volgt op Instagram.",
+                "en": "The accounts you chose to follow. These reflect your interests and the communities you engage with.",
+                "nl": "De accounts die u heeft gekozen te volgen. Deze weerspiegelen uw interesses en de gemeenschappen waarmee u zich bezighoudt.",
             }),
             headers={
                 "Account": props.Translatable({"en": "Account", "nl": "Account"}),
@@ -629,8 +629,8 @@ def extraction(instagram_zip: str, validation) -> ExtractionResult:
                 "nl": "Advertenties bekeken op Instagram",
             }),
             description=props.Translatable({
-                "en": "List of ads that you viewed on Instagram.",
-                "nl": "Lijst van advertenties die je op Instagram hebt bekeken.",
+                "en": "Advertisements that were shown to you on Instagram. These reveal what advertisers think they know about your interests and demographics.",
+                "nl": "Advertenties die aan u zijn getoond op Instagram. Deze onthullen wat adverteerders denken te weten over uw interesses en demografische kenmerken.",
             }),
             headers={
                 "Account name": props.Translatable({"en": "Account name", "nl": "Accountnaam"}),
@@ -647,8 +647,8 @@ def extraction(instagram_zip: str, validation) -> ExtractionResult:
                 "nl": "Berichten bekeken op Instagram",
             }),
             description=props.Translatable({
-                "en": "In this table you find the accounts of posts you viewed on Instagram sorted over time. Below, you find visualizations of different parts of this table. First, you find a timeline showing you the number of posts you viewed over time. Next, you find a histogram indicating how many posts you have viewed per hour of the day.",
-                "nl": "In deze tabel zie je de accounts van berichten die je op Instagram hebt bekeken, gesorteerd op tijd. Hieronder vind je visualisaties van verschillende onderdelen van deze tabel. Eerst zie je een tijdlijn met het aantal berichten dat je in de loop van de tijd hebt bekeken. Daarna zie je een histogram dat aangeeft hoeveel berichten je per uur van de dag hebt bekeken.",
+                "en": "Posts you viewed on Instagram, sorted over time. This shows how you consume content and which accounts capture your attention.",
+                "nl": "Berichten die u op Instagram heeft bekeken, gesorteerd op tijd. Dit laat zien hoe u content consumeert en welke accounts uw aandacht trekken.",
             }),
             headers={
                 "Author": props.Translatable({"en": "Author", "nl": "Auteur"}),
@@ -696,8 +696,8 @@ def extraction(instagram_zip: str, validation) -> ExtractionResult:
                 "nl": "Video's bekeken op Instagram",
             }),
             description=props.Translatable({
-                "en": "In this table you find the accounts of videos you watched on Instagram sorted over time. Below, you find a timeline showing you the number of videos you watched over time.",
-                "nl": "In deze tabel zie je de accounts van video's die je op Instagram hebt bekeken, gesorteerd op tijd. Hieronder zie je een tijdlijn met het aantal video's dat je in de loop van de tijd hebt bekeken.",
+                "en": "Videos you watched on Instagram. This reveals your video consumption patterns and interests.",
+                "nl": "Video's die u op Instagram heeft bekeken. Dit onthult uw videoconsumptiepatronen en interesses.",
             }),
             headers={
                 "Author": props.Translatable({"en": "Author", "nl": "Auteur"}),
@@ -730,8 +730,8 @@ def extraction(instagram_zip: str, validation) -> ExtractionResult:
                 "nl": "Reacties geplaatst op Instagram",
             }),
             description=props.Translatable({
-                "en": "List of comments you posted on Instagram.",
-                "nl": "Lijst van reacties die je op Instagram hebt geplaatst.",
+                "en": "Comments you left on Instagram posts. These are the conversations you participated in across the platform.",
+                "nl": "Reacties die u heeft achtergelaten op Instagram-berichten. Dit zijn de gesprekken waaraan u heeft deelgenomen op het platform.",
             }),
             headers={
                 "Comment": props.Translatable({"en": "Comment", "nl": "Reactie"}),
@@ -747,8 +747,8 @@ def extraction(instagram_zip: str, validation) -> ExtractionResult:
                 "nl": "Instagram-reacties die je leuk vond",
             }),
             description=props.Translatable({
-                "en": "List of comments that you liked on Instagram.",
-                "nl": "Lijst van reacties die je leuk vond op Instagram.",
+                "en": "Comments by others that you liked on Instagram.",
+                "nl": "Reacties van anderen die u leuk vond op Instagram.",
             }),
             headers={
                 "Account name": props.Translatable({"en": "Account name", "nl": "Accountnaam"}),
@@ -764,8 +764,8 @@ def extraction(instagram_zip: str, validation) -> ExtractionResult:
                 "nl": "Instagram-berichten die je leuk vond",
             }),
             description=props.Translatable({
-                "en": "",
-                "nl": "",
+                "en": "Posts that you liked on Instagram. Your likes reveal what content resonates with you.",
+                "nl": "Berichten die u leuk vond op Instagram. Uw likes onthullen welke content bij u aanslaat.",
             }),
             headers={
                 "Account name": props.Translatable({"en": "Account name", "nl": "Accountnaam"}),
@@ -792,8 +792,8 @@ def extraction(instagram_zip: str, validation) -> ExtractionResult:
                 "nl": "Je Instagram-profielzoekopdrachten",
             }),
             description=props.Translatable({
-                "en": "List of profiles you have searched for on Instagram.",
-                "nl": "Lijst van profielen die je op Instagram hebt gezocht.",
+                "en": "Profiles you searched for on Instagram. This shows who you were curious about.",
+                "nl": "Profielen die u op Instagram heeft opgezocht. Dit laat zien naar wie u nieuwsgierig was.",
             }),
             headers={
                 "Timestamp": props.Translatable({"en": "Timestamp", "nl": "Datum en tijd"}),
@@ -808,8 +808,8 @@ def extraction(instagram_zip: str, validation) -> ExtractionResult:
                 "nl": "Story-likes op Instagram",
             }),
             description=props.Translatable({
-                "en": "List of Instagram stories you liked.",
-                "nl": "Lijst van Instagram-stories die je leuk vond.",
+                "en": "Stories that you liked on Instagram.",
+                "nl": "Stories die u leuk vond op Instagram.",
             }),
             headers={
                 "Account name": props.Translatable({"en": "Account name", "nl": "Accountnaam"}),
@@ -861,6 +861,10 @@ def extraction(instagram_zip: str, validation) -> ExtractionResult:
 class InstagramFlow(FlowBuilder):
     def __init__(self, session_id: str):
         super().__init__(session_id, "Instagram")
+        self.UI_TEXT["review_data_description"] = props.Translatable({
+            "en": "Below you will find a curated selection of your Instagram data. This includes the posts and videos you viewed, your comments, the accounts you follow, and the ads shown to you. Explore the tables to discover the traces you leave behind on Instagram.",
+            "nl": "Hieronder vindt u een samengestelde selectie van uw Instagram-gegevens. Dit omvat de berichten en video's die u heeft bekeken, uw reacties, de accounts die u volgt en de advertenties die aan u zijn getoond. Verken de tabellen om te ontdekken welke sporen u achterlaat op Instagram.",
+        })
 
     def get_instruction_image(self) -> str | None:
         return "instagram_instructions.svg"

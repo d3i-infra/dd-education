@@ -173,8 +173,8 @@ def extraction(linkedin_zip: str, validation: validate.ValidateInput) -> Extract
                 "nl": "Ads clicked"
             }),
             description=props.Translatable({
-                "en": "Record of advertisements you have clicked on while using LinkedIn. Note: LinkedIn only provides numeric ad IDs, not ad titles or descriptions.",
-                "nl": "Overzicht van advertenties waarop je hebt geklikt tijdens het gebruik van LinkedIn. Let op: LinkedIn geeft alleen numerieke advertentie-ID's, geen titels of beschrijvingen.",
+                "en": "Advertisements you clicked on while using LinkedIn. These show what professional opportunities and products caught your eye.",
+                "nl": "Advertenties waarop u heeft geklikt tijdens het gebruik van LinkedIn. Deze laten zien welke professionele kansen en producten uw aandacht trokken.",
             }),
             headers={
                 "Ad clicked Date": props.Translatable({"en": "Ad clicked Date", "nl": "Advertentiedatum"}),
@@ -189,8 +189,8 @@ def extraction(linkedin_zip: str, validation: validate.ValidateInput) -> Extract
                 "nl": "Comments"
             }),
             description=props.Translatable({
-                "en": "Comments you've posted on LinkedIn content",
-                "nl": "Reacties die je hebt geplaatst op LinkedIn-content"
+                "en": "Comments you posted on LinkedIn. These reflect how you engage in professional discussions.",
+                "nl": "Reacties die u op LinkedIn heeft geplaatst. Deze weerspiegelen hoe u deelneemt aan professionele discussies.",
             }),
             headers={
                 "Date": props.Translatable({"en": "Date", "nl": "Datum"}),
@@ -216,8 +216,8 @@ def extraction(linkedin_zip: str, validation: validate.ValidateInput) -> Extract
                 "nl": "Company follows"
             }),
             description=props.Translatable({
-                "en": "List of companies you are following on LinkedIn",
-                "nl": "Lijst van bedrijven die je volgt op LinkedIn"
+                "en": "Companies you follow on LinkedIn. This reflects the industries and organizations you're interested in.",
+                "nl": "Bedrijven die u volgt op LinkedIn. Dit weerspiegelt de sectoren en organisaties waarin u geïnteresseerd bent.",
             }),
             headers={
                 "Organization": props.Translatable({"en": "Organization", "nl": "Organisatie"}),
@@ -232,8 +232,8 @@ def extraction(linkedin_zip: str, validation: validate.ValidateInput) -> Extract
                 "nl": "Shares"
             }),
             description=props.Translatable({
-                "en": "Content you've shared with your network on LinkedIn",
-                "nl": "Content die je hebt gedeeld met je netwerk op LinkedIn"
+                "en": "Content you shared with your professional network on LinkedIn.",
+                "nl": "Content die u heeft gedeeld met uw professionele netwerk op LinkedIn.",
             }),
             headers={
                 "Date": props.Translatable({"en": "Date", "nl": "Datum"}),
@@ -252,8 +252,8 @@ def extraction(linkedin_zip: str, validation: validate.ValidateInput) -> Extract
                 "nl": "Reactions"
             }),
             description=props.Translatable({
-                "en": "Record of your reactions to posts and content on LinkedIn",
-                "nl": "Overzicht van je reacties op berichten en content op LinkedIn"
+                "en": "Your reactions to posts and content on LinkedIn. This reveals what professional content resonates with you.",
+                "nl": "Uw reacties op berichten en content op LinkedIn. Dit onthult welke professionele content bij u aanslaat.",
             }),
             headers={
                 "Date": props.Translatable({"en": "Date", "nl": "Datum"}),
@@ -279,8 +279,8 @@ def extraction(linkedin_zip: str, validation: validate.ValidateInput) -> Extract
                 "nl": "Je LinkedIn-connecties"
             }),
             description=props.Translatable({
-                "en": "List of people you are connected with on LinkedIn",
-                "nl": "Lijst van mensen met wie je verbonden bent op LinkedIn"
+                "en": "Your professional connections on LinkedIn. This network represents your professional relationships over time.",
+                "nl": "Uw professionele connecties op LinkedIn. Dit netwerk vertegenwoordigt uw professionele relaties in de loop van de tijd.",
             }),
             headers={
                 "First Name": props.Translatable({"en": "First Name", "nl": "Voornaam"}),
@@ -299,8 +299,8 @@ def extraction(linkedin_zip: str, validation: validate.ValidateInput) -> Extract
                 "nl": "Search queries"
             }),
             description=props.Translatable({
-                "en": "Terms and phrases you've searched for on LinkedIn",
-                "nl": "Termen en zinnen waarnaar je hebt gezocht op LinkedIn"
+                "en": "What you searched for on LinkedIn. This reveals your professional interests, job searches, and networking patterns.",
+                "nl": "Wat u op LinkedIn heeft gezocht. Dit onthult uw professionele interesses, zoekgedrag naar banen en netwerkpatronen.",
             }),
             headers={
                 "Time": props.Translatable({"en": "Time", "nl": "Tijd"}),
@@ -329,6 +329,10 @@ def extraction(linkedin_zip: str, validation: validate.ValidateInput) -> Extract
 class LinkedInFlow(FlowBuilder):
     def __init__(self, session_id: str):
         super().__init__(session_id, "LinkedIn")
+        self.UI_TEXT["review_data_description"] = props.Translatable({
+            "en": "Below you will find a curated selection of your LinkedIn data, showing the breadth of what LinkedIn collects about you. This includes your connections, reactions, search queries, and the ads you clicked on.",
+            "nl": "Hieronder vindt u een samengestelde selectie van uw LinkedIn-gegevens, die laat zien hoeveel LinkedIn over u verzamelt. Dit omvat uw connecties, reacties, zoekopdrachten en de advertenties waarop u heeft geklikt.",
+        })
 
     def get_instruction_image(self) -> str | None:
         return "linkedin_instructions.png"
