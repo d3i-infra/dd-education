@@ -1,58 +1,118 @@
-<p align="center">
-  <a href="https://github.com/d3i-infra/feldspar">
-    <img width="40%" height="40%" src="./public/port_logo.svg">
-  </a>
-</p>
+# The data donation task
 
-# Digital Footprint Explorer
+The data donation task (a fork of [Feldspar](https://github.com/eyra/feldspar)) is a front end that guides participants through the data donation steps, used in conjunction with Next.
+Next is a software as a service platform developed by [Eyra](https://eyra.co/) to facilitate scientific research.
 
-![GitHub last commit](https://img.shields.io/github/last-commit/d3i-infra/dd-education)
-![Website](https://img.shields.io/website?url=https%3A%2F%2Fd3i-infra.github.io%2Fdd-education)
+For detailed tutorials and API reference, see the [documentation site](https://d3i-infra.github.io/data-donation-task/).
 
-Welcome to Digital Footprint Explorer, a tool designed to help you analyze and explore your digital presence across various platforms. This tool provides insights into your online activities, helping you make informed decisions about your digital life.
+### What's new in v2.0.0
 
-This tool is meant to be used in higher education to teach courses about data awareness. If you are a teacher and a platform you would like to teach about is missing, feel free to contact [us](https://datadonation.eu/) and we would love to add it.
+The extraction architecture has been consolidated around **FlowBuilder** — a standard template for per-platform donation flows. All 10 platforms have been updated with bilingual headers, improved error handling, and deterministic file resolution. The bridge layer now supports PayloadFile, structured logging, and async donation responses.
 
-This tool is built with:
+See [CHANGELOG.md](CHANGELOG.md) for the full list of changes and [MIGRATION.md](MIGRATION.md) for upgrading downstream forks.
 
-* [data-donation-task](https://github.com/d3i-infra/data-donation-task)
-* [Pyodide](https://pyodide.org/en/stable/index.html)
+## Installation and local testing
 
+### Pre-requisites
 
-## Table of Contents
+- Fork or clone this repo
+- Install [Node.js](https://nodejs.org/en)
+- Install [pnpm](https://pnpm.io/)
+- Install [Python](https://www.python.org/)
+- Install [Poetry](https://python-poetry.org/)
 
-- [About](#about)
-- [Getting Started](#getting-started)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [Contact](#contact)
+### Setup
 
-## About
+```sh
+pnpm install
+cd packages/python && poetry install
+```
 
-Digital Footprint Explorer enables you to explore and visualize data from various platforms, helping you gain insights into your behavior and understand what these platforms collect about you. It provides instructions on how to request and download your data in the correct format.
+### Check environment
 
-After the requested data has been retrieved it can be searched and visualized using this tool.
+```sh
+pnpm doctor
+```
 
-## Getting Started
+### Start local dev server
 
-To use Digital Footprint Explorer, simply visit our [website](https://d3i-infra.github.io/dd-education) and click the "Start" button.
+```sh
+pnpm start
+```
 
-## Usage
+Visit [`http://localhost:3000`](http://localhost:3000).
 
-1. Choose the platform you want to explore
-2. Follow the instructions to download your data
-3. Upload your data to our secure tool
-4. Explore the visualizations and insights provided
+## Commands
 
-## Contributing
+### Development
 
-We welcome contributions to improve Digital Footprint Explorer.
+| Command | Description |
+|---|---|
+| `pnpm start` | Start dev server with hot reload |
+| `pnpm run build` | Full production build (Python wheel + feldspar + data-collector) |
+| `pnpm doctor` | Check environment setup (13 checks) |
 
+### Testing & Type Checking
 
-## Contact
+| Command | Description |
+|---|---|
+| `pnpm test` | Run Python tests |
+| `pnpm test:py` | Same as above |
+| `pnpm test:py -- tests/test_specific.py -q` | Run specific tests |
+| `pnpm typecheck:py` | Run Pyright type checker |
+| `pnpm verify:py` | Run both tests + type checks |
 
-Project Link: [datadonation.eu](https://github.com/d3i-infra/dd-education)
+### Releases
 
----
+| Command | Description |
+|---|---|
+| `pnpm release` | Build single all-platform release zip |
+| `pnpm release:platforms` | Build one zip per platform (for Eyra Next) |
 
-If there are any platforms missing that you'd like to see included—such as for educational purposes or data awareness—please contact us. We'd be happy to add them!
+Per-platform releases are created in `releases/<timestamp>/` with one zip per platform, each filtered via `VITE_PLATFORM`.
+
+## Architecture
+
+See `docs/decisions/` for architectural decision records. Key structure:
+
+```
+packages/
+  python/         Python extraction scripts (per-platform)
+  feldspar/       Workflow UI framework (upstream Eyra)
+  data-collector/ Host app / dev server with custom UI components
+```
+
+### Platform extraction flow
+
+Each platform (Instagram, Facebook, YouTube, etc.) has a `FlowBuilder` subclass in `packages/python/port/platforms/` that handles:
+
+1. File prompt → participant uploads DDP zip
+2. Validation → DDP category detection via `DDP_CATEGORIES`
+3. Extraction → `ZipArchiveReader` reads files from cached archive inventory
+4. Consent → participant reviews extracted tables
+5. Donation → data sent to host platform
+
+### Supported platforms
+
+LinkedIn, Instagram, Facebook, YouTube, TikTok, Netflix, ChatGPT, WhatsApp, X, Chrome
+
+## Citation
+
+If you use this repository in your research, please cite it as follows:
+
+```
+@article{Boeschoten2023,
+  doi = {10.21105/joss.05596},
+  url = {https://doi.org/10.21105/joss.05596},
+  year = {2023},
+  publisher = {The Open Journal},
+  volume = {8},
+  number = {90},
+  pages = {5596},
+  author = {Laura Boeschoten and Niek C. de Schipper and Adriënne M. Mendrik and Emiel van der Veen and Bella Struminskaya and Heleen Janssen and Theo Araujo},
+  title = {Port: A software tool for digital data donation},
+  journal = {Journal of Open Source Software}
+}
+```
+
+You can find the full citation details in the [`CITATION.cff`](CITATION.cff) file.

@@ -1,0 +1,63 @@
+{
+    "name": "@eyra/feldspar",
+    "version": "0.1.0",
+    "main": "dist/index.js",
+    "module": "dist/index.esm.js",
+    "types": "dist/index.d.ts",
+    "type": "module",
+    "files": [
+        "dist",
+        "src/processing/py_worker.js",
+        "dist/styles.css"
+    ],
+    "scripts": {
+        "build:css": "cross-env NODE_ENV=production postcss ./src/framework/styles.css -o ./dist/styles.css",
+        "build:ts": "rollup -c",
+        "build": "pnpm run build:css && pnpm run build:ts",
+        "dev": "concurrently \"rollup -c -w\" \"tailwindcss build -i ./src/framework/styles.css -o ./dist/styles.css --watch\"",
+        "test": "jest",
+        "clean": "rimraf dist node_modules"
+    },
+    "peerDependencies": {
+        "react": "19.1.1",
+        "react-dom": "19.1.1",
+        "tslib": "2.8.1",
+        "typescript": "5.9.2"
+    },
+    "dependencies": {
+        "@types/lodash": "4.17.20",
+        "lodash": "4.17.21"
+    },
+    "exports": {
+        ".": {
+            "import": "./dist/index.esm.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./dist/styles.css": {
+            "import": "./dist/styles.css"
+        }
+    },
+    "devDependencies": {
+        "@rollup/plugin-commonjs": "28.0.6",
+        "@rollup/plugin-json": "6.1.0",
+        "@rollup/plugin-node-resolve": "16.0.1",
+        "@rollup/plugin-terser": "0.4.4",
+        "@rollup/plugin-typescript": "12.1.4",
+        "@rollup/plugin-url": "8.0.2",
+        "@types/jest": "^30.0.0",
+        "@types/react": "19.1.12",
+        "@types/react-dom": "19.1.9",
+        "fdir": "6.5.0",
+        "jest": "29.7.0",
+        "postcss": "^8.4.35",
+        "postcss-cli": "^11.0.0",
+        "rollup": "4.50.1",
+        "rollup-plugin-copy": "3.5.0",
+        "rollup-plugin-dts": "6.2.3",
+        "rollup-plugin-peer-deps-external": "2.2.4",
+        "tailwindcss": "^4.2.1",
+        "ts-jest": "29.3.4",
+        "tslib": "2.8.1",
+        "typescript": "5.9.2"
+    }
+}

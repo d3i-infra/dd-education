@@ -1,0 +1,37 @@
+import { DataSubmissionPageFactory, ScriptHostComponent } from "@eyra/feldspar";
+import { ConsentFormVizFactory } from "./factories/consent_form_viz";
+import { FileInputMultipleFactory } from "./components/file_input_multiple/factory"
+import { ErrorPageFactory } from "./components/error_page/factory"
+import { QuestionnaireFactory } from "./components/questionnaire/factory"
+import { RetryPromptFactory } from "./components/retry_prompt/factory"
+import { IssueFormFactory } from "./components/issue_form/factory"
+import { PlatformSelectionFactory } from "./components/platform_selection/factory"
+import { InstructionsFactory } from "./components/instructions/factory"
+
+function App() {
+  return (
+    <div className="App p-6 sm:p-8">
+      <ScriptHostComponent
+        workerUrl="./py_worker.js"
+        standalone={import.meta.env.DEV}
+        logLevel={import.meta.env.DEV ? "debug" : "info"}
+        factories={[
+          new DataSubmissionPageFactory({
+            promptFactories: [
+                new ConsentFormVizFactory(),
+                new FileInputMultipleFactory(),
+                new ErrorPageFactory(),
+                new QuestionnaireFactory(),
+                new RetryPromptFactory(),
+                new IssueFormFactory(),
+                new PlatformSelectionFactory(),
+                new InstructionsFactory(),
+            ],
+          }),
+        ]}
+      />
+    </div>
+  );
+}
+
+export default App;

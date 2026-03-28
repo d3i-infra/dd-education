@@ -1,0 +1,149 @@
+"""
+ChatGPT
+
+This module provides an example flow of a ChatGPT data donation study
+
+Assumptions:
+It handles DDPs in the english language with filetype JSON.
+"""
+import logging
+from collections import Counter
+
+import pandas as pd
+
+import port.api.props as props
+import port.api.d3i_props as d3i_props
+from port.api.d3i_props import ExtractionResult
+import port.helpers.extraction_helpers as eh
+import port.helpers.validate as validate
+from port.helpers.extraction_helpers import ZipArchiveReader
+from port.helpers.flow_builder import FlowBuilder
+
+from port.helpers.validate import (
+    DDPCategory,
+    DDPFiletype,
+    Language,
+)
+
+logger = logging.getLogger(__name__)
+
+DDP_CATEGORIES = [
+    DDPCategory(
+        id="json",
+        ddp_filetype=DDPFiletype.JSON,
+        language=Language.EN,
+        known_files=[
+            "chat.html", 
+            "conversations.json",
+            "message_feedback.json",
+            "model_comparisons.json",
+            "user.json"
+        ]
+    )
+]
+
+
+def conversations_to_df(reader: ZipArchiveReader, errors: Counter)  -> pd.DataFrame:
+    result = reader.json("conversations.json")
+    if not result.found:
+        return pd.DataFrame()
+    conversations = result.data
+
+    datapoints = []
+    out = pd.DataFrame()
+
+    try:
+        for conversation in conversations:
+            title = conversation["title"]
+            for _, turn in conversation["mapping"].items():
+
+                denested_d = eh.dict_denester(turn)
+                is_hidden = eh.find_item(denested_d, "is_visually_hidden_from_conversation")
+                if is_hidden != "True":
+                    role = eh.find_item(denested_d, "role")
+                    message = "".join(eh.find_items(denested_d, "part"))
+                    model = eh.find_item(denested_d, "-model_slug")
+                    time = eh.epoch_to_iso(eh.find_item(denested_d, "create_time"), errors=errors)
+
+                    datapoint = {
+                        "conversation title": title,
+                        "role": role,
+                        "message": message,
+                        "model": model,
+                        "time": time,
+                    }
+                    if role != "":
+                        datapoints.append(datapoint)
+
+        out = pd.DataFrame(datapoints)
+
+    except Exception as e:
+        logger.error("Data extraction error: %s", e)
+        errors[type(e).__name__] += 1
+
+    return out
+
+
+
+def extraction(chatgpt_zip: str, validation) -> ExtractionResult:
+    """
+    Add your table definitions below in the list
+    """
+    errors = Counter()
+    reader = ZipArchiveReader(chatgpt_zip, validation.archive_members, errors)
+    tables = [
+        d3i_props.PropsUIPromptConsentFormTableViz(
+            id="chatgpt_conversations",
+            data_frame=conversations_to_df(reader, errors),
+            title=props.Translatable({
+                "en": "Your conversations with ChatGPT",
+                "nl": "Uw gesprekken met ChatGPT"
+            }),
+            description=props.Translatable({
+                "en": "Your conversations with ChatGPT, sorted over time. You can read back what you discussed and see how you've used AI assistance.",
+                "nl": "Uw gesprekken met ChatGPT, gesorteerd op tijd. U kunt teruglezen wat u heeft besproken en zien hoe u AI-assistentie heeft gebruikt.",
+            }),
+            visualizations=[
+                {
+                    "title": {
+                        "en": "Your messages in a wordcloud", 
+                        "nl": "Your messages in a wordcloud"
+                    },
+                    "type": "wordcloud",
+                    "textColumn": "message",
+                    "tokenize": True,
+                }
+            ]
+        ),
+    ]
+
+    tables_to_render = [table for table in tables if not table.data_frame.empty]
+
+    return ExtractionResult(
+        tables=tables_to_render,
+        errors=errors,
+    )
+
+
+
+class ChatGPTFlow(FlowBuilder):
+    def __init__(self, session_id: str):
+        super().__init__(session_id, "ChatGPT")
+        self.UI_TEXT["review_data_description"] = props.Translatable({
+            "en": "Below you will find your conversations with ChatGPT. You can read back what you discussed and see how your usage developed over time.",
+            "nl": "Hieronder vindt u uw gesprekken met ChatGPT. U kunt teruglezen wat u heeft besproken en zien hoe uw gebruik zich in de loop van de tijd heeft ontwikkeld.",
+        })
+
+    def get_instruction_image(self) -> str | None:
+        return "chatgpt_instructions.svg"
+
+    def validate_file(self, file):
+        return validate.validate_zip(DDP_CATEGORIES, file)
+        
+    def extract_data(self, file_value, validation):
+        return extraction(file_value, validation)
+
+
+def process(session_id):
+    flow = ChatGPTFlow(session_id)
+    return flow.start_flow()
