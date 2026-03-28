@@ -55,9 +55,9 @@ export function IssueForm({ description, tables, platform, locale, resolve }: Pr
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
       const filename = `${platform}-${timestamp}.json`
-      const response = await fetch(`${UPLOAD_URL}/${filename}`, {
+      const response = await fetch(`${UPLOAD_URL}?filename=${encodeURIComponent(filename)}`, {
         method: "PUT",
-        headers: { "Content-Type": "text/plain" },
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
         body: serializeData(),
       })
       if (!response.ok) {
