@@ -42,7 +42,7 @@ export const About = () => {
             remain in full control at every step.
             <br />
             <br />
-            This app uses parts of the Port software, however all data remains private to you. Thus, when using the digital footprint explorer <strong>no data will be shared with anyone</strong>.
+            This app uses parts of the Port software. By default, your data stays in your browser and is not shared with anyone. If you encounter an issue, you may optionally send an anonymous report to help us improve the tool.
           </p>
         </section>
 

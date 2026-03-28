@@ -387,13 +387,13 @@ def generate_platform_selection_menu(platform_names: list[str]) -> PropsUIPrompt
     ]
     footer = props.Translatable({
         "en": (
-            "The tool works locally in the browser of your computer. Never, at any "
-            "moment, will the data leave your computer! "
+            "The tool works locally in the browser of your computer. By default, "
+            "your data stays in your browser. "
             "Click on one of the platforms below and start exploring!"
         ),
         "nl": (
-            "De tool werkt lokaal in de browser van je computer. Nooit zullen je "
-            "gegevens je computer verlaten! "
+            "De tool werkt lokaal in de browser van je computer. Standaard blijven "
+            "je gegevens in je browser. "
             "Klik op een van de platforms hieronder en begin met verkennen!"
         ),
     })

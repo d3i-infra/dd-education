@@ -21,7 +21,7 @@ export const PrivacyPolicy = () => {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">2. Information We Collect</h2>
           <p className="text-lg text-grey1 mb-4">
-            We collect <strong>no information about you</strong> in any form whatsoever. No data will be shared with anyone when using the digital footprint explorer.
+            By default, all data processing happens locally in your browser and <strong>no data is collected or shared</strong>. If you encounter an issue with the data extraction, you may optionally send an anonymous report containing only the file structure of your data package (not its contents) to help us improve the tool.
           </p>
         </section>
 
