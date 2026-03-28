@@ -18,6 +18,7 @@ export interface ScriptHostProps {
   className?: string;
   factories?: PageFactory[];
   logLevel?: LogLevel;
+  fallback?: React.ReactNode;
 }
 
 const FeldsparContent: React.FC<ScriptHostProps> = ({
@@ -27,6 +28,7 @@ const FeldsparContent: React.FC<ScriptHostProps> = ({
   className,
   factories = [],
   logLevel = "info",
+  fallback,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const assemblyRef = useRef<Assembly | null>(null);
@@ -85,7 +87,7 @@ const FeldsparContent: React.FC<ScriptHostProps> = ({
 
   return (
     <div ref={containerRef} className={className}>
-      {state.elements}
+      {state.elements.length > 0 ? state.elements : fallback}
     </div>
   );
 };
