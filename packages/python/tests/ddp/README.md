@@ -24,17 +24,20 @@ picked up first so it sorts first (see the Instagram entry below).
 ## Fixtures used by this repo's canaries (symlinks to real exports)
 
 These are personal, real exports living outside the repo; the files in this
-directory are symlinks to them, never copies:
+directory are symlinks to them, never copies. Real filenames and which
+account or participant each export belongs to are recorded in
+`~/data/d3i/data_collection/README.md` (untracked, lives only on Danielle's
+machine) — not reproduced here, per ADR-0014:
 
-| Fixture (symlink)                       | Target                                                             |
-|------------------------------------------|--------------------------------------------------------------------|
-| `chatgpt_2026-08.zip`                     | `~/data/d3i/self/chatgpt/*.zip`                                    |
-| `netflix_2026-03.zip`                     | `~/Downloads/Telegram Desktop/netflix_test.zip`                    |
-| `linkedin_basic_2026-09.zip`              | `~/data/d3i/data_collection/linkedin/Basic_LinkedInDataExport_09-07-2026.zip` |
-| `whatsapp_nl_android_2026-09.zip`         | `~/data/d3i/data_collection/whatsapp/WhatsApp-chat met Family McCool.zip` |
-| `instagram_a_json_2026-08.zip`            | `~/data/d3i/data_collection/instagram/instagram-maria8200143-2026-08-29-ZQvZXHLb.zip` |
-| `instagram_html_2026-08.zip`              | `~/data/d3i/data_collection/instagram/instagram-maria8200143-2026-08-29-m6ADNs3V.zip` |
-| `youtube_html_2026-08.zip`                | `~/data/d3i/data_collection/youtube/Takeout-2.zip`                 |
+| Fixture (symlink)                 | Platform / format                          | Export date |
+|------------------------------------|---------------------------------------------|-------------|
+| `chatgpt_2026-08.zip`               | ChatGPT export                               | 2026-08-25 |
+| `netflix_2026-03.zip`               | Netflix export (test account)                | 2026-03 |
+| `linkedin_basic_2026-09.zip`        | LinkedIn "basic" export                      | 2026-09-07 |
+| `whatsapp_nl_android_2026-09.zip`   | WhatsApp group-chat export, Dutch-locale Android | 2026-09 |
+| `instagram_a_json_2026-08.zip`      | Instagram export, JSON format (test-account)  | 2026-08-29 |
+| `instagram_html_2026-08.zip`        | Instagram export, HTML format (same test-account export) | 2026-08-29 |
+| `youtube_html_2026-08.zip`          | YouTube Takeout export, HTML format           | 2026-08 |
 
 The Instagram JSON fixture is named `instagram_a_json_2026-08.zip` (not
 `instagram_json_2026-08.zip`) so that, sorted alongside
@@ -44,15 +47,21 @@ returns (`a_json` < `html` lexicographically) — the JSON canary
 shape, and the HTML export is for a future canary (Task 10) to pick up
 separately.
 
-Re-create the symlinks after a fresh checkout with:
+## Re-creating the symlinks
+
+Source paths below use glob patterns rather than literal filenames, since
+some real filenames embed the account handle or a family member's name
+(ADR-0014); check `~/data/d3i/data_collection/README.md` if a glob needs
+tightening because a new file collides with it. `$D` is the source
+directory to adjust if your export layout differs:
 
 ```bash
 D=~/data/d3i/data_collection; T=packages/python/tests/ddp
-ln -s "$HOME/Downloads/Telegram Desktop/netflix_test.zip"          "$T/netflix_2026-03.zip"
-ln -s "$D/linkedin/Basic_LinkedInDataExport_09-07-2026.zip"         "$T/linkedin_basic_2026-09.zip"
-ln -s "$D/whatsapp/WhatsApp-chat met Family McCool.zip"             "$T/whatsapp_nl_android_2026-09.zip"
-ln -s "$D/instagram/instagram-maria8200143-2026-08-29-ZQvZXHLb.zip" "$T/instagram_a_json_2026-08.zip"
-ln -s "$D/instagram/instagram-maria8200143-2026-08-29-m6ADNs3V.zip" "$T/instagram_html_2026-08.zip"
-ln -s "$D/youtube/Takeout-2.zip"                                    "$T/youtube_html_2026-08.zip"
-ln -s ~/data/d3i/self/chatgpt/*.zip                                 "$T/chatgpt_2026-08.zip"
+ln -s "$HOME/Downloads/Telegram Desktop/netflix_test.zip"  "$T/netflix_2026-03.zip"
+ln -s "$D"/linkedin/Basic_LinkedInDataExport_*.zip          "$T/linkedin_basic_2026-09.zip"
+ln -s "$D"/whatsapp/*.zip                                   "$T/whatsapp_nl_android_2026-09.zip"
+ln -s "$D"/instagram/*-ZQvZXHLb.zip                         "$T/instagram_a_json_2026-08.zip"
+ln -s "$D"/instagram/*-m6ADNs3V.zip                         "$T/instagram_html_2026-08.zip"
+ln -s "$D/youtube/Takeout-2.zip"                            "$T/youtube_html_2026-08.zip"
+ln -s ~/data/d3i/self/chatgpt/*.zip                         "$T/chatgpt_2026-08.zip"
 ```

@@ -2,15 +2,15 @@
 absent). Task 10 extends this canary to also cover the HTML export variant.
 
 EXPECTED_EMPTY lists registry entries that legitimately return an empty
-DataFrame for the 2026-08-29 export (``instagram-maria8200143-...``) rather
-than weakening the non-empty assertion for the rest.
+DataFrame for the 2026-08-29 test-account export rather than weakening the
+non-empty assertion for the rest.
 """
 import pytest
 
 from extractor_integration_helpers import ExtractorSpec, find_fixture, make_reader
 from port.platforms import instagram as I
 
-# 2026-08-29 export (instagram-maria8200143-2026-08-29-ZQvZXHLb.zip):
+# 2026-08-29 test-account export (tests/ddp/instagram_a_json_2026-08.zip):
 #   - profile_searches_to_df, threads_viewed_to_df: the corresponding source
 #     files (profile_searches.json, threads_viewed.json) are absent from the
 #     archive — this participant never used profile search or Threads.
