@@ -1,0 +1,185 @@
+{
+  "platform_info": {
+    "name": "Netflix",
+    "filetypes": [
+      "csv"
+    ],
+    "languages": [
+      "en",
+      "nl"
+    ],
+    "description": "Handles DDPs in English. Supports multi-profile DDPs; the participant selects their profile at runtime. These data donation flows have not been tested yet, if you find anything wrong with them report to datadonation@uu.nl and they will be fixed!",
+    "time_last_tested": "not yet implemented"
+  },
+  "tables": [
+    {
+      "id": "netflix_ratings",
+      "title": {
+        "en": "Your ratings on Netflix",
+        "nl": "Uw beoordelingen op Netflix"
+      },
+      "description": {
+        "en": "Your ratings on Netflix. These preferences help Netflix learn what you like and influence the recommendations you receive.",
+        "nl": "Uw beoordelingen op Netflix. Deze voorkeuren helpen Netflix te leren wat u leuk vindt en beïnvloeden de aanbevelingen die u ontvangt."
+      },
+      "headers": {
+        "Title Name": {
+          "en": "Title",
+          "nl": "Titel"
+        },
+        "Thumbs Value": {
+          "en": "Thumbs value",
+          "nl": "Aantal duimpjes omhoog"
+        },
+        "Event Utc Ts": {
+          "en": "Date",
+          "nl": "Datum en tijd"
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Titles rated by thumbs value",
+            "nl": "Beoordeelde titels op basis van duimpjes"
+          },
+          "type": "wordcloud",
+          "textColumn": "Title Name",
+          "valueColumn": "Thumbs Value"
+        }
+      ],
+      "extractor": "ratings_to_df",
+      "documentation": {
+        "summary": "Each row represents one title the participant rated on Netflix, including the rating value and timestamp.",
+        "source_file": "Ratings.csv",
+        "columns": {
+          "Title Name": "Name of the rated Netflix title.",
+          "Thumbs Value": "Thumbs up or thumbs down value given by the participant.",
+          "Event Utc Ts": "ISO 8601 timestamp of when the rating was given."
+        }
+      }
+    },
+    {
+      "id": "netflix_viewing_activity",
+      "title": {
+        "en": "What you watched",
+        "nl": "Wat u heeft gekeken"
+      },
+      "description": {
+        "en": "This table shows what you watched, when, for how long, and on what device. It paints a detailed picture of your Netflix viewing habits.",
+        "nl": "Deze tabel toont wat u heeft gekeken, wanneer, hoe lang en op welk apparaat. Het geeft een gedetailleerd beeld van uw Netflix-kijkgedrag."
+      },
+      "headers": {
+        "Start Time": {
+          "en": "Start time",
+          "nl": "Starttijd"
+        },
+        "Duration": {
+          "en": "Hours watched",
+          "nl": "Aantal uur gekeken"
+        },
+        "Title": {
+          "en": "Title",
+          "nl": "Titel"
+        },
+        "Supplemental Video Type": {
+          "en": "Type",
+          "nl": "Aanvullende informatie"
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Total hours watched per month",
+            "nl": "Totaal aantal uren gekeken per maand"
+          },
+          "type": "area",
+          "group": {
+            "column": "Start Time",
+            "dateFormat": "month",
+            "label": "Month"
+          },
+          "values": [
+            {
+              "column": "Duration",
+              "aggregate": "sum"
+            }
+          ]
+        },
+        {
+          "title": {
+            "en": "Total hours watched by hour of the day",
+            "nl": "Totaal aantal uur gekeken per uur van de dag"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Start Time",
+            "dateFormat": "hour_cycle"
+          },
+          "values": [
+            {
+              "column": "Duration",
+              "aggregate": "sum"
+            }
+          ]
+        }
+      ],
+      "extractor": "viewing_activity_to_df",
+      "documentation": {
+        "summary": "Each row represents one viewing session on Netflix, including the title watched, start time, and duration in hours.",
+        "source_file": "ViewingActivity.csv",
+        "columns": {
+          "Start Time": "ISO 8601 timestamp of when the viewing session started.",
+          "Duration": "Duration of the viewing session in hours.",
+          "Title": "Name of the Netflix title watched.",
+          "Supplemental Video Type": "Type of supplemental video (e.g. trailer), if applicable."
+        }
+      }
+    },
+    {
+      "id": "netflix_search_history",
+      "title": {
+        "en": "Your search history on Netflix",
+        "nl": "Uw zoekgeschiedenis op Netflix"
+      },
+      "description": {
+        "en": "Your search history on Netflix. This reveals what you were looking for, even titles you searched for but never watched.",
+        "nl": "Uw zoekgeschiedenis op Netflix. Dit onthult wat u zocht, zelfs titels die u heeft opgezocht maar nooit heeft gekeken."
+      },
+      "headers": {
+        "Query Typed": {
+          "en": "Search query",
+          "nl": "Zoekterm"
+        },
+        "Displayed Name": {
+          "en": "Result shown",
+          "nl": "Weergegeven resultaat"
+        },
+        "Utc Timestamp": {
+          "en": "Date",
+          "nl": "Datum en tijd"
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Most searched terms",
+            "nl": "Meest gezochte termen"
+          },
+          "type": "wordcloud",
+          "textColumn": "Query Typed",
+          "tokenize": false
+        }
+      ],
+      "extractor": "search_history_to_df",
+      "documentation": {
+        "summary": "Each row represents one search the participant performed on Netflix.",
+        "source_file": "SearchHistory.csv",
+        "columns": {
+          "Query Typed": "The search query the participant typed.",
+          "Displayed Name": "The result title that was displayed.",
+          "Utc Timestamp": "ISO 8601 timestamp of when the search was performed."
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "platform_info": {
+    "name": "ChatGPT",
+    "filetypes": [
+      "json"
+    ],
+    "languages": [
+      "en",
+      "nl"
+    ],
+    "description": "Handles DDPs in English. These data donation flows have not been tested yet, if you find anything wrong with them report to datadonation@uu.nl and they will be fixed!",
+    "time_last_tested": "not yet implemented"
+  },
+  "tables": [
+    {
+      "id": "chatgpt_conversations",
+      "title": {
+        "en": "Your conversations with ChatGPT",
+        "nl": "Uw gesprekken met ChatGPT"
+      },
+      "description": {
+        "en": "Your conversations with ChatGPT, sorted over time. You can read back what you discussed and see how you've used AI assistance.",
+        "nl": "Uw gesprekken met ChatGPT, gesorteerd op tijd. U kunt teruglezen wat u heeft besproken en zien hoe u AI-assistentie heeft gebruikt."
+      },
+      "headers": {
+        "conversation title": {
+          "en": "Conversation title",
+          "nl": "Gesprektitel"
+        },
+        "role": {
+          "en": "Role",
+          "nl": "Rol"
+        },
+        "message": {
+          "en": "Message",
+          "nl": "Bericht"
+        },
+        "model": {
+          "en": "Model",
+          "nl": "Model"
+        },
+        "time": {
+          "en": "Time",
+          "nl": "Tijd"
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Your messages in a wordcloud",
+            "nl": "Je berichten in een woordwolk"
+          },
+          "type": "wordcloud",
+          "textColumn": "message",
+          "tokenize": true
+        }
+      ],
+      "extractor": "conversations_to_df",
+      "documentation": {
+        "summary": "Each row represents one message turn in a ChatGPT conversation, including the role (user or assistant), the message text, the model used, and the timestamp.",
+        "source_file": "conversations files (conversations-000.json, conversations-001.json, ...)",
+        "columns": {
+          "conversation title": "Title of the conversation as stored in the export.",
+          "role": "Role of the message author: 'user' or 'assistant'.",
+          "message": "Full text of the message.",
+          "model": "ChatGPT model slug used to generate the assistant reply.",
+          "time": "ISO 8601 timestamp of when the message was created."
+        }
+      }
+    }
+  ]
+}

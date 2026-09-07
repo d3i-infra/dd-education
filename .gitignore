@@ -92,9 +92,22 @@ pytests/scenarios/*PRIVATE.json
 
 .~lock.*#
 
-# Config files (keep example configs)
+# Config files (keep example configs and the education fork's committed menu
+# platform configs — allowlisted individually so `git status` stays honest)
 *_config.json
 !*example_config.json
+!*education_config.json
+!*chatgpt_config.json
+!*youtube_config.json
+!*netflix_config.json
+!*instagram_config.json
+!*linkedin_config.json
+!*whatsapp_config.json
+!*google_config.json
+!*e2etest_config.json
+!*e2etest_multifile_config.json
+!*facebook_config.json
+!*tiktok_config.json
 
 # Claude Code: track shared settings.json only — local overrides and agent
 # worktrees stay personal

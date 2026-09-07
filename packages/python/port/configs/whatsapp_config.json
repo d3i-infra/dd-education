@@ -1,0 +1,156 @@
+{
+  "platform_info": {
+    "name": "WhatsApp Group Chat",
+    "filetypes": [
+      "txt",
+      "zip"
+    ],
+    "languages": [
+      "en",
+      "nl"
+    ],
+    "description": "Handles WhatsApp group chat exports in plain-text format. Multiple date/time formats and locales are supported. These data donation flows have not been tested yet, if you find anything wrong with them report to datadonation@uu.nl and they will be fixed!",
+    "time_last_tested": "not yet implemented"
+  },
+  "tables": [
+    {
+      "id": "whatsapp_group_chat",
+      "title": {
+        "en": "Your group chat",
+        "nl": "Je groepsgesprek"
+      },
+      "description": {
+        "en": "The contents of your group chat. Timestamps (and therefore some tables) can be incorrect as it assumes the European format.",
+        "nl": "De inhoud van je groepsgesprek. Tijdstempels (en dus sommige tabellen) kunnen onjuist zijn omdat het Europese formaat wordt aangenomen."
+      },
+      "headers": {
+        "Timestamp": {
+          "en": "Timestamp",
+          "nl": "Tijdstempel"
+        },
+        "Name": {
+          "en": "Name",
+          "nl": "Naam"
+        },
+        "Message": {
+          "en": "Message",
+          "nl": "Bericht"
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Most common words in your chats",
+            "nl": "Meest gebruikte woorden in je gesprekken"
+          },
+          "type": "wordcloud",
+          "textColumn": "Message",
+          "tokenize": true
+        },
+        {
+          "title": {
+            "en": "Total chats per month of the year",
+            "nl": "Totaal chats per maand"
+          },
+          "type": "area",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "month"
+          },
+          "values": [
+            {}
+          ]
+        },
+        {
+          "title": {
+            "en": "Total chats per hour of the day",
+            "nl": "Totaal chats per uur van de dag"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "hour_cycle"
+          },
+          "values": [
+            {}
+          ]
+        }
+      ],
+      "extractor": "chat_messages_to_df",
+      "documentation": {
+        "summary": "Each row represents one message in the WhatsApp group chat, including the sender name, message text, and timestamp.",
+        "source_file": "WhatsApp chat export (.txt or .zip)",
+        "columns": {
+          "Timestamp": "ISO 8601 timestamp of the message.",
+          "Name": "Display name of the message sender.",
+          "Message": "Text content of the message."
+        }
+      }
+    },
+    {
+      "id": "whatsapp_emoji_usage",
+      "title": {
+        "en": "The 100 most used emojis in the group",
+        "nl": "De 100 meest gebruikte emojis in de groep"
+      },
+      "description": {
+        "en": "Analysis of emoji frequency used by all members in the chat.",
+        "nl": "Analyse van emoji-frequentie gebruikt door alle leden in de chat."
+      },
+      "headers": {
+        "Emoji": {
+          "en": "Emoji",
+          "nl": "Emoji"
+        },
+        "Count": {
+          "en": "Count",
+          "nl": "Aantal"
+        }
+      },
+      "extractor": "emoji_usage_to_df",
+      "documentation": {
+        "summary": "Each row represents one emoji used in the group chat, ranked by frequency across all members.",
+        "source_file": "WhatsApp chat export (.txt or .zip)",
+        "columns": {
+          "Emoji": "The emoji character.",
+          "Count": "Total number of times this emoji was used."
+        }
+      }
+    },
+    {
+      "id": "whatsapp_user_statistics",
+      "title": {
+        "en": "Chat statistics per user",
+        "nl": "Chatstatistieken per gebruiker"
+      },
+      "description": {
+        "en": "Detailed messaging patterns and activity metrics for each participant in the group chat.",
+        "nl": "Gedetailleerde berichtpatronen en activiteitsgegevens voor elke deelnemer in het groepsgesprek."
+      },
+      "headers": {
+        "User": {
+          "en": "User",
+          "nl": "Gebruiker"
+        },
+        "Description": {
+          "en": "Description",
+          "nl": "Beschrijving"
+        },
+        "Statistic": {
+          "en": "Statistic",
+          "nl": "Statistiek"
+        }
+      },
+      "extractor": "user_statistics_to_df",
+      "documentation": {
+        "summary": "Each row represents a messaging statistic for one detected chat participant, including who they interact with most and their emoji usage.",
+        "source_file": "WhatsApp chat export (.txt or .zip)",
+        "columns": {
+          "User": "Display name of the chat participant.",
+          "Description": "Name of the statistic.",
+          "Statistic": "Value of the statistic."
+        }
+      }
+    }
+  ]
+}
