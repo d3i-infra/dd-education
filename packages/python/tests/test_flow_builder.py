@@ -596,3 +596,21 @@ class TestEducationHooks:
         assert rip.called
         with pytest.raises(StopIteration):
             advance_past_logs(gen, make_payload("PayloadTrue"))
+
+    @patch("port.helpers.uploads.check_payload_size")
+    def test_review_only_prompt_and_payload_true_completes(self, _):
+        flow = StubFlow()
+        flow.donate_enabled = False
+        gen = flow.start_flow()
+        start_and_skip_logs(gen)
+        consent = advance_past_logs(gen, make_payload_file())
+        assert consent.page.body.review_only is True
+        with pytest.raises(StopIteration):
+            advance_past_logs(gen, make_payload("PayloadTrue"))
+
+    @patch("port.helpers.uploads.check_payload_size")
+    def test_study_prompt_is_not_review_only(self, _):
+        gen = StubFlow().start_flow()
+        start_and_skip_logs(gen)
+        consent = advance_past_logs(gen, make_payload_file())
+        assert consent.page.body.review_only is False

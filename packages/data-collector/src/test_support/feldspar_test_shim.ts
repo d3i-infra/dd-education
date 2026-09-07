@@ -9,10 +9,19 @@
 // So `jest.config.js` maps the specifier here and this module re-exports the
 // same symbols straight from feldspar *source*. Tests therefore exercise the
 // real resolver, not a mock: behaviour asserted here is the behaviour that
-// ships. Only pure modules are re-exported (no React, no worker bridge), so
-// the import graph stays small and side-effect free.
+// ships. Kept to the modules a `*.test.tsx` actually renders, so the import
+// graph stays as small as the test suite needs — the button/prompt UI
+// elements below drag in feldspar's icon SVGs, stubbed via jest.config.js's
+// `\.svg$` moduleNameMapper entry rather than avoided here.
 //
-// Add a symbol here only when a `*.test.ts` needs it.
+// Add a symbol here only when a `*.test.ts`/`*.test.tsx` needs it.
 
 export { Translator, MISSING_TRANSLATION } from '../../../feldspar/src/framework/translator'
 export { default } from '../../../feldspar/src/framework/text_bundle'
+export { ReactFactoryContext } from '../../../feldspar/src/framework/visualization/react/factory'
+export { BodyLarge } from '../../../feldspar/src/framework/visualization/react/ui/elements/text'
+export {
+  LabelButton,
+  PrimaryButton,
+} from '../../../feldspar/src/framework/visualization/react/ui/elements/button'
+export { DonateButtons } from '../../../feldspar/src/framework/visualization/react/ui/prompts/donate_buttons'

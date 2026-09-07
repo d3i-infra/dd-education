@@ -1,6 +1,7 @@
 import {
   PrimaryButton,
   BodyLarge,
+  DonateButtons,
   ReactFactoryContext,
 } from "@eyra/feldspar"
 import TextBundle from "@eyra/feldspar"
@@ -105,7 +106,6 @@ export const ConsentFormViz = (props: Props): ReactElement => {
   }
 
   const [tables, setTables] = useState<TableWithContext[]>(() => parseTables(props.tables))
-  const [isDonating, setIsDonating] = useState(false)
   const { locale, resolve } = props
   const { description } = prepareCopy(props)
   // The state initializer above already parsed props.tables; only re-parse
@@ -131,9 +131,18 @@ export const ConsentFormViz = (props: Props): ReactElement => {
   }, [])
 
   function handleDonate(): void {
-    setIsDonating(true)
     const value = serializeConsentData()
     resolve?.({ __type__: "PayloadJSON", "value": value })
+  }
+
+  function handleCancel(): void {
+    resolve?.({ __type__: "PayloadFalse", value: false })
+  }
+
+  function handleContinue(): void {
+    // Education mode (ADR-0012): the participant is only reviewing their own
+    // data locally — nothing is serialized or donated.
+    resolve?.({ __type__: "PayloadTrue", value: true })
   }
 
   function handleReportIssues(): void {
@@ -176,22 +185,30 @@ export const ConsentFormViz = (props: Props): ReactElement => {
             )
           })}
         </div>
-        <div>
-          <BodyLarge margin="" text={resolveText(props.donateQuestion ?? defaultDonateQuestionLabel, locale)} />
-          <div className="flex flex-row gap-4 mt-4 mb-4">
-            <PrimaryButton
-              label={resolveText(props.donateButton ?? defaultDonateButtonLabel, locale)}
-              onClick={handleDonate}
-              color="bg-success text-white"
-              spinning={isDonating}
-            />
-            <PrimaryButton
-              label={resolveText(reportIssuesButtonLabel, locale)}
-              onClick={handleReportIssues}
-              color="bg-grey4 text-grey1"
-            />
+        {props.reviewOnly ? (
+          <div>
+            <div className="flex flex-row gap-4 mt-4 mb-4">
+              <PrimaryButton
+                label={resolveText(props.donateButton ?? defaultDonateButtonLabel, locale)}
+                onClick={handleContinue}
+                color="bg-success text-white"
+              />
+              <PrimaryButton
+                label={resolveText(reportIssuesButtonLabel, locale)}
+                onClick={handleReportIssues}
+                color="bg-grey4 text-grey1"
+              />
+            </div>
           </div>
-        </div>
+        ) : (
+          <DonateButtons
+            onDonate={handleDonate}
+            onCancel={handleCancel}
+            locale={locale}
+            donateQuestion={props.donateQuestion ?? defaultDonateQuestionLabel}
+            donateButton={props.donateButton ?? defaultDonateButtonLabel}
+          />
+        )}
       </div>
     </>
   )

@@ -24,6 +24,9 @@ export interface PropsUIPromptConsentFormViz {
   donateQuestion?: Text
   donateButton?: Text
   tables: PropsUIPromptConsentFormTableViz[]
+  // Education mode (ADR-0012): no research-sharing question, no donation —
+  // Continue + Report issues instead of upstream's donate/cancel pair.
+  reviewOnly?: boolean
 }
 
 export interface Annotation {

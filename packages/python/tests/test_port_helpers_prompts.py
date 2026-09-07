@@ -1,3 +1,4 @@
+import port.api.props as props
 from port.helpers import port_helpers as ph
 
 
@@ -152,3 +153,18 @@ def test_render_issue_page_builds_tables_from_archive_set():
     body = cmd.page.body
     assert isinstance(body, d3i_props.PropsUIPromptIssueForm)
     assert [t.id for t in body.tables] == ["file_structures", "file_info"]
+
+
+def test_review_data_prompt_default_is_not_review_only():
+    import port.helpers.port_helpers as ph
+    prompt = ph.generate_review_data_prompt(props.Translatable({"en": "d", "nl": "d"}), [])
+    assert prompt.toDict()["reviewOnly"] is False
+
+
+def test_review_data_prompt_review_only_uses_continue_copy():
+    import port.helpers.port_helpers as ph
+    prompt = ph.generate_review_data_prompt(props.Translatable({"en": "d", "nl": "d"}), [], review_only=True)
+    d = prompt.toDict()
+    assert d["reviewOnly"] is True
+    assert prompt.donate_button.translations["en"] == "Continue"
+    assert prompt.donate_question.translations["en"] == ""

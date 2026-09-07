@@ -271,6 +271,9 @@ class FlowBuilder:
         elif consent_result.__type__ == "PayloadFalse":
             reviewed_data = json.dumps({"status": "data_submission declined"})
             yield from ph.emit_log("info", f"[{self.platform_name}] Consent: declined")
+        elif consent_result.__type__ == "PayloadTrue" and not self.donate_enabled:
+            yield from ph.emit_log("info", f"[{self.platform_name}] Review complete (education mode)")
+            return
         elif consent_result.__type__ == "PayloadString" and consent_result.value == "show issue form":
             yield from ph.emit_log("info", f"[{self.platform_name}] Issue form requested")
             _ = yield ph.render_issue_page(self.platform_name, archive)
@@ -364,4 +367,5 @@ class FlowBuilder:
         return ph.generate_review_data_prompt(
             description=self.UI_TEXT["review_data_description"],
             table_list=table_list,
+            review_only=not self.donate_enabled,
         )

@@ -160,7 +160,9 @@ def generate_file_prompt(
 
 
 def generate_review_data_prompt(
-    description: props.Translatable, table_list: list[d3i_props.PropsUIPromptConsentFormTableViz]
+    description: props.Translatable,
+    table_list: list[d3i_props.PropsUIPromptConsentFormTableViz],
+    review_only: bool = False,
 ) -> d3i_props.PropsUIPromptConsentFormViz:
     """
     Generates a data review form with a list of tables and a description, including default donate question and button.
@@ -170,33 +172,45 @@ def generate_review_data_prompt(
     Args:
         table_list (list[props.PropsUIPromptConsentFormTableViz]): A list of consent form tables to be included in the prompt.
         description (props.Translatable): A translatable description text for the consent prompt.
+        review_only (bool, optional): When True, the participant is only reviewing their
+            data (education mode, ADR-0012) — no research-sharing question is asked and
+            the button copy reads "Continue" rather than "Yes, share for research".
+            Defaults to False.
 
     Returns:
         props.PropsUIPromptConsentForm: A structured consent form object containing the provided table list, description,
         and default values for donate question and button.
     """
-    donate_question = props.Translatable(
-        {
-            "en": "Do you want to share this data for research?",
-            "nl": "Wilt u deze gegevens delen voor onderzoek?",
-            "de": "Möchten Sie diese Daten für die Forschung teilen?",
-            "it": "Vuole condividere questi dati per la ricerca?",
-            "es": "¿Desea compartir estos datos para la investigación?",
-        }
-    )
+    if review_only:
+        donate_question = props.Translatable({"en": "", "nl": ""})
+        donate_button = props.Translatable({"en": "Continue", "nl": "Doorgaan"})
+    else:
+        donate_question = props.Translatable(
+            {
+                "en": "Do you want to share this data for research?",
+                "nl": "Wilt u deze gegevens delen voor onderzoek?",
+                "de": "Möchten Sie diese Daten für die Forschung teilen?",
+                "it": "Vuole condividere questi dati per la ricerca?",
+                "es": "¿Desea compartir estos datos para la investigación?",
+            }
+        )
 
-    donate_button = props.Translatable(
-        {
-            "en": "Yes, share for research",
-            "nl": "Ja, deel voor onderzoek",
-            "de": "Ja, für Forschung teilen",
-            "it": "Sì, condividi per la ricerca",
-            "es": "Sí, compartir para la investigación",
-        }
-    )
+        donate_button = props.Translatable(
+            {
+                "en": "Yes, share for research",
+                "nl": "Ja, deel voor onderzoek",
+                "de": "Ja, für Forschung teilen",
+                "it": "Sì, condividi per la ricerca",
+                "es": "Sí, compartir para la investigación",
+            }
+        )
 
     return d3i_props.PropsUIPromptConsentFormViz(
-        tables=table_list, description=description, donate_question=donate_question, donate_button=donate_button
+        tables=table_list,
+        description=description,
+        donate_question=donate_question,
+        donate_button=donate_button,
+        review_only=review_only,
     )
 
 

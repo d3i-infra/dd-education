@@ -99,11 +99,14 @@ class PropsUIPromptConsentFormViz:
         description (Optional[Translatable]): Optional description of the consent form.
         donate_question (Optional[Translatable]): Optional donation question.
         donate_button (Optional[Translatable]): Optional text for the donate button.
+        review_only (bool): When True, the prompt is a review-only step (no
+            data is donated) — education mode. See ADR-0012.
     """
     tables: list[PropsUIPromptConsentFormTableViz]
     description: Optional[props.Translatable] = None
     donate_question: Optional[props.Translatable] = None
     donate_button: Optional[props.Translatable] = None
+    review_only: bool = False
 
     def translate_tables(self):
         """
@@ -130,6 +133,7 @@ class PropsUIPromptConsentFormViz:
         dict["description"] = self.description and self.description.toDict()
         dict["donateQuestion"] = self.donate_question and self.donate_question.toDict()
         dict["donateButton"] = self.donate_button and self.donate_button.toDict()
+        dict["reviewOnly"] = self.review_only
         return dict
 
 

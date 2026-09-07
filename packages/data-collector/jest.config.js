@@ -10,6 +10,9 @@ export default {
   // exercise the real feldspar code. See src/test_support/feldspar_test_shim.ts.
   moduleNameMapper: {
     '^@eyra/feldspar$': '<rootDir>/src/test_support/feldspar_test_shim.ts',
+    // feldspar's button.tsx imports icon SVGs at module scope; jest has no
+    // loader for raw SVG XML, so stub it (see src/test_support/svg_mock.js).
+    '\\.svg$': '<rootDir>/src/test_support/svg_mock.js',
   },
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
