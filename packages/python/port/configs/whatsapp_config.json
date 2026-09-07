@@ -20,8 +20,8 @@
         "nl": "Je groepsgesprek"
       },
       "description": {
-        "en": "The contents of your group chat. Timestamps (and therefore some tables) can be incorrect as it assumes the European format.",
-        "nl": "De inhoud van je groepsgesprek. Tijdstempels (en dus sommige tabellen) kunnen onjuist zijn omdat het Europese formaat wordt aangenomen."
+        "en": "The messages in your group chat, sorted by time. Try searching to filter the messages and see what your group was talking about at different moments.",
+        "nl": "De berichten in uw groepschat, gesorteerd op tijd. Probeer te zoeken om de berichten te filteren en te zien waar uw groep op verschillende momenten over sprak."
       },
       "headers": {
         "Timestamp": {
