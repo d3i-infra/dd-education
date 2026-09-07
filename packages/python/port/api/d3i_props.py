@@ -318,6 +318,59 @@ class PropsUIPromptInstructions:
 
 
 @dataclass
+class PropsUIPromptPlatformSelection:
+    """Platform selection menu with structured educational content (dd-education).
+
+    Renders as: intro paragraph, instruction list, footer paragraph,
+    then a fieldset with radio buttons for platform selection.
+
+    Attributes:
+        title: legend text for the radio group fieldset
+        intro: introductory paragraph
+        instructions: unordered list items (rendered as <ul>)
+        footer: closing paragraph (privacy assurance + call to action)
+        items: radio items for platform selection
+        continue_label: label for the Continue/submit button
+    """
+
+    title: props.Translatable
+    intro: props.Translatable
+    instructions: list[props.Translatable]
+    footer: props.Translatable
+    items: list[props.RadioItem]
+    continue_label: props.Translatable
+
+    def toDict(self):
+        dict = {}
+        dict["__type__"] = "PropsUIPromptPlatformSelection"
+        dict["title"] = self.title.toDict()
+        dict["intro"] = self.intro.toDict()
+        dict["instructions"] = [item.toDict() for item in self.instructions]
+        dict["footer"] = self.footer.toDict()
+        # RadioItem is a TypedDict (plain dict) — no .toDict() needed
+        dict["items"] = self.items
+        dict["continueLabel"] = self.continue_label.toDict()
+        return dict
+
+
+@dataclass
+class PropsUIPromptIssueForm:
+    """Issue report form with file structure tables and upload capability (dd-education)."""
+
+    description: props.Translatable
+    tables: list[PropsUIPromptConsentFormTableViz]
+    platform: str
+
+    def toDict(self):
+        return {
+            "__type__": "PropsUIPromptIssueForm",
+            "description": self.description.toDict(),
+            "tables": [t.toDict() for t in self.tables],
+            "platform": self.platform,
+        }
+
+
+@dataclass
 class ExtractionResult:
     """Result of a platform extraction: tables for consent + aggregated error counts.
 

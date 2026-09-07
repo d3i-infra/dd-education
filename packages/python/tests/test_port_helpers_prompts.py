@@ -93,3 +93,62 @@ def test_retry_prompt_multiple_ok_cancel_labels_unchanged():
     multi = ph.generate_retry_prompt("Google", multiple=True).toDict()
     assert single["ok"]["translations"] == multi["ok"]["translations"]
     assert single["cancel"]["translations"] == multi["cancel"]["translations"]
+
+
+def test_platform_selection_menu_shape():
+    import port.helpers.port_helpers as ph
+
+    menu = ph.generate_platform_selection_menu(["YouTube", "Netflix"])
+    d = menu.toDict()
+    assert d["__type__"] == "PropsUIPromptPlatformSelection"
+    assert [i["value"] for i in d["items"]] == ["YouTube", "Netflix"]
+    assert set(menu.intro.translations) >= {"en", "nl"}
+
+
+def test_render_issue_page_builds_tables_from_reader():
+    import io
+    import zipfile
+
+    import port.api.d3i_props as d3i_props
+    import port.helpers.port_helpers as ph
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr("x/a.json", '{"k": 1}')
+    buf.seek(0)
+    cmd = ph.render_issue_page("YouTube", buf)
+    body = cmd.page.body
+    # Prompt dataclasses carry no __type__ attribute on the live object
+    # (only in toDict()) — assert the class instead.
+    assert isinstance(body, d3i_props.PropsUIPromptIssueForm)
+    assert [t.id for t in body.tables] == ["file_structures", "file_info"]
+
+
+def _archive_set_part(name: str, entries: list[tuple[str, bytes]]):
+    """Build one in-memory ArchiveSet part (mirrors tests/test_archive_set.py::_part)."""
+    import io
+    import zipfile
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        for path, content in entries:
+            zf.writestr(path, content)
+    buf.seek(0)
+    buf.name = name
+    buf.size = len(buf.getvalue())
+    return buf
+
+
+def test_render_issue_page_builds_tables_from_archive_set():
+    """A multi-file (PayloadFiles) flow, e.g. Google, hands render_issue_page
+    an ArchiveSet rather than a single SeekableBinaryReader."""
+    import port.api.d3i_props as d3i_props
+    import port.helpers.port_helpers as ph
+    from port.helpers.archive_set import ArchiveSet
+
+    part = _archive_set_part("takeout-1-001.zip", [("Takeout/data.json", b'{"k": 1}')])
+    archive_set = ArchiveSet([part])
+    cmd = ph.render_issue_page("Google", archive_set)
+    body = cmd.page.body
+    assert isinstance(body, d3i_props.PropsUIPromptIssueForm)
+    assert [t.id for t in body.tables] == ["file_structures", "file_info"]

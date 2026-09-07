@@ -273,7 +273,7 @@ class FlowBuilder:
             yield from ph.emit_log("info", f"[{self.platform_name}] Consent: declined")
         elif consent_result.__type__ == "PayloadString" and consent_result.value == "show issue form":
             yield from ph.emit_log("info", f"[{self.platform_name}] Issue form requested")
-            _ = yield ph.render_issue_page(self.platform_name, cast(SeekableBinaryReader, archive))
+            _ = yield ph.render_issue_page(self.platform_name, archive)
             return
         else:
             return

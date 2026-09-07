@@ -13,7 +13,7 @@ from pathlib import Path
 import zipfile
 
 from port.api.file_utils import SeekableBinaryReader
-from port.helpers.archive_set import ArchiveSource, SingleArchiveSource
+from port.helpers.archive_set import ArchiveSet, ArchiveSource, SingleArchiveSource, is_macos_metadata
 import csv
 import io
 import json
@@ -753,3 +753,117 @@ class ZipArchiveReader:
 
         b = self._read_member_bytes(member)
         return RawExtractionResult(found=True, data=b, member_path=member)
+
+
+# --- Education helpers: anonymized structure overviews for the issue report ---
+#
+# Ported from the pre-rebase education fork (git show
+# master:packages/python/port/helpers/extraction_helpers.py). Ported to accept
+# a reader (or ArchiveSet, for multi-file/PayloadFiles platforms such as
+# Google) rather than a path, per ADR-0026.
+
+
+def _structure_rows_for_member(member: str, raw: bytes, infer_types: bool) -> list[dict[str, Any]]:
+    """Extract field-name/value rows for one JSON or CSV archive member.
+
+    If infer_types is True, values are replaced with their Python type
+    names (used to anonymize the issue-report structure table).
+    """
+    rows: list[dict[str, Any]] = []
+    lower = member.lower()
+    if lower.endswith(".json"):
+        data = json.loads(raw.decode("utf-8-sig"))
+        flat = dict_denester(data)
+        for key, value in flat.items():
+            v = type(value).__name__ if infer_types else value
+            rows.append({"filepath": member, "field_name": key, "value": v})
+    elif lower.endswith(".csv"):
+        text = raw.decode("utf-8-sig")
+        reader = csv.DictReader(io.StringIO(text))
+        first_row = next(reader, None)
+        if first_row:
+            for key, value in first_row.items():
+                v = type(value).__name__ if infer_types else value
+                rows.append({"filepath": member, "field_name": key, "value": v})
+    return rows
+
+
+def extract_file_structures_from_zip(
+    archive: SeekableBinaryReader | ArchiveSet, infer_types: bool = False
+) -> pd.DataFrame:
+    """Extract field names and optionally infer value types from all JSON/CSV
+    files in a zip archive (a single reader) or an ArchiveSet (multiple
+    uploaded parts, e.g. Google Takeout).
+
+    Returns a DataFrame with columns: filepath, field_name, value.
+    If infer_types is True, values are replaced with their Python type names.
+    """
+    results: list[dict[str, Any]] = []
+    try:
+        if isinstance(archive, ArchiveSet):
+            for member in archive.members:  # already excludes macOS metadata
+                if member.endswith("/"):
+                    continue
+                try:
+                    results.extend(_structure_rows_for_member(member, archive.read_member(member), infer_types))
+                except Exception:
+                    logger.warning("Could not process %s in archive set", member)
+        else:
+            archive.seek(0)
+            with zipfile.ZipFile(archive, "r") as zf:
+                for member in zf.namelist():
+                    if member.endswith("/") or is_macos_metadata(member):
+                        continue
+                    try:
+                        results.extend(_structure_rows_for_member(member, zf.read(member), infer_types))
+                    except Exception:
+                        logger.warning("Could not process %s in zip", member)
+    except zipfile.BadZipFile:
+        logger.warning("Bad zip file")
+
+    return pd.DataFrame(results) if results else pd.DataFrame(columns=["filepath", "field_name", "value"])
+
+
+def extract_zip_file_info(archive: SeekableBinaryReader | ArchiveSet) -> pd.DataFrame:
+    """Extract metadata for all files in a zip archive (a single reader) or
+    an ArchiveSet (multiple uploaded parts, e.g. Google Takeout).
+
+    Returns a DataFrame with columns: file_path, modified_time, file_size, mime_type.
+    Uses mimetypes stdlib for MIME detection (safe for Pyodide).
+    """
+    import mimetypes
+
+    def _row(filename: str, file_size: int, date_time: tuple[int, ...], is_dir: bool) -> dict[str, Any] | None:
+        if is_dir:
+            return None
+        mime, _ = mimetypes.guess_type(filename)
+        return {
+            "file_path": filename,
+            "modified_time": "{:04d}-{:02d}-{:02d} {:02d}:{:02d}".format(*date_time[:5]),
+            "file_size": file_size,
+            "mime_type": mime or "unknown",
+        }
+
+    results: list[dict[str, Any]] = []
+    try:
+        if isinstance(archive, ArchiveSet):
+            for member in archive.members:  # already excludes macOS metadata
+                info = archive.member_info(member)
+                row = _row(info.filename, info.file_size, info.date_time, info.is_dir())
+                if row is not None:
+                    results.append(row)
+        else:
+            archive.seek(0)
+            with zipfile.ZipFile(archive, "r") as zf:
+                for info in zf.infolist():
+                    if is_macos_metadata(info.filename):
+                        continue
+                    row = _row(info.filename, info.file_size, info.date_time, info.is_dir())
+                    if row is not None:
+                        results.append(row)
+    except zipfile.BadZipFile:
+        logger.warning("Bad zip file")
+
+    return pd.DataFrame(results) if results else pd.DataFrame(
+        columns=["file_path", "modified_time", "file_size", "mime_type"]
+    )

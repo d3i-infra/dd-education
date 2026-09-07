@@ -122,6 +122,15 @@ class ArchiveSet:
     def part_index_of(self, path: str) -> int:
         return self._owner[path]
 
+    def member_info(self, path: str) -> zipfile.ZipInfo:
+        """Return the owning part's central-directory metadata for `path`
+        (size, modified time, ...) without reading the member's content —
+        `ZipFile(part, "r")` only parses the central directory index, never
+        decompresses member data (ADR-0026)."""
+        part = self._parts[self._owner[path]]
+        with zipfile.ZipFile(part, "r") as zf:
+            return zf.getinfo(path)
+
     def read_member(self, path: str) -> bytes:
         """Read `path` from its owning (first-in-canonical-order) part.
 
