@@ -73,6 +73,10 @@ SIMPLIFIED_REGEXES = [
     r"^\[%m.%d.%y, %H:%M:%S\] %name: %chat_message$",
     r"^\[%m.%d.%y %H:%M:%S\] %name: %chat_message$",
     r"^%m/%d/%y, %H:%M - %name: %chat_message$",
+    r"^%d-%m-%y %H:%M %DAYPART - %name: %chat_message$",
+    r"^%d/%m/%y %H:%M %DAYPART - %name: %chat_message$",
+    r"^\[%d-%m-%y %H:%M:%S %DAYPART\] %name: %chat_message$",
+    r"^\[%d/%m/%y %H:%M:%S %DAYPART\] %name: %chat_message$",
     r"^(?P<year>.*?)(?:\] | - )%name: %chat_message$"  # Fallback catch all regex
 ]
 
@@ -88,6 +92,7 @@ REGEX_CODES = {
     "%S": r"(?P<seconds>\d{2})",
     "%P": r"(?P<ampm>[AaPp].? ?[Mm].?)",
     "%p": r"(?P<ampm>[AaPp].? ?[Mm].?)",
+    "%DAYPART": r"(?P<daypart>[’']s (?:ochtends|middags|avonds|nachts))",
     "%name": r"(?P<name>[^:]*)",
     "%chat_message": r"(?P<chat_message>.*)"
 }
@@ -136,6 +141,26 @@ def convert_to_iso8601(timestamp):
         return timestamp
 
 
+def to_24h(hour: int, ampm: str | None, daypart: str | None) -> int:
+    """Fold a 12-hour clock into 24h using an AM/PM marker or a Dutch day-part."""
+    if ampm:
+        pm = ampm.strip().lower().startswith("p")
+        if pm and hour < 12:
+            return hour + 12
+        if not pm and hour == 12:
+            return 0
+        return hour
+    if daypart:
+        part = daypart.split()[-1]
+        if part == "nachts":
+            return 0 if hour == 12 else hour
+        if part == "ochtends":
+            return hour
+        # middags (12:00-17:59) and avonds (18:00-23:59)
+        return hour if hour == 12 else hour + 12
+    return hour
+
+
 class Datapoint(TypedDict):
     date: str
     name: str
@@ -153,8 +178,9 @@ def create_data_point_from_chat(chat: str, regex) -> Datapoint:
         return Datapoint(date="", name="", chat_message="")
 
     # Construct date
+    hour = to_24h(int(result.get("hour") or 0), result.get("ampm"), result.get("daypart"))
     date = convert_to_iso8601(
-        f"{result.get('year', '')}-{result.get('month', '')}-{result.get('day', '')} {result.get('hour', '')}:{result.get('minutes', '')}"
+        f"{result.get('year', '')}-{result.get('month', '')}-{result.get('day', '')} {hour}:{result.get('minutes', '')}"
     )
     name = result.get("name", "")
     chat_message = result.get("chat_message", "")
