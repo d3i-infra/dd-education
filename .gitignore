@@ -20,6 +20,7 @@
 # Real DDP fixtures — must not enter version control (see ADR-0014)
 packages/python/tests/ddp/*
 !packages/python/tests/ddp/.gitkeep
+!packages/python/tests/ddp/README.md
 
 # production
 /build
