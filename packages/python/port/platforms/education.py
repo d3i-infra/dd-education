@@ -1,0 +1,92 @@
+"""
+dd-education: Digital Footprint Explorer.
+
+Composite platform module. Selected with ``VITE_PLATFORM=education``; upstream's
+``script.py`` dispatches here unchanged (ADR-0029). ``process()`` loops a platform
+menu and runs the chosen platform's own ``FlowBuilder`` in education mode: no
+donation, an instruction page first, and an issue-report form on the consent page.
+
+Platform info::
+
+    {
+      "name": "education",
+      "filetypes": ["zip"],
+      "languages": ["en", "nl"],
+      "description": "Interactive menu over the education platforms; no donation.",
+      "time_last_tested": "2026-09"
+    }
+"""
+from dataclasses import dataclass
+from importlib import import_module
+import logging
+
+import port.api.props as props
+import port.helpers.port_helpers as ph
+from port.helpers.flow_builder import FlowBuilder, TaskIncompleteError
+
+logger = logging.getLogger(__name__)
+
+#: No extractors of its own; the validator requires the attribute (ADR-0029).
+EXTRACTOR_REGISTRY: dict = {}
+
+
+@dataclass(frozen=True)
+class PlatformEntry:
+    module: str
+    cls: str
+    instruction_image: str | None
+    review_description: props.Translatable | None
+
+
+PLATFORMS: dict[str, PlatformEntry] = {
+    "YouTube": PlatformEntry("port.platforms.youtube", "YouTubeFlow", "youtube_instructions.svg",
+        props.Translatable({"en": "Below you will find a curated selection of your YouTube data.",
+                            "nl": "Hieronder vindt u een samengestelde selectie van uw YouTube-gegevens."})),
+    "Netflix": PlatformEntry("port.platforms.netflix", "NetflixFlow", "netflix_instructions.svg",
+        props.Translatable({"en": "Below you will find a curated selection of your Netflix data. This includes your viewing history, ratings, and search activity. Try searching through the tables to explore what Netflix knows about your watching habits.",
+                            "nl": "Hieronder vindt u een samengestelde selectie van uw Netflix-gegevens. Dit omvat uw kijkgeschiedenis, beoordelingen en zoekactiviteit. Probeer door de tabellen te zoeken om te ontdekken wat Netflix weet over uw kijkgedrag."})),
+    "Instagram": PlatformEntry("port.platforms.instagram", "InstagramFlow", "instagram_instructions.svg",
+        props.Translatable({"en": "Below you will find a curated selection of your Instagram data. This includes the posts and videos you viewed, your comments, the accounts you follow, and the ads shown to you. Explore the tables to discover the traces you leave behind on Instagram.",
+                            "nl": "Hieronder vindt u een samengestelde selectie van uw Instagram-gegevens. Dit omvat de berichten en video's die u heeft bekeken, uw reacties, de accounts die u volgt en de advertenties die aan u zijn getoond. Verken de tabellen om te ontdekken welke sporen u achterlaat op Instagram."})),
+    "LinkedIn": PlatformEntry("port.platforms.linkedin", "LinkedInFlow", "linkedin_instructions.png",
+        props.Translatable({"en": "Below you will find a curated selection of your LinkedIn data, showing the breadth of what LinkedIn collects about you. This includes your connections, reactions, search queries, and the ads you clicked on.",
+                            "nl": "Hieronder vindt u een samengestelde selectie van uw LinkedIn-gegevens, die laat zien hoeveel LinkedIn over u verzamelt. Dit omvat uw connecties, reacties, zoekopdrachten en de advertenties waarop u heeft geklikt."})),
+    "WhatsApp": PlatformEntry("port.platforms.whatsapp", "WhatsAppFlow", "whatsapp_instructions.png",
+        props.Translatable({"en": "Below you will find the contents of your group chat and some fun statistics about your group! Try searching through the messages to see what your group has been talking about.",
+                            "nl": "Hieronder vindt u de inhoud van uw groepschat en enkele leuke statistieken over uw groep! Probeer door de berichten te zoeken om te zien waar uw groep het over heeft gehad."})),
+    "ChatGPT": PlatformEntry("port.platforms.chatgpt", "ChatGPTFlow", "chatgpt_instructions.svg",
+        props.Translatable({"en": "Below you will find your conversations with ChatGPT. You can read back what you discussed and see how your usage developed over time.",
+                            "nl": "Hieronder vindt u uw gesprekken met ChatGPT. U kunt teruglezen wat u heeft besproken en zien hoe uw gebruik zich in de loop van de tijd heeft ontwikkeld."})),
+    "General DDP Analyzer": PlatformEntry("port.platforms.general_ddp_analyzer", "GeneralDDPAnalyzerFlow", None, None),
+}
+
+HEADER = props.Translatable({"en": "Digital Footprint Explorer", "nl": "Digitale Voetafdruk Verkenner"})
+
+
+def _build_flow(session_id: str, entry: PlatformEntry) -> FlowBuilder:
+    flow_cls = getattr(import_module(entry.module), entry.cls)
+    flow: FlowBuilder = flow_cls(session_id)
+    flow.donate_enabled = False
+    flow.instruction_image = entry.instruction_image
+    if entry.review_description is not None:
+        flow.UI_TEXT["review_data_description"] = entry.review_description
+    return flow
+
+
+def process(session_id: str):
+    """Menu loop. Never exhausts: the participant closes the page (no host, ADR-0025 exception)."""
+    while True:
+        menu = ph.generate_platform_selection_menu(list(PLATFORMS))
+        selection = yield ph.render_page(HEADER, menu)
+        if getattr(selection, "__type__", None) != "PayloadString" or selection.value not in PLATFORMS:
+            continue
+        entry = PLATFORMS[selection.value]
+        yield from ph.emit_log("info", f"[education] Platform selected: {selection.value}")
+        try:
+            yield from _build_flow(session_id, entry).start_flow()
+        except TaskIncompleteError as e:
+            logger.info("Flow ended without completion (%s); back to menu", e.reason)
+            continue
+        _ = yield ph.render_page(
+            props.Translatable({"en": "Exploration Complete", "nl": "Verkenning Voltooid"}),
+            ph.generate_platform_completion_prompt())

@@ -1,0 +1,15 @@
+{
+  "platform_info": {
+    "name": "education",
+    "filetypes": [
+      "zip"
+    ],
+    "languages": [
+      "en",
+      "nl"
+    ],
+    "description": "Interactive menu over the education platforms; no donation.",
+    "time_last_tested": "2026-09"
+  },
+  "tables": []
+}

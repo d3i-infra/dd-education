@@ -623,6 +623,17 @@ def generate_platform_selection_menu(platform_names: list[str]) -> d3i_props.Pro
     )
 
 
+def generate_platform_completion_prompt() -> props.PropsUIPromptConfirm:
+    """Confirmation shown after a platform flow completes in the education menu:
+    offers to explore another platform, or stop (dd-education)."""
+    again = props.Translatable({"en": "Explore another platform", "nl": "Verken een ander platform"})
+    text = props.Translatable({
+        "en": "We hope you enjoyed exploring your digital footprint!",
+        "nl": "We hopen dat je hebt genoten van het verkennen van je digitale voetafdruk!",
+    })
+    return props.PropsUIPromptConfirm(text=text, ok=again, cancel=again)
+
+
 def render_issue_page(platform_name: str, archive: SeekableBinaryReader | ArchiveSet) -> CommandUIRender:
     """Render issue report form with anonymized file structure from the archive
     (a single reader, or an ArchiveSet for a multi-file/PayloadFiles platform
