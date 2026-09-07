@@ -17,6 +17,7 @@ def render_page(
         | d3i_props.PropsUIPromptFileInputMultiple
         | d3i_props.PropsUIPromptQuestionnaire
         | props.PropsUIPromptConfirm
+        | d3i_props.PropsUIPromptInstructions
     ),
 ) -> CommandUIRender:
     """
@@ -538,6 +539,27 @@ def render_protocol_error_page(platform_name: str) -> CommandUIRender:
         ok=props.Translatable({"en": "OK", "nl": "OK", "de": "OK", "it": "OK", "es": "OK"}),
     )
     return render_page(header, body)
+
+
+def render_instructions_page(platform_name: str, image_url: str) -> CommandUIRender:
+    """Instruction page shown before the file prompt (education mode)."""
+    header = props.Translatable({
+        "en": f"Instructions to request your {platform_name} data",
+        "nl": f"Instructies om uw {platform_name} gegevens op te vragen",
+    })
+    description = props.Translatable({
+        "en": ("Please follow the instructions below carefully!\n"
+               "Click on the button \"Continue\" at the bottom of this page "
+               "when you are ready to go to the next step."),
+        "nl": ("Volg de onderstaande instructies zorgvuldig op!\n"
+               "Klik op de knop \"Doorgaan\" onderaan deze pagina "
+               "als u klaar bent om naar de volgende stap te gaan."),
+    })
+    return render_page(header, d3i_props.PropsUIPromptInstructions(description, image_url))
+
+
+def render_issue_page(platform_name: str, archive) -> CommandUIRender:  # replaced in edu-props
+    raise NotImplementedError
 
 
 def handle_donate_result(result) -> bool:

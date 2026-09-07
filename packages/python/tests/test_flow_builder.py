@@ -552,3 +552,47 @@ class TestTooManyFilesSafetyPath:
         with pytest.raises(TaskIncompleteError) as exc:
             gen.send(make_payload("PayloadTrue"))
         assert exc.value.exit_code == 4
+
+
+class TestEducationHooks:
+    @patch("port.helpers.uploads.check_payload_size")
+    def test_instruction_page_precedes_file_prompt(self, _):
+        flow = StubFlow()
+        flow.instruction_image = "youtube_instructions.svg"
+        gen = flow.start_flow()
+        cmd = start_and_skip_logs(gen)
+        assert isinstance(cmd, CommandUIRender)
+        body = cmd.page.body
+        assert type(body).__name__ == "PropsUIPromptInstructions"
+        assert body.imageUrl == "youtube_instructions.svg"
+        nxt = advance_past_logs(gen, make_payload("PayloadTrue"))
+        assert type(nxt.page.body).__name__ == "PropsUIPromptFileInput"
+
+    def test_no_instruction_page_by_default(self):
+        gen = StubFlow().start_flow()
+        cmd = start_and_skip_logs(gen)
+        assert type(cmd.page.body).__name__ == "PropsUIPromptFileInput"
+
+    @patch("port.helpers.uploads.check_payload_size")
+    def test_donate_disabled_returns_after_consent(self, _):
+        flow = StubFlow()
+        flow.donate_enabled = False
+        gen = flow.start_flow()
+        start_and_skip_logs(gen)
+        advance_past_logs(gen, make_payload_file())          # consent form
+        with pytest.raises(StopIteration):
+            advance_past_logs(gen, make_payload("PayloadJSON", value="{}"))
+
+    @patch("port.helpers.uploads.check_payload_size")
+    def test_issue_form_request_renders_issue_page(self, _):
+        flow = StubFlow()
+        flow.donate_enabled = False
+        gen = flow.start_flow()
+        start_and_skip_logs(gen)
+        advance_past_logs(gen, make_payload_file())
+        with patch("port.helpers.port_helpers.render_issue_page") as rip:
+            rip.return_value = CommandUIRender(MagicMock())
+            cmd = advance_past_logs(gen, make_payload("PayloadString", value="show issue form"))
+        assert rip.called
+        with pytest.raises(StopIteration):
+            advance_past_logs(gen, make_payload("PayloadTrue"))

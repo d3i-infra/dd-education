@@ -304,6 +304,20 @@ class PropsUIPromptRetry:
 
 
 @dataclass
+class PropsUIPromptInstructions:
+    """Instruction page: text plus one image, then a Continue button (dd-education)."""
+    description: props.Translatable
+    imageUrl: str
+
+    def toDict(self):
+        return {
+            "__type__": "PropsUIPromptInstructions",
+            "description": self.description.toDict(),
+            "imageUrl": self.imageUrl,
+        }
+
+
+@dataclass
 class ExtractionResult:
     """Result of a platform extraction: tables for consent + aggregated error counts.
 

@@ -53,6 +53,13 @@ class FlowBuilder:
     # construction below key off this attribute. See ADR-0040 (ArchiveSet).
     expected_file_payload: str = "PayloadFile"
 
+    # Education mode (dd-education): set on the instance by platforms/education.py.
+    # donate_enabled=False returns after the consent page instead of donating;
+    # instruction_image names a file under data-collector/public shown before the
+    # file prompt. Neither changes study behaviour, where both keep their defaults.
+    donate_enabled: bool = True
+    instruction_image: str | None = None
+
     def __init__(self, session_id: str, platform_name: str):
         self.session_id = session_id
         self.platform_name = platform_name
@@ -107,6 +114,9 @@ class FlowBuilder:
         (through emit_log). These must be PII-free. Local logger keeps full
         diagnostic detail in browser console only.
         """
+        if self.instruction_image:
+            _ = yield ph.render_instructions_page(self.platform_name, self.instruction_image)
+
         while True:
             # 1. Render file prompt → receive payload
             logger.info("Prompt for file for %s", self.platform_name)
@@ -261,7 +271,15 @@ class FlowBuilder:
         elif consent_result.__type__ == "PayloadFalse":
             reviewed_data = json.dumps({"status": "data_submission declined"})
             yield from ph.emit_log("info", f"[{self.platform_name}] Consent: declined")
+        elif consent_result.__type__ == "PayloadString" and consent_result.value == "show issue form":
+            yield from ph.emit_log("info", f"[{self.platform_name}] Issue form requested")
+            _ = yield ph.render_issue_page(self.platform_name, cast(SeekableBinaryReader, archive))
+            return
         else:
+            return
+
+        if not self.donate_enabled:
+            yield from ph.emit_log("info", f"[{self.platform_name}] Donation skipped (education mode)")
             return
 
         donate_key = f"{self.session_id}-{self.platform_name.lower()}"
