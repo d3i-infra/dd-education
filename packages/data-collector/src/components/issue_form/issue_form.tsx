@@ -40,7 +40,7 @@ export function IssueForm({ description, tables, platform, locale, resolve }: Pr
       const { rows } = dataFrameToRows(table.data_frame)
       return {
         id: table.id,
-        title: Translator.translate(table.title as any, locale),
+        title: Translator.translate(table.title, locale),
         data: rows,
       }
     })
@@ -60,14 +60,15 @@ export function IssueForm({ description, tables, platform, locale, resolve }: Pr
         headers: { "Content-Type": "text/plain; charset=utf-8" },
         body: serializeData(),
       })
-      if (!response.ok) {
+      if (response.ok) {
+        setHasSubmitted(true)
+      } else {
         alert("Upload failed. Please try again later.")
       }
     } catch {
       alert("Upload failed. Please try again later.")
     } finally {
       setIsUploading(false)
-      setHasSubmitted(true)
     }
   }
 
@@ -75,7 +76,7 @@ export function IssueForm({ description, tables, platform, locale, resolve }: Pr
     resolve?.({ __type__: "PayloadFalse", value: false })
   }
 
-  const descriptionText = Translator.translate(description as any, locale)
+  const descriptionText = Translator.translate(description, locale)
 
   return (
     <div className="flex flex-col gap-6">
@@ -103,11 +104,11 @@ export function IssueForm({ description, tables, platform, locale, resolve }: Pr
         return (
           <div key={table.id} className="mb-4">
             <h3 className="text-title6 font-title6 mb-2">
-              {Translator.translate(table.title as any, locale)}
+              {Translator.translate(table.title, locale)}
             </h3>
             {table.description && (
               <p className="text-grey2 mb-2">
-                {Translator.translate(table.description as any, locale)}
+                {Translator.translate(table.description, locale)}
               </p>
             )}
             {columns.length > 0 && (
