@@ -13,6 +13,7 @@ import zipfile
 import logging
 
 from port.api.file_utils import SeekableBinaryReader
+from port.helpers.archive_set import is_macos_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -243,7 +244,7 @@ def validate_zip(
     try:
         paths = []
         with zipfile.ZipFile(archive, "r") as zf:
-            all_members = zf.namelist()
+            all_members = [m for m in zf.namelist() if is_macos_metadata(m) is False]
             for f in all_members:
                 p = Path(f)
                 content_logger.debug("Found: %s in zip", p.name)

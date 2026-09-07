@@ -20,6 +20,19 @@ class MemberTooLargeError(Exception):
     """A zip member's uncompressed size exceeds MAX_MEMBER_UNCOMPRESSED_BYTES."""
 
 
+MACOS_METADATA_DIR = "__MACOSX/"
+MACOS_RESOURCE_FORK_PREFIX = "._"
+
+
+def is_macos_metadata(path: str) -> bool:
+    """True for entries macOS Finder adds when re-zipping: the ``__MACOSX/`` tree and
+    ``._name`` AppleDouble resource forks. They are never DDP content and they
+    collide with real members on basename matching."""
+    if path.startswith(MACOS_METADATA_DIR):
+        return True
+    return path.rsplit("/", 1)[-1].startswith(MACOS_RESOURCE_FORK_PREFIX)
+
+
 @runtime_checkable
 class ArchiveSource(Protocol):
     @property
@@ -93,6 +106,8 @@ class ArchiveSet:
             seen_in_part: set[str] = set()
             with zipfile.ZipFile(part, "r") as zf:
                 for path in zf.namelist():
+                    if is_macos_metadata(path):
+                        continue
                     if path in seen_in_part:
                         self.duplicates["DuplicateMemberWithinPart"] += 1
                         continue

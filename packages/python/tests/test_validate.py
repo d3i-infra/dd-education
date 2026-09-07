@@ -86,3 +86,20 @@ class TestArchiveMembers:
         result = validate_zip(categories, archive)
         assert result.current_ddp_category is not None
         assert result.current_ddp_category.id == "test"
+
+
+def test_validate_zip_inventory_excludes_macos_entries():
+    import io, zipfile
+    from port.helpers import validate
+    from port.helpers.validate import DDPCategory, DDPFiletype, Language
+
+    cats = [DDPCategory(id="json_en", ddp_filetype=DDPFiletype.JSON, language=Language.EN,
+                        known_files=["a.json"])]
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr("x/a.json", "{}")
+        zf.writestr("__MACOSX/x/._a.json", "\x00")
+    buf.seek(0)
+    v = validate.validate_zip(cats, buf)
+    assert v.get_status_code_id() == 0
+    assert v.archive_members == ["x/a.json"]

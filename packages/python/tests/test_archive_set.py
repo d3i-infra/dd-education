@@ -9,7 +9,7 @@ import zipfile
 
 import pytest
 
-from port.helpers.archive_set import ArchiveSet, SingleArchiveSource, MemberTooLargeError
+from port.helpers.archive_set import ArchiveSet, SingleArchiveSource, MemberTooLargeError, is_macos_metadata
 
 
 def _part(name, entries):
@@ -138,3 +138,15 @@ class TestOpenMember:
             archive_set.read_member("big.txt")
         with archive_set.open_member("big.txt") as stream:
             assert stream.read() == b"12345678"
+
+
+class TestMacosMetadataEntries:
+    def test_predicate(self):
+        assert is_macos_metadata("__MACOSX/export/._a.json")
+        assert is_macos_metadata("export/._a.json")
+        assert not is_macos_metadata("export/a.json")
+        assert not is_macos_metadata("export/_a.json")
+
+    def test_archive_set_inventory_excludes_them(self):
+        aset = ArchiveSet([_part("a-1.zip", [("export/a.json", b"{}"), ("__MACOSX/export/._a.json", b"\x00")])])
+        assert aset.members == ["export/a.json"]
