@@ -763,8 +763,18 @@ class ZipArchiveReader:
 # Google) rather than a path, per ADR-0026.
 
 
+def _is_structure_member(member: str) -> bool:
+    """True for the only members extract_file_structures_from_zip reads:
+    JSON and CSV. Checked *before* any read — a real export's images,
+    videos, and other binary members must never be pulled into memory just
+    to be discarded (ADR-0026)."""
+    lower = member.lower()
+    return lower.endswith(".json") or lower.endswith(".csv")
+
+
 def _structure_rows_for_member(member: str, raw: bytes, infer_types: bool) -> list[dict[str, Any]]:
     """Extract field-name/value rows for one JSON or CSV archive member.
+    Caller must already have filtered to `_is_structure_member(member)`.
 
     If infer_types is True, values are replaced with their Python type
     names (used to anonymize the issue-report structure table).
@@ -795,6 +805,10 @@ def extract_file_structures_from_zip(
     files in a zip archive (a single reader) or an ArchiveSet (multiple
     uploaded parts, e.g. Google Takeout).
 
+    Only `.json`/`.csv` members are ever read — every other member (images,
+    videos, ...) is skipped by name before any bytes are pulled, so a real
+    export's large binary members are never read just to be discarded.
+
     Returns a DataFrame with columns: filepath, field_name, value.
     If infer_types is True, values are replaced with their Python type names.
     """
@@ -802,7 +816,7 @@ def extract_file_structures_from_zip(
     try:
         if isinstance(archive, ArchiveSet):
             for member in archive.members:  # already excludes macOS metadata
-                if member.endswith("/"):
+                if not _is_structure_member(member):
                     continue
                 try:
                     results.extend(_structure_rows_for_member(member, archive.read_member(member), infer_types))
@@ -812,7 +826,7 @@ def extract_file_structures_from_zip(
             archive.seek(0)
             with zipfile.ZipFile(archive, "r") as zf:
                 for member in zf.namelist():
-                    if member.endswith("/") or is_macos_metadata(member):
+                    if is_macos_metadata(member) or not _is_structure_member(member):
                         continue
                     try:
                         results.extend(_structure_rows_for_member(member, zf.read(member), infer_types))

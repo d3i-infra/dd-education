@@ -10,6 +10,7 @@ import io
 import json
 import zipfile
 
+from port.helpers.archive_set import ArchiveSet
 from port.helpers.extraction_helpers import (
     extract_file_structures_from_zip,
     extract_zip_file_info,
@@ -55,6 +56,56 @@ class TestExtractFileStructures:
         # Values should be type names, not actual values
         values = df["value"].tolist()
         assert "Alice" not in values
+
+
+class TestExtractFileStructuresSkipsNonStructureMembers:
+    """Regression: only .json/.csv members may be read at all — a real
+    export's images/videos must never be pulled into memory just to be
+    discarded by the extension check (ADR-0026)."""
+
+    def test_single_reader_only_reads_json_and_csv_members(self, monkeypatch):
+        files = {
+            "data.json": json.dumps({"a": 1}).encode(),
+            "photo.bin": b"\x00" * (5 * 1024 * 1024),
+        }
+        buf = create_test_zip(files)
+
+        original_read = zipfile.ZipFile.read
+        read_calls: list[str] = []
+
+        def spy_read(self, name, *args, **kwargs):
+            read_calls.append(name)
+            return original_read(self, name, *args, **kwargs)
+
+        monkeypatch.setattr(zipfile.ZipFile, "read", spy_read)
+
+        df = extract_file_structures_from_zip(buf)
+
+        assert read_calls == ["data.json"]
+        assert "photo.bin" not in df["filepath"].values
+
+    def test_archive_set_only_reads_json_and_csv_members(self, monkeypatch):
+        part = create_test_zip({
+            "data.json": json.dumps({"a": 1}).encode(),
+            "photo.bin": b"\x00" * (5 * 1024 * 1024),
+        })
+        part.name = "part-1.zip"
+        part.size = len(part.getvalue())
+        archive_set = ArchiveSet([part])
+
+        original_read_member = ArchiveSet.read_member
+        read_calls: list[str] = []
+
+        def spy_read_member(self, path):
+            read_calls.append(path)
+            return original_read_member(self, path)
+
+        monkeypatch.setattr(ArchiveSet, "read_member", spy_read_member)
+
+        df = extract_file_structures_from_zip(archive_set)
+
+        assert read_calls == ["data.json"]
+        assert "photo.bin" not in df["filepath"].values
 
 
 class TestExtractZipFileInfo:
