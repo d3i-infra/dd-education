@@ -15,7 +15,7 @@ test('error flow donates report, shows task-incomplete page, and exits nonzero',
   const consoleMessages: string[] = [];
   page.on('console', (msg) => consoleMessages.push(msg.text()));
 
-  await page.goto('http://localhost:3000/');
+  await page.goto('http://localhost:3000/#/port');
   await expect(page.getByRole('heading', { name: 'Select your example file' })).toBeVisible({ timeout: 90000 });
 
   // Upload the fixture that makes the example extractor raise
@@ -63,7 +63,7 @@ test('declining retry after an invalid file shows task-incomplete page and exits
   const consoleMessages: string[] = [];
   page.on('console', (msg) => consoleMessages.push(msg.text()));
 
-  await page.goto('http://localhost:3000/');
+  await page.goto('http://localhost:3000/#/port');
   await expect(page.getByRole('heading', { name: 'Select your example file' })).toBeVisible({ timeout: 90000 });
 
   // Upload a file that is not a zip → validation fails → retry prompt

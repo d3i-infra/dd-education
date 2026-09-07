@@ -40,7 +40,6 @@ jobs:
       - name: Build Python Package
         working-directory: packages/python
         run: |
-          poetry lock
           poetry install
           poetry build --format wheel
 
@@ -55,6 +54,7 @@ jobs:
       - name: Build App
         run: pnpm run build
         env:
+          VITE_PLATFORM: education
           NODE_ENV: development
 
       - name: Deploy to GitHub Pages

@@ -6,7 +6,7 @@ import * as path from 'path';
  */
 async function setupTestWithFileUpload(page: Page): Promise<void> {
   // Navigate to the local development server
-  await page.goto('http://localhost:3000/');
+  await page.goto('http://localhost:3000/#/port');
 
   // Wait for Pyodide to initialize and render the page (can take a while on CI)
   await expect(page.getByRole('heading', { name: 'Select your example file' })).toBeVisible({ timeout: 90000 });

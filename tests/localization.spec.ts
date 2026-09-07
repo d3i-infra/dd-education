@@ -83,7 +83,7 @@ test('supported locale de: German chrome with English config content', async ({ 
   expect(SUPPORTED_UI_LOCALES).toContain('de');
   expect(DEFAULT_UI_LOCALE).toBe('en');
 
-  await bootAndUpload(page, '/?locale=de', {
+  await bootAndUpload(page, '/?locale=de#/port', {
     heading: 'Wählen Sie Ihre example-Datei aus',
     selectButton: 'Datei auswählen',
     continueButton: 'Weiter',
@@ -111,7 +111,7 @@ test('es-ES normalizes to es: Spanish chrome', async ({ page }) => {
   expect(SUPPORTED_UI_LOCALES).not.toContain('es-ES');
   expect(SUPPORTED_UI_LOCALES).toContain('es');
 
-  await page.goto('/?locale=es-ES');
+  await page.goto('/?locale=es-ES#/port');
 
   await expect(page.getByRole('heading', { name: 'Seleccione su archivo de example' }))
     .toBeVisible({ timeout: BOOT_TIMEOUT });
@@ -133,7 +133,7 @@ test('es-ES normalizes to es: Spanish chrome', async ({ page }) => {
 test('nl full flow: Dutch chrome and content, donation completes', async ({ page }) => {
   expect(SUPPORTED_UI_LOCALES).toContain('nl');
 
-  await bootAndUpload(page, '/?locale=nl', {
+  await bootAndUpload(page, '/?locale=nl#/port', {
     heading: 'Selecteer uw example bestand',
     selectButton: 'Kies bestand',
     continueButton: 'Verder',
@@ -160,7 +160,7 @@ test('unsupported locale ro falls back to English and donates', async ({ page })
   expect(SUPPORTED_UI_LOCALES).not.toContain('ro');
   expect(DEFAULT_UI_LOCALE).toBe('en');
 
-  await page.goto('/?locale=ro');
+  await page.goto('/?locale=ro#/port');
 
   await expect(page.getByRole('heading', { name: 'Select your example file' }))
     .toBeVisible({ timeout: BOOT_TIMEOUT });

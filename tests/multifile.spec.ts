@@ -63,7 +63,7 @@ function tableWithTitle(page: Page, title: string): Locator {
 }
 
 test('can select two zip parts and submit data sourced from both', async ({ page }) => {
-  await page.goto('http://localhost:3000/');
+  await page.goto('http://localhost:3000/#/port');
   await expect(page.getByRole('heading', { name: 'Select your e2etest_multifile file' })).toBeVisible({ timeout: 90000 });
 
   const fileChooserPromise = page.waitForEvent('filechooser');
@@ -125,7 +125,7 @@ test('can select two zip parts and submit data sourced from both', async ({ page
 });
 
 test('adding the same file twice shows the duplicate notice and keeps one entry', async ({ page }) => {
-  await page.goto('http://localhost:3000/');
+  await page.goto('http://localhost:3000/#/port');
   await expect(page.getByRole('heading', { name: 'Select your e2etest_multifile file' })).toBeVisible({ timeout: 90000 });
 
   const firstChooserPromise = page.waitForEvent('filechooser');
@@ -182,7 +182,7 @@ test('uploading a renamed copy of the same archive does not duplicate the donate
   fs.copyFileSync(path.join(__dirname, 'test-split-1.zip'), renamedCopyPath);
 
   try {
-    await page.goto('http://localhost:3000/');
+    await page.goto('http://localhost:3000/#/port');
     await expect(page.getByRole('heading', { name: 'Select your e2etest_multifile file' })).toBeVisible({ timeout: 90000 });
 
     const fileChooserPromise = page.waitForEvent('filechooser');
@@ -248,7 +248,7 @@ test('too many files shows the safety error page and exits upload-rejected', asy
   try {
     const submissionWatch = watchForDataSubmission(page);
 
-    await page.goto('http://localhost:3000/');
+    await page.goto('http://localhost:3000/#/port');
     await expect(page.getByRole('heading', { name: 'Select your e2etest_multifile file' })).toBeVisible({ timeout: 90000 });
 
     const fileChooserPromise = page.waitForEvent('filechooser');
@@ -332,7 +332,7 @@ test('combined size over the limit shows the safety error page', async ({ page }
 
     const submissionWatch = watchForDataSubmission(page);
 
-    await page.goto('http://localhost:3000/');
+    await page.goto('http://localhost:3000/#/port');
     await expect(page.getByRole('heading', { name: 'Select your e2etest_multifile file' })).toBeVisible({ timeout: 90000 });
 
     const fileChooserPromise = page.waitForEvent('filechooser');
