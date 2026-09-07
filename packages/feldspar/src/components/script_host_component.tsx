@@ -22,6 +22,7 @@ export interface ScriptHostProps {
   logLevel?: LogLevel;
   platform?: string;
   mapLocale?: (requested: string) => string;
+  fallback?: React.ReactNode;
 }
 
 const FeldsparContent: React.FC<ScriptHostProps> = ({
@@ -34,6 +35,7 @@ const FeldsparContent: React.FC<ScriptHostProps> = ({
   logLevel = "info",
   platform,
   mapLocale,
+  fallback,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const assemblyRef = useRef<Assembly | null>(null);
@@ -94,7 +96,7 @@ const FeldsparContent: React.FC<ScriptHostProps> = ({
 
   return (
     <div ref={containerRef} className={className}>
-      {state.elements}
+      {state.elements.length > 0 ? state.elements : fallback}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import {
-  DonateButtons,
+  PrimaryButton,
   BodyLarge,
   ReactFactoryContext,
 } from "@eyra/feldspar"
@@ -105,6 +105,7 @@ export const ConsentFormViz = (props: Props): ReactElement => {
   }
 
   const [tables, setTables] = useState<TableWithContext[]>(() => parseTables(props.tables))
+  const [isDonating, setIsDonating] = useState(false)
   const { locale, resolve } = props
   const { description } = prepareCopy(props)
   // The state initializer above already parsed props.tables; only re-parse
@@ -130,12 +131,13 @@ export const ConsentFormViz = (props: Props): ReactElement => {
   }, [])
 
   function handleDonate(): void {
+    setIsDonating(true)
     const value = serializeConsentData()
     resolve?.({ __type__: "PayloadJSON", "value": value })
   }
 
-  function handleCancel(): void {
-    resolve?.({ __type__: "PayloadFalse", value: false })
+  function handleReportIssues(): void {
+    resolve?.({ __type__: "PayloadString", value: "show issue form" })
   }
 
   function serializeConsentData(): string {
@@ -174,13 +176,22 @@ export const ConsentFormViz = (props: Props): ReactElement => {
             )
           })}
         </div>
-        <DonateButtons
-          onDonate={handleDonate}
-          onCancel={handleCancel}
-          locale={locale}
-          donateQuestion={props.donateQuestion ?? defaultDonateQuestionLabel}
-          donateButton={props.donateButton ?? defaultDonateButtonLabel}
-        />
+        <div>
+          <BodyLarge margin="" text={resolveText(props.donateQuestion ?? defaultDonateQuestionLabel, locale)} />
+          <div className="flex flex-row gap-4 mt-4 mb-4">
+            <PrimaryButton
+              label={resolveText(props.donateButton ?? defaultDonateButtonLabel, locale)}
+              onClick={handleDonate}
+              color="bg-success text-white"
+              spinning={isDonating}
+            />
+            <PrimaryButton
+              label={resolveText(reportIssuesButtonLabel, locale)}
+              onClick={handleReportIssues}
+              color="bg-grey4 text-grey1"
+            />
+          </div>
+        </div>
       </div>
     </>
   )
@@ -216,6 +227,11 @@ const defaultDonateButtonLabel = new TextBundle()
   .add('nl', 'Ja, deel voor onderzoek')
   .add('it', 'Sì, condividi per la ricerca')
   .add('es', 'Sí, compartir para la investigación')
+
+const reportIssuesButtonLabel = new TextBundle()
+  .add('en', 'Report issues')
+  .add('nl', 'Rapporteer problemen')
+  .add('de', 'Probleme melden')
 
 const defaultDescription = new TextBundle()
   .add('en', 'Determine whether you would like to share the data below. Carefully check the data and adjust when required. With your contribution, you help the previously described research. Thank you in advance.')
