@@ -1,5 +1,10 @@
 import { useSyncExternalStore } from "react"
-import { normalizeLocale, DEFAULT_UI_LOCALE } from "./policy"
+import {
+  normalizeLocale,
+  DEFAULT_UI_LOCALE,
+  PROVISIONAL_UI_LOCALES,
+  SUPPORTED_UI_LOCALES,
+} from "./policy"
 
 /**
  * Where a participant's language choice is kept between visits.
@@ -9,20 +14,25 @@ import { normalizeLocale, DEFAULT_UI_LOCALE } from "./policy"
  */
 export const UI_LOCALE_STORAGE_KEY = "dfe.locale"
 
+/** A locale is offered when it is supported and not provisional. */
+function hasStudyContent(locale: string): boolean {
+  return !PROVISIONAL_UI_LOCALES.includes(locale)
+}
+
 /**
- * The locales the toggle offers.
+ * The locales the toggle offers, derived from `ui_locales.json` rather than listed again.
  *
- * `SUPPORTED_UI_LOCALES` lists five, but only `en` and `nl` have study content written
- * for them (`de`, `it` and `es` are provisional chrome-only locales); offering a language
- * whose tables would all render in English would be a worse experience than not offering
- * it.
+ * A provisional locale has machine-translated chrome and no reviewed study content, so
+ * choosing one would render the tool's own buttons in that language and every table
+ * title in English. Filtering the supported set by that same `provisional` key keeps this
+ * list in step with ADR-0038's single declaration: adding `fr` to `ui_locales.json`
+ * offers it here the moment it stops being provisional, and nothing here has to be
+ * edited to match.
  */
-export const OFFERED_UI_LOCALES = ["en", "nl"] as const
+export const OFFERED_UI_LOCALES: readonly string[] = SUPPORTED_UI_LOCALES.filter(hasStudyContent)
 
-export type OfferedUiLocale = (typeof OFFERED_UI_LOCALES)[number]
-
-function isOffered(value: unknown): value is OfferedUiLocale {
-  return typeof value === "string" && (OFFERED_UI_LOCALES as readonly string[]).includes(value)
+function isOffered(value: unknown): value is string {
+  return typeof value === "string" && OFFERED_UI_LOCALES.includes(value)
 }
 
 /**
@@ -77,7 +87,16 @@ function subscribe(listener: () => void): () => void {
   }
 }
 
-/** Switch the tool's language, remember it, and re-render everything showing it. */
+/**
+ * Record a new language preference and re-render the toggles showing it.
+ *
+ * This is a *preference*, not a live switch: the tool page reads the stored value once
+ * when it mounts and holds it for the session (see `App.tsx`), so a change made here
+ * takes effect the next time the tool is opened. Re-rendering the tool on a locale change
+ * is not an option — `ScriptHostComponent`'s effect lists `locale`, and remounting that
+ * effect terminates the worker it has just started while leaving the previous one
+ * running.
+ */
 export function setUiLocale(locale: string): void {
   if (!isOffered(locale) || locale === snapshot()) return
   current = locale
@@ -88,11 +107,21 @@ export function setUiLocale(locale: string): void {
 }
 
 /**
- * The tool's current UI locale.
+ * The stored language preference, read without subscribing to changes.
  *
- * A module-level store rather than a context, because the two places that show the
- * toggle — the site navbar and the tool page — sit in different route elements with no
- * common ancestor to hang a provider on.
+ * What `App.tsx` calls once on mount. A module-level store rather than a context because
+ * the navbar and the tool page sit in different route elements with no common ancestor to
+ * hang a provider on.
+ */
+export function readUiLocale(): string {
+  return snapshot()
+}
+
+/**
+ * The current language preference, re-rendering the caller when it changes.
+ *
+ * For the toggle itself, which has to show which language is selected. Not for the tool
+ * page — see `setUiLocale`.
  */
 export function useUiLocale(): string {
   return useSyncExternalStore(subscribe, snapshot, snapshot)

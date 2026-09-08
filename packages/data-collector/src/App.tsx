@@ -8,9 +8,9 @@ import { IssueFormFactory } from "./components/issue_form/factory"
 import { PlatformSelectionFactory } from "./components/platform_selection/factory"
 import { InstructionsFactory } from "./components/instructions/factory"
 import { normalizeLocale, DEFAULT_UI_LOCALE } from "./locale/policy"
-import { useUiLocale } from "./locale/ui_locale"
-import { LocaleToggle } from "./routes/components/locale_toggle"
+import { readUiLocale } from "./locale/ui_locale"
 import { buildEnv } from "./build_env"
+import { useMemo } from "react"
 
 // DEV-gated query param: the Playwright e2e injection point. Production locale
 // comes only from mono's live-init (LiveBridge), never from the URL.
@@ -19,8 +19,9 @@ const devLocale = buildEnv.DEV
   : undefined
 
 // The education tool is served standalone (ADR-0041): there is no host to send a locale,
-// so it picks its own — the participant's stored choice, else their browser's language.
-// A study build keeps handing that decision to mono's live-init, so it passes nothing.
+// so it picks its own — the participant's stored preference, else their browser's
+// language. A study build keeps handing that decision to mono's live-init, so it passes
+// nothing.
 const isEducation = buildEnv.VITE_PLATFORM === "education"
 
 const LoadingScreen = (
@@ -40,16 +41,35 @@ const LoadingScreen = (
   </div>
 );
 
+// Hoisted out of render on purpose. `ScriptHostComponent`'s effect lists `factories`, so
+// a fresh array literal each render would remount that effect — and its cleanup, deferred
+// to after the next effect has run, terminates the worker the *new* effect just started
+// while the previous one keeps running. One array, built once, never a new identity.
+const FACTORIES = [
+  new DataSubmissionPageFactory({
+    promptFactories: [
+      new ConsentFormVizFactory(),
+      new FileInputMultipleFactory(),
+      new ErrorPageFactory(),
+      new QuestionnaireFactory(),
+      new RetryPromptFactory(),
+      new IssueFormFactory(),
+      new PlatformSelectionFactory(),
+      new InstructionsFactory(),
+    ],
+  }),
+];
+
 function App() {
-  const uiLocale = useUiLocale()
+  // Read once, on mount, and hold it for the session. `locale` is in the same effect's
+  // dependency list as `factories`, so changing it mid-session leaks a worker exactly the
+  // same way. The language toggle therefore lives on the site pages (navbar) and not
+  // here: a participant picks a language before opening the tool, and a change made while
+  // the tool is open applies the next time they open it.
+  const uiLocale = useMemo(() => (isEducation ? readUiLocale() : undefined), [])
 
   return (
     <div className="App">
-      {isEducation && (
-        <div className="flex justify-end px-4 py-2">
-          <LocaleToggle />
-        </div>
-      )}
       <ScriptHostComponent
         workerUrl="./py_worker.js"
         // The Pages deployment (VITE_PLATFORM=education) has no host to hand
@@ -58,23 +78,10 @@ function App() {
         logLevel={buildEnv.DEV ? "debug" : "info"}
         platform={buildEnv.VITE_PLATFORM}
         defaultLocale={DEFAULT_UI_LOCALE}
-        locale={devLocale ?? (isEducation ? uiLocale : undefined)}
+        locale={devLocale ?? uiLocale}
         mapLocale={normalizeLocale}
         fallback={LoadingScreen}
-        factories={[
-          new DataSubmissionPageFactory({
-            promptFactories: [
-                new ConsentFormVizFactory(),
-                new FileInputMultipleFactory(),
-                new ErrorPageFactory(),
-                new QuestionnaireFactory(),
-                new RetryPromptFactory(),
-                new IssueFormFactory(),
-                new PlatformSelectionFactory(),
-                new InstructionsFactory(),
-            ],
-          }),
-        ]}
+        factories={FACTORIES}
       />
     </div>
   );
