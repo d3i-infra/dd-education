@@ -1,4 +1,4 @@
-import { ChartVisualization, TextVisualization, StatsVisualization, HeatmapVisualization, VisualizationType, Table } from '../types'
+import { ChartVisualization, TextVisualization, StatsVisualization, HeatmapVisualization, ThreadVisualization, VisualizationType, Table } from '../types'
 
 /**
  * Project a table down to only the columns the visualization reads, so that
@@ -38,6 +38,7 @@ function visualizationColumns (visualization: VisualizationType): string[] {
     const text = visualization as TextVisualization
     columns.add(text.textColumn)
     if (text.valueColumn !== undefined) columns.add(text.valueColumn)
+    if (text.excludeColumn !== undefined) columns.add(text.excludeColumn)
   }
 
   if (visualization.type === 'stats') {
@@ -51,6 +52,15 @@ function visualizationColumns (visualization: VisualizationType): string[] {
     const heatmap = visualization as HeatmapVisualization
     columns.add(heatmap.dateColumn)
     if (heatmap.valueColumn !== undefined) columns.add(heatmap.valueColumn)
+  }
+
+  if (visualization.type === 'thread') {
+    const thread = visualization as ThreadVisualization
+    if (thread.groupColumn !== undefined) columns.add(thread.groupColumn)
+    columns.add(thread.roleColumn)
+    columns.add(thread.textColumn)
+    if (thread.timeColumn !== undefined) columns.add(thread.timeColumn)
+    if (thread.badgeColumn !== undefined) columns.add(thread.badgeColumn)
   }
 
   return Array.from(columns)

@@ -54,6 +54,17 @@ describe('selectVisualizationColumns', () => {
     expect(projected.body.rows[0].cells).toEqual(['video one', '10'])
   })
 
+  it('keeps excludeColumn for a wordcloud alongside textColumn', () => {
+    const visualization: VisualizationType = {
+      title: { en: 'words' },
+      type: 'wordcloud',
+      textColumn: 'title',
+      excludeColumn: 'category'
+    }
+    const projected = selectVisualizationColumns(makeTable(), visualization)
+    expect(projected.head.cells).toEqual(['title', 'category'])
+  })
+
   it('drops referenced columns that do not exist in the table (worker reports the error)', () => {
     const visualization: VisualizationType = {
       title: { en: 'bad' },
@@ -99,6 +110,32 @@ describe('selectVisualizationColumns', () => {
     }
     const projected = selectVisualizationColumns(makeTable(), visualization)
     expect(projected.head.cells).toEqual(['date'])
+  })
+
+  it('keeps groupColumn, roleColumn, textColumn, timeColumn and badgeColumn for a thread', () => {
+    const visualization: VisualizationType = {
+      title: { en: 'chats' },
+      type: 'thread',
+      groupColumn: 'category',
+      roleColumn: 'title',
+      textColumn: 'url',
+      timeColumn: 'date',
+      badgeColumn: 'duration'
+    }
+    const projected = selectVisualizationColumns(makeTable(), visualization)
+    expect(projected.head.cells).toEqual(['category', 'title', 'url', 'date', 'duration'])
+  })
+
+  it('keeps only roleColumn and textColumn for a thread with no groupColumn (single-thread mode)', () => {
+    const visualization: VisualizationType = {
+      title: { en: 'chat' },
+      type: 'thread',
+      singleThreadTitle: { en: 'The chat' },
+      roleColumn: 'title',
+      textColumn: 'url'
+    }
+    const projected = selectVisualizationColumns(makeTable(), visualization)
+    expect(projected.head.cells).toEqual(['title', 'url'])
   })
 
   it('preserves row ids so rowId-based deletion still works', () => {

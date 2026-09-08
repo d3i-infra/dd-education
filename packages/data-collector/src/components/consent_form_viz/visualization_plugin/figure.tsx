@@ -1,4 +1,4 @@
-import { VisualizationData, ChartVisualizationData, TextVisualizationData, StatsVisualizationData, HeatmapVisualizationData, Table, zVisualizationType } from './types'
+import { VisualizationData, ChartVisualizationData, TextVisualizationData, StatsVisualizationData, HeatmapVisualizationData, ThreadVisualizationData, Table, zVisualizationType } from './types'
 import { memo, useEffect, useMemo, useState, ReactElement } from 'react'
 
 import useVisualizationData from './visualizationDataFunctions/useVisualizationData'
@@ -7,6 +7,7 @@ import RechartsGraph from './figures/recharts_graph'
 import VisxWordcloud from './figures/d3_wordcloud'
 import StatTiles from './figures/stat_tiles'
 import Heatmap from './figures/heatmap'
+import ThreadView from './figures/thread_view'
 import { zoomInIcon, zoomOutIcon } from './zoom_icons'
 import { z } from 'zod'
 import { Loader } from './ui/loader'
@@ -182,6 +183,12 @@ export const RenderVisualization = memo(
       const heatmapVisualizationData: HeatmapVisualizationData = visualizationData
       if (heatmapVisualizationData.grids.length === 0) return fallback
       return <Heatmap visualizationData={heatmapVisualizationData} />
+    }
+
+    if (visualizationData.type === 'thread') {
+      const threadVisualizationData: ThreadVisualizationData = visualizationData
+      if (threadVisualizationData.threads.length === 0) return fallback
+      return <ThreadView visualizationData={threadVisualizationData} locale={locale} />
     }
 
     return null

@@ -148,6 +148,20 @@ export const zTextVisualization = zVisualizationProps.extend({
   valueColumn: z.string().optional(),
   tokenize: z.boolean().optional(),
   extract: z.enum(["url_domain"]).optional(),
+  // Drops any token beginning with '@' (a WhatsApp-style @mention) --
+  // catches only the mention's first word; the rest of a mentioned name
+  // (WhatsApp writes it out in full: "@John Doe") is caught separately by
+  // excludeColumn. See prepareTextData.ts.
+  stripMentions: z.boolean().optional(),
+  // Every distinct value of this column, lowercased and split on whitespace,
+  // joins the stopword set -- for a chat table this is the participant-name
+  // column, so a group member's own name never dominates their own
+  // wordcloud. See prepareTextData.ts.
+  excludeColumn: z.string().optional(),
+  // Drops media-placeholder text ("<Media omitted>", "<Media weggelaten>",
+  // and the bare forms without brackets) before tokenizing. See
+  // PLACEHOLDER_PHRASES in prepareTextData.ts.
+  stripPlaceholders: z.boolean().optional(),
 })
 export type TextVisualization = z.infer<typeof zTextVisualization>
 
@@ -270,9 +284,95 @@ export interface HeatmapVisualizationData {
   grids: HeatmapGrid[]
 }
 
+// Thread Visualizations
+//
+// One viewer serves every "grouped conversation" export -- ChatGPT
+// conversations today, WhatsApp / Meta message exports later (see
+// README.md). A table with no natural group column (a flat chat export)
+// renders as a single thread via `singleThreadTitle` instead of `groupColumn`
+// -- exactly one of the two is required (enforced below, not by the type
+// system: zod unions of "optional-but-one-required" fields don't narrow
+// cleanly, and a superRefine gives a clearer message than a discriminated
+// union would here).
+
+// External types (need schema)
+
+export const zThreadVisualizationType = z.enum(["thread"])
+export type ThreadVisualizationType = z.infer<typeof zThreadVisualizationType>
+
+export const zThreadPageSize = z.object({
+  threads: z.number().int().positive().optional(),
+  turns: z.number().int().positive().optional(),
+})
+export type ThreadPageSize = z.infer<typeof zThreadPageSize>
+
+export const zThreadVisualization = zVisualizationProps.extend({
+  type: zThreadVisualizationType,
+  groupColumn: z.string().optional(),
+  // Label, not a plain string: it is UI copy the researcher writes (like
+  // `title`), not a value read off a table row -- resolved with
+  // resolveFlatText at render time, same as a grouped thread's title (a raw
+  // table cell) is.
+  singleThreadTitle: zLabel.optional(),
+  roleColumn: z.string(),
+  textColumn: z.string(),
+  timeColumn: z.string().optional(),
+  badgeColumn: z.string().optional(),
+  selfRole: z.string().optional(),
+  pageSize: zThreadPageSize.optional(),
+}).superRefine((viz, ctx) => {
+  if (viz.groupColumn === undefined && viz.singleThreadTitle === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['groupColumn'],
+      message: "either 'groupColumn' or 'singleThreadTitle' is required",
+    })
+  }
+})
+export type ThreadVisualization = z.infer<typeof zThreadVisualization>
+
+// Internal types
+
+export interface ThreadTurn {
+  role: string
+  text: string
+  // ISO 8601, present only when timeColumn is configured and the cell parses.
+  time?: string
+  badge?: string
+}
+
+export interface Thread {
+  id: string
+  // The group column's raw cell value (grouped mode) or singleThreadTitle
+  // (single-thread mode) -- a Label either way, resolved with
+  // resolveFlatText at render time (a raw string resolves to itself).
+  title: Label
+  count: number
+  // ISO 8601, present only when at least one turn's timeColumn cell parses.
+  firstTime?: string
+  lastTime?: string
+  turns: ThreadTurn[]
+}
+
+export const DEFAULT_THREAD_PAGE_SIZE = { threads: 20, turns: 50 }
+
+export interface ThreadVisualizationData {
+  type: ThreadVisualizationType
+  threads: Thread[]
+  // True when more than 5000 groups were found and the tail was dropped.
+  truncated: boolean
+  // Defaults already resolved here, so figures/thread_view.tsx never needs
+  // the original visualization config.
+  pageSize: { threads: number, turns: number }
+  // Carried through so the figure knows which turns to right-align without
+  // also needing the original visualization config. Undefined (WhatsApp
+  // reuse, see README.md) renders every turn left-aligned.
+  selfRole?: string
+}
+
 // Visualization Type union
 
-export type VisualizationData = ChartVisualizationData | TextVisualizationData | StatsVisualizationData | HeatmapVisualizationData
+export type VisualizationData = ChartVisualizationData | TextVisualizationData | StatsVisualizationData | HeatmapVisualizationData | ThreadVisualizationData
 
-export const zVisualizationType = z.union([zChartVisualization, zTextVisualization, zStatsVisualization, zHeatmapVisualization])
+export const zVisualizationType = z.union([zChartVisualization, zTextVisualization, zStatsVisualization, zHeatmapVisualization, zThreadVisualization])
 export type VisualizationType = z.infer<typeof zVisualizationType>

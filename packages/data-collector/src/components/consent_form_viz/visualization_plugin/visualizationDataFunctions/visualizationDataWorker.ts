@@ -1,8 +1,9 @@
-import { ChartVisualization, TextVisualization, StatsVisualization, HeatmapVisualization, VisualizationType, VisualizationData, Table } from '../types'
+import { ChartVisualization, TextVisualization, StatsVisualization, HeatmapVisualization, ThreadVisualization, VisualizationType, VisualizationData, Table } from '../types'
 import { prepareChartData } from './prepareChartData'
 import { prepareTextData } from './prepareTextData'
 import { prepareStatsData } from './prepareStatsData'
 import { prepareHeatmapData } from './prepareHeatmapData'
+import { prepareThreadData } from './prepareThreadData'
 
 interface Input {
   table: Table
@@ -30,6 +31,8 @@ async function createVisualizationData (table: Table, visualization: Visualizati
   if (visualization.type === 'stats') { return await prepareStatsData(table, visualization as StatsVisualization) }
 
   if (visualization.type === 'heatmap') { return await prepareHeatmapData(table, visualization as HeatmapVisualization) }
+
+  if (visualization.type === 'thread') { return await prepareThreadData(table, visualization as ThreadVisualization) }
 
   throw new Error(`Visualization type ${visualization.type} not supported`)
 }

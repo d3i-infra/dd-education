@@ -62,6 +62,28 @@ See `visualizationDataFunctions/prepareTextData.ts` / `figures/d3_wordcloud.tsx`
 }
 ```
 
+Optional fields, all off by default -- useful for a chat export, where the
+raw message text is full of things that aren't the words a participant
+actually wants to see:
+
+| field | type | notes |
+|---|---|---|
+| `stripMentions` | `boolean` | drops any token beginning with `@` (a WhatsApp-style `@mention`) -- only its first word; the rest of a mentioned name (WhatsApp writes it out in full, e.g. `@John Doe`) needs `excludeColumn` |
+| `excludeColumn` | `string` | every distinct value of this column, lowercased and split on whitespace, joins the stopword set -- for a chat table this is the participant-name column, so nobody's own name dominates their own wordcloud |
+| `stripPlaceholders` | `boolean` | drops media-placeholder text before tokenizing: any `<...>` tag, plus the bare forms in `PLACEHOLDER_PHRASES` (`prepareTextData.ts`) for both "omitted" (en) and "weggelaten" (nl) exports |
+
+```json
+{
+  "title": { "en": "Most common words in your chats" },
+  "type": "wordcloud",
+  "textColumn": "Message",
+  "tokenize": true,
+  "stripMentions": true,
+  "excludeColumn": "Name",
+  "stripPlaceholders": true
+}
+```
+
 ## `stats`
 
 A responsive row of stat tiles ("big number, small label"), one per entry in
@@ -141,3 +163,51 @@ Two modes:
 A row whose `dateColumn` cell doesn't parse as a date is skipped rather than
 failing the block. An empty table, or a table where every date is unparseable,
 renders the "no data" fallback.
+
+## `thread`
+
+A paged conversation viewer: a list of threads (left, or above on narrow
+screens) and the selected thread's messages as chat bubbles (right, or
+below). One viewer serves every "grouped conversation" export -- ChatGPT
+conversations today, WhatsApp / Meta message exports later. Data prep:
+`visualizationDataFunctions/prepareThreadData.ts`. Rendering:
+`figures/thread_view.tsx`.
+
+```json
+{
+  "title": { "en": "Your conversations", "nl": "Je gesprekken" },
+  "type": "thread",
+  "groupColumn": "Conversation title",
+  "roleColumn": "Role",
+  "textColumn": "Message",
+  "timeColumn": "Time",
+  "badgeColumn": "Model",
+  "selfRole": "user",
+  "pageSize": { "threads": 20, "turns": 50 }
+}
+```
+
+| field | type | notes |
+|---|---|---|
+| `groupColumn` | `string` | groups rows into threads by this column's value; required unless `singleThreadTitle` is given instead |
+| `singleThreadTitle` | `Label` | renders every row as one thread titled with this text, for a table with no natural group column (e.g. a flat WhatsApp chat export); required unless `groupColumn` is given instead -- exactly one of the two is required |
+| `roleColumn` | `string` | required; the speaker of each turn (e.g. `"user"` / `"assistant"`, or a WhatsApp display name) |
+| `textColumn` | `string` | required; the message text |
+| `timeColumn` | `string` | optional; when given, turns within a thread are sorted by parsed time (a row whose cell doesn't parse sorts after every parseable row, keeping its own relative order) and the thread's list entry shows a date range. Omitted entirely: turns keep table row order, no time is shown |
+| `badgeColumn` | `string` | optional; shown next to a turn's time (e.g. the AI model that produced a reply) |
+| `selfRole` | `string` | optional; turns whose `roleColumn` value equals this are right-aligned on the primary tint. Every other turn (including all of them, when `selfRole` is omitted) is left-aligned on grey with the role as its label |
+| `pageSize` | `{ threads?: number, turns?: number }` | optional; threads per list page (default 20) and turns per transcript page (default 50) |
+
+Grouping preserves each thread's first-appearance order in the table (not
+sorted by time or count). Threads are capped at 5000; beyond that the tail is
+dropped silently (the underlying data is never altered, ADR-0031 -- only what
+this one figure renders). The list has a search box that filters by thread
+title and by message text; list items are real `<button>` elements, so Enter
+selects one for free, and the arrow key matching each pane's Previous/Next
+direction pages it from anywhere focus lands inside that pane.
+
+WhatsApp reuse (a flat chat table with no conversation column): set
+`roleColumn` to the sender-name column and `singleThreadTitle` instead of
+`groupColumn`; leave `selfRole` unset so every message renders left-aligned
+with the sender's name as its label, chat-log style rather than a two-sided
+conversation.

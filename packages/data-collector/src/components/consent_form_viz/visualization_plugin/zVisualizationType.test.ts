@@ -94,6 +94,62 @@ describe('zVisualizationType: heatmap blocks', () => {
   })
 })
 
+describe('zVisualizationType: thread blocks', () => {
+  it('accepts a well-formed thread block with groupColumn', () => {
+    const block = {
+      title: { en: 'Your conversations' },
+      type: 'thread',
+      groupColumn: 'Conversation title',
+      roleColumn: 'Role',
+      textColumn: 'Message',
+      timeColumn: 'Time',
+      badgeColumn: 'Model',
+      selfRole: 'user',
+      pageSize: { threads: 20, turns: 50 }
+    }
+    expect(zVisualizationType.safeParse(block).success).toBe(true)
+  })
+
+  it('accepts a thread block with only the required fields', () => {
+    const block = { title: { en: 'Chats' }, type: 'thread', groupColumn: 'group', roleColumn: 'role', textColumn: 'text' }
+    expect(zVisualizationType.safeParse(block).success).toBe(true)
+  })
+
+  it('accepts singleThreadTitle in place of groupColumn (WhatsApp-style flat chat)', () => {
+    const block = {
+      title: { en: 'Your chat' },
+      type: 'thread',
+      singleThreadTitle: { en: 'The chat' },
+      roleColumn: 'Name',
+      textColumn: 'Message'
+    }
+    expect(zVisualizationType.safeParse(block).success).toBe(true)
+  })
+
+  it('rejects a thread block with neither groupColumn nor singleThreadTitle', () => {
+    const block = { title: { en: 'Chats' }, type: 'thread', roleColumn: 'role', textColumn: 'text' }
+    expect(zVisualizationType.safeParse(block).success).toBe(false)
+  })
+
+  it('rejects a thread block missing roleColumn', () => {
+    const block = { title: { en: 'Chats' }, type: 'thread', groupColumn: 'group', textColumn: 'text' }
+    expect(zVisualizationType.safeParse(block).success).toBe(false)
+  })
+
+  it('rejects a thread block missing textColumn', () => {
+    const block = { title: { en: 'Chats' }, type: 'thread', groupColumn: 'group', roleColumn: 'role' }
+    expect(zVisualizationType.safeParse(block).success).toBe(false)
+  })
+
+  it('rejects a non-integer or non-positive pageSize value', () => {
+    const block = {
+      title: { en: 'Chats' }, type: 'thread', groupColumn: 'group', roleColumn: 'role', textColumn: 'text',
+      pageSize: { threads: 0 }
+    }
+    expect(zVisualizationType.safeParse(block).success).toBe(false)
+  })
+})
+
 describe('zChartVisualization: group.top', () => {
   it('accepts a numeric top', () => {
     const block = {
