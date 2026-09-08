@@ -276,6 +276,21 @@ class TestOffMetaActivity:
         assert values["Profile association state"] == "Account association enabled"
         assert values["Number of times you used clear history settings"] == "2"
 
+    def test_timestamp_value_field_is_converted(self):
+        """The ``timestamp_value`` branch (an epoch stored under a different
+        key than the ``value``/``timestamp`` pair every other field in this
+        file uses) — untested until now."""
+        payload = {
+            "label_values": [
+                {"label": "Latest last activity time", "timestamp_value": 1700000000},
+            ],
+        }
+        reader = _reader_for({OFF_META_ACTIVITY_PATH: json.dumps(payload)})
+        out = off_meta_activity_to_df(reader, Counter())
+        assert len(out) == 1
+        assert out.iloc[0]["Label"] == "Latest last activity time"
+        assert out.iloc[0]["Value"] == "2023-11-14 23:13:20"
+
     def test_absent_file_yields_empty_no_error(self):
         reader = _reader_for({})
         errors: Counter = Counter()
@@ -311,6 +326,27 @@ class TestProfileBasedIn:
         values = dict(zip(out["Field"], out["Value"]))
         assert values["Country"] == "Testland"
         assert values["City"] == "Testville"
+
+    def test_group_with_both_value_and_dict_is_not_double_counted(self):
+        """A group carrying both a flat ``value`` and a nested ``dict`` must
+        take exactly one branch (the flat value, checked first) rather than
+        emitting a row for each — the same if/elif shape ``camera_info_to_df``
+        already uses."""
+        payload = {
+            "label_values": [
+                {
+                    "label": "Region",
+                    "value": "Test Region",
+                    "dict": [{"label": "Sub-region", "value": "Should not appear"}],
+                }
+            ]
+        }
+        reader = _reader_for({PROFILE_BASED_IN_PATH: json.dumps(payload)})
+        out = profile_based_in_to_df(reader, Counter())
+        assert len(out) == 1
+        assert out.iloc[0]["Field"] == "Region"
+        assert out.iloc[0]["Value"] == "Test Region"
+        assert "Sub-region" not in set(out["Field"])
 
     def test_absent_file_yields_empty_no_error(self):
         reader = _reader_for({})

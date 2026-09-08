@@ -165,6 +165,17 @@
           "nl": "Hoe zij u bereikten"
         }
       },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Advertisers with your activity or information",
+            "nl": "Adverteerders met jouw activiteit of informatie"
+          },
+          "type": "wordcloud",
+          "textColumn": "Advertiser",
+          "tokenize": false
+        }
+      ],
       "extractor": "advertisers_using_activity_to_df",
       "documentation": {
         "summary": "Each row represents one advertiser that used the participant's activity or information to target them on Instagram.",
@@ -386,6 +397,32 @@
           "nl": "Datum en tijd"
         }
       },
+      "visualizations": [
+        {
+          "title": {
+            "en": "When you gained followers",
+            "nl": "Wanneer je volgers kreeg"
+          },
+          "type": "area",
+          "group": {
+            "column": "Date",
+            "dateFormat": "month",
+            "label": {
+              "en": "Month",
+              "nl": "Maand"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "New followers",
+                "nl": "Nieuwe volgers"
+              }
+            }
+          ]
+        }
+      ],
       "extractor": "followers_to_df",
       "documentation": {
         "summary": "Each row represents one account that follows the participant on Instagram, including when they started following.",
@@ -421,6 +458,32 @@
           "nl": "Datum en tijd"
         }
       },
+      "visualizations": [
+        {
+          "title": {
+            "en": "When you started following accounts",
+            "nl": "Wanneer je accounts begon te volgen"
+          },
+          "type": "area",
+          "group": {
+            "column": "Date",
+            "dateFormat": "month",
+            "label": {
+              "en": "Month",
+              "nl": "Maand"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Accounts followed",
+                "nl": "Gevolgde accounts"
+              }
+            }
+          ]
+        }
+      ],
       "extractor": "following_to_df",
       "documentation": {
         "summary": "Each row represents one account that the participant follows on Instagram, including when they started following.",
@@ -503,6 +566,39 @@
               }
             }
           ]
+        },
+        {
+          "title": {
+            "en": "Accounts whose posts you saw most",
+            "nl": "Accounts van wie je de meeste berichten zag"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Author",
+            "top": 15,
+            "label": {
+              "en": "Account",
+              "nl": "Account"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Posts seen",
+                "nl": "Geziene berichten"
+              }
+            }
+          ]
+        },
+        {
+          "title": {
+            "en": "When during the week you view posts",
+            "nl": "Wanneer in de week je berichten bekijkt"
+          },
+          "type": "heatmap",
+          "mode": "weekday_hour",
+          "dateColumn": "Date"
         }
       ],
       "extractor": "posts_viewed_to_df",
@@ -561,6 +657,30 @@
               "label": {
                 "en": "Videos watched",
                 "nl": "Bekeken video's"
+              }
+            }
+          ]
+        },
+        {
+          "title": {
+            "en": "Accounts whose videos you saw most",
+            "nl": "Accounts van wie je de meeste video's zag"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Author",
+            "top": 15,
+            "label": {
+              "en": "Account",
+              "nl": "Account"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Videos seen",
+                "nl": "Geziene video's"
               }
             }
           ]
@@ -834,6 +954,17 @@
           "nl": "Datum en tijd"
         }
       },
+      "visualizations": [
+        {
+          "title": {
+            "en": "What you've searched for on Instagram",
+            "nl": "Waar je op Instagram naar hebt gezocht"
+          },
+          "type": "wordcloud",
+          "textColumn": "Search term",
+          "tokenize": true
+        }
+      ],
       "extractor": "word_or_phrase_searches_to_df",
       "documentation": {
         "summary": "Each row represents one keyword or phrase search the participant performed on Instagram.",
@@ -864,6 +995,17 @@
           "nl": "Datum en tijd"
         }
       },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Profiles you searched for most",
+            "nl": "Profielen waar je het meest naar zocht"
+          },
+          "type": "wordcloud",
+          "textColumn": "Name",
+          "tokenize": false
+        }
+      ],
       "extractor": "profile_searches_to_df",
       "documentation": {
         "summary": "Each row represents one profile search performed by the participant on Instagram, recording what was searched and when.",

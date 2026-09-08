@@ -3495,10 +3495,11 @@ def profile_based_in_to_df(
                 label = group.get("label", "")
                 if label:
                     datapoints.append((label, eh.fix_latin1_string(str(group.get("value", "")))))
-            for entry in group.get("dict", []):
-                label = entry.get("label", "")
-                if label:
-                    datapoints.append((label, eh.fix_latin1_string(str(entry.get("value", "")))))
+            elif "dict" in group:
+                for entry in group.get("dict", []):
+                    label = entry.get("label", "")
+                    if label:
+                        datapoints.append((label, eh.fix_latin1_string(str(entry.get("value", "")))))
 
         out = pd.DataFrame(datapoints, columns=["Field", "Value"])  # pyright: ignore
 
@@ -3708,13 +3709,18 @@ EXTRACTOR_REGISTRY: dict[str, Callable[..., pd.DataFrame]] = {
     "threads_viewed_to_df": threads_viewed_to_df,
     "ads_clicked_to_df": ads_clicked_to_df,
     "posts_published_to_df": posts_published_to_df,
-    "subscription_for_no_ads_to_df": subscription_for_no_ads_to_df,
     # Task 15b (story edu-curation) additions — "what they know about you" +
-    # the lab's account-identifying first table. story_likes_to_df is
-    # intentionally no longer registered here (dropped per Danielle's
-    # 2026-09-08 ruling); the function definition is left in place above,
-    # unused, rather than deleted, matching this file's existing convention
-    # for algosoc extractors this fork does not surface.
+    # the lab's account-identifying first table. story_likes_to_df and
+    # subscription_for_no_ads_to_df are intentionally no longer registered
+    # here: both were dropped from instagram_config.json (story_likes per
+    # Danielle's 2026-09-08 ruling; subscription_for_no_ads per the
+    # proposal's own unchanged rev.-1 verdict — a static account-setting
+    # snapshot, not behavioural or inferred data), so keeping either
+    # registered here with nothing in the config pointing at it would be
+    # registry use of a table this fork no longer surfaces. Both function
+    # definitions are left in place above, unused, rather than deleted,
+    # matching this file's existing convention for algosoc extractors this
+    # fork does not surface.
     "account_info_to_df": account_info_to_df,
     "ad_targeting_categories_to_df": ad_targeting_categories_to_df,
     "link_history_to_df": link_history_to_df,
