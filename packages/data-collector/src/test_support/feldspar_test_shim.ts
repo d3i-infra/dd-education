@@ -19,7 +19,7 @@
 export { Translator, MISSING_TRANSLATION } from '../../../feldspar/src/framework/translator'
 export { default } from '../../../feldspar/src/framework/text_bundle'
 export { ReactFactoryContext } from '../../../feldspar/src/framework/visualization/react/factory'
-export { BodyLarge } from '../../../feldspar/src/framework/visualization/react/ui/elements/text'
+export { BodyLarge, Title4 } from '../../../feldspar/src/framework/visualization/react/ui/elements/text'
 export {
   LabelButton,
   PrimaryButton,

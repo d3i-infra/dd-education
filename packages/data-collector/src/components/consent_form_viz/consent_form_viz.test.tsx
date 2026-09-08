@@ -2,14 +2,13 @@
 import { act } from "react"
 import { createRoot, type Root } from "react-dom/client"
 
-// table_container.tsx pulls in the visualization_plugin subtree, which
-// constructs a Web Worker via `new Worker(new URL(..., import.meta.url))` —
-// syntax Jest's CJS-hybrid ts-jest transform cannot parse (see
-// useVisualizationData.tsx). This test exercises ConsentFormViz's own
-// description/button/resolve logic, not table rendering, so the real
-// TableContainer (and that unrenderable subtree) is replaced with a stub.
-jest.mock("./table_container", () => ({
-  TableContainer: () => null,
+// Only visualization_plugin/figure.tsx (via useVisualizationData.tsx)
+// constructs a Web Worker with `new Worker(new URL(..., import.meta.url))` —
+// syntax Jest's CJS-hybrid ts-jest transform cannot parse. Stubbing just that
+// leaf lets the real TableContainer (title, search, table, review-mode
+// layout) render for these tests instead of being replaced wholesale.
+jest.mock("./visualization_plugin/figure", () => ({
+  Figure: () => null,
 }))
 
 import { ConsentFormViz } from "./consent_form_viz"
@@ -142,6 +141,100 @@ describe("ConsentFormViz", () => {
       root = renderConsentFormViz(container, baseProps(resolve))
 
       expect(findButtonByText(container, "Report issues")).toBeNull()
+    })
+
+    // Locks down the exact markup study mode produced before the review-ui
+    // layout work (Task 19) — the review-only branch is a separate tree
+    // entirely, so this DOM must never move as review mode evolves.
+    test("layout DOM is unchanged by the review-layout work", () => {
+      const resolve = jest.fn()
+      root = renderConsentFormViz(container, baseProps(resolve))
+
+      expect(container.innerHTML).toMatchSnapshot()
+    })
+  })
+
+  // Task 19 (review-ui): the reviewOnly branch replaces the flat stack of
+  // TableContainers with a chip strip + figures-first cards. These tables are
+  // built directly (not through `table` above) so each has a distinct,
+  // controllable row count.
+  describe("reviewOnly: true — review layout", () => {
+    function tableWithRows(id: string, title: string, rowCount: number): PropsUIPromptConsentFormTableViz {
+      const column: Record<string, string> = {}
+      for (let i = 0; i < rowCount; i++) column[String(i)] = `row-${i}`
+      return {
+        __type__: "PropsUIPromptConsentFormTableViz",
+        id,
+        title,
+        description: "",
+        data_frame: JSON.stringify({ col: column }),
+        visualizations: undefined,
+        folded: false,
+        delete_option: true,
+      }
+    }
+
+    function multiTableProps(resolve: (payload: any) => void): Props {
+      return {
+        __type__: "PropsUIPromptConsentFormViz",
+        description: "Review your data",
+        tables: [
+          tableWithRows("a", "Alpha table", 2),
+          tableWithRows("b", "Beta table", 0),
+          tableWithRows("c", "Gamma table", 3),
+        ],
+        locale: "en",
+        resolve,
+        reviewOnly: true,
+        donateButton: "Continue",
+      }
+    }
+
+    test("renders one chip per table with its row count", () => {
+      const resolve = jest.fn()
+      root = renderConsentFormViz(container, multiTableProps(resolve))
+
+      const chips = Array.from(container.querySelectorAll<HTMLElement>("[data-chip-id]"))
+      expect(chips).toHaveLength(3)
+
+      const byId = (id: string): HTMLElement | undefined => chips.find((c) => c.dataset.chipId === id)
+      expect(byId("a")?.textContent).toContain("Alpha table")
+      expect(byId("a")?.textContent).toContain("2")
+      expect(byId("b")?.textContent).toContain("Beta table")
+      expect(byId("b")?.textContent).toContain("0")
+      expect(byId("c")?.textContent).toContain("Gamma table")
+      expect(byId("c")?.textContent).toContain("3")
+    })
+
+    test("empty tables sink to the end of the page", () => {
+      const resolve = jest.fn()
+      root = renderConsentFormViz(container, multiTableProps(resolve))
+
+      const cards = Array.from(container.querySelectorAll<HTMLElement>("[data-card-id]"))
+      expect(cards.map((c) => c.dataset.cardId)).toEqual(["a", "c", "b"])
+    })
+
+    test("the table is collapsed by default and expands on click", () => {
+      const resolve = jest.fn()
+      root = renderConsentFormViz(container, multiTableProps(resolve))
+
+      const cardA = container.querySelector<HTMLElement>('[data-card-id="a"]')
+      if (cardA === null) throw new Error("card 'a' not found")
+
+      const tableRegion = cardA.querySelector<HTMLElement>(".grid.grid-cols-1.overflow-hidden")
+      if (tableRegion === null) throw new Error("table region not found")
+      const toggle = cardA.querySelector<HTMLButtonElement>("button[aria-expanded]")
+      if (toggle === null) throw new Error("show/hide toggle not found")
+
+      expect(toggle.getAttribute("aria-expanded")).toBe("false")
+      expect(tableRegion.style.gridTemplateRows).toBe("0rem")
+
+      act(() => {
+        toggle.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+      })
+
+      expect(toggle.getAttribute("aria-expanded")).toBe("true")
+      expect(tableRegion.style.gridTemplateRows).not.toBe("0rem")
     })
   })
 })

@@ -19,6 +19,7 @@ import {
 import { useCallback, useEffect, useRef, useState, ReactElement } from "react"
 import _ from "lodash"
 import { TableContainer } from "./table_container"
+import { ReviewLayout } from "./review_layout"
 
 type Props = PropsUIPromptConsentFormViz & ReactFactoryContext
 
@@ -170,6 +171,30 @@ export const ConsentFormViz = (props: Props): ReactElement => {
     return _.fromPairs(_.zip(keys, values))
   }
 
+  // Branches once here (ADR-0031/0033 apply to both): study mode's tree below
+  // is upstream's original markup, untouched, so the fork stays mergeable;
+  // review mode's chip strip + figures-first cards live entirely in
+  // ReviewLayout / table_container's "review" variant.
+  if (props.reviewOnly) {
+    return (
+      <>
+        <ReviewLayout tables={tables} updateTable={updateTable} locale={locale} description={description} />
+        <div className="flex flex-row gap-4 mt-4 mb-4">
+          <PrimaryButton
+            label={resolveText(props.donateButton ?? defaultDonateButtonLabel, locale)}
+            onClick={handleContinue}
+            color="bg-success text-white"
+          />
+          <PrimaryButton
+            label={resolveText(reportIssuesButtonLabel, locale)}
+            onClick={handleReportIssues}
+            color="bg-grey4 text-grey1"
+          />
+        </div>
+      </>
+    )
+  }
+
   return (
     <>
       <div className="max-w-3xl">
@@ -185,30 +210,13 @@ export const ConsentFormViz = (props: Props): ReactElement => {
             )
           })}
         </div>
-        {props.reviewOnly ? (
-          <div>
-            <div className="flex flex-row gap-4 mt-4 mb-4">
-              <PrimaryButton
-                label={resolveText(props.donateButton ?? defaultDonateButtonLabel, locale)}
-                onClick={handleContinue}
-                color="bg-success text-white"
-              />
-              <PrimaryButton
-                label={resolveText(reportIssuesButtonLabel, locale)}
-                onClick={handleReportIssues}
-                color="bg-grey4 text-grey1"
-              />
-            </div>
-          </div>
-        ) : (
-          <DonateButtons
-            onDonate={handleDonate}
-            onCancel={handleCancel}
-            locale={locale}
-            donateQuestion={props.donateQuestion ?? defaultDonateQuestionLabel}
-            donateButton={props.donateButton ?? defaultDonateButtonLabel}
-          />
-        )}
+        <DonateButtons
+          onDonate={handleDonate}
+          onCancel={handleCancel}
+          locale={locale}
+          donateQuestion={props.donateQuestion ?? defaultDonateQuestionLabel}
+          donateButton={props.donateButton ?? defaultDonateButtonLabel}
+        />
       </div>
     </>
   )

@@ -1,7 +1,5 @@
 import { useCallback, useMemo, useState, useEffect, useRef, ReactElement } from "react"
-import {
-    Title4,
-} from "@eyra/feldspar"
+import { Title4 } from "@eyra/feldspar"
 import TextBundle from "@eyra/feldspar"
 import { resolveAll } from "../../locale/text"
 import { 
@@ -19,15 +17,23 @@ interface TableContainerProps {
   table: TableWithContext
   updateTable: (tableId: string, table: TableWithContext) => void
   locale: string
+  // "study" (default) is upstream's stacked title/description/table/figures
+  // layout, byte-for-byte unchanged (ADR-0002/0033 — the fork must stay
+  // mergeable). "review" is the education-mode card used by review_layout.tsx:
+  // figures first, table collapsed by default behind a "Show N rows" control.
+  variant?: "study" | "review"
 }
 
-export const TableContainer = ({ id, table, updateTable, locale }: TableContainerProps): ReactElement => {
+export const TableContainer = ({ id, table, updateTable, locale, variant = "study" }: TableContainerProps): ReactElement => {
+  const isReview = variant === "review"
   const tableVisualizations = table.visualizations != null ? table.visualizations : []
   const [searchFilterIds, setSearchFilterIds] = useState<Set<string>>()
   const [search, setSearch] = useState<string>("")
   const lastSearch = useRef<string>("")
   const text = useMemo(() => getTranslations(locale), [locale])
-  const [show, setShow] = useState<boolean>(!table.folded)
+  // Review cards start collapsed regardless of the researcher's `folded`
+  // setting — the card's figures are the point; the table is supporting detail.
+  const [show, setShow] = useState<boolean>(isReview ? false : !table.folded)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -87,6 +93,80 @@ export const TableContainer = ({ id, table, updateTable, locale }: TableContaine
   }, [id, table, updateTable])
 
   const unfilteredRows = table.body.rows.length
+  const nLabel = unfilteredRows.toLocaleString(locale, { useGrouping: true })
+
+  if (isReview) {
+    if (unfilteredRows === 0) {
+      return (
+        <div
+          key={table.id}
+          className="p-4 md:p-5 flex items-center justify-between gap-4 w-full overflow-hidden border-[0.2rem] border-grey4 rounded-lg bg-grey6"
+        >
+          <Title4 text={table.title} margin="" />
+          <div className="text-caption font-body text-grey2 whitespace-nowrap">{text.noEntries}</div>
+        </div>
+      )
+    }
+
+    return (
+      <div
+        key={table.id}
+        className="p-3 md:p-4 lg:p-6 flex flex-col gap-4 w-full overflow-hidden border-[0.2rem] border-grey4 rounded-lg bg-white"
+      >
+        <div className="flex flex-col gap-1">
+          <Title4 text={table.title} margin="" />
+          {table.description !== "" ? (
+            <p className="text-caption font-body text-grey2 max-w-2xl">{table.description}</p>
+          ) : null}
+        </div>
+
+        {tableVisualizations.length > 0 && validatedTable != null ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {tableVisualizations.map((vs: any, i: number) => (
+              <div key={table.id + "_" + String(i)} className={visualizationSpan(vs)}>
+                <Figure
+                  tableInput={validatedTable}
+                  visualizationInput={vs}
+                  locale={locale}
+                  handleDelete={handleDelete}
+                  handleUndo={handleUndo}
+                />
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <TableItems table={table} searchedTable={searchedTable} handleUndo={handleUndo} locale={locale} />
+            <div className="flex items-center gap-3">
+              <SearchBar placeholder={text.searchPlaceholder} search={search} onSearch={setSearch} />
+              <button
+                type="button"
+                aria-expanded={show}
+                className="flex items-center gap-2 shrink-0 text-primary"
+                onClick={() => setShow(!show)}
+              >
+                <div className="text-primary">{show ? zoomOutIcon : zoomInIcon}</div>
+                <div className="text-right hidden md:block whitespace-nowrap">
+                  {show ? text.hideRows : text.showRowsTemplate.replace("{n}", nLabel)}
+                </div>
+              </button>
+            </div>
+          </div>
+          <Table
+            show={show}
+            table={searchedTable}
+            search={search}
+            unfilteredRows={unfilteredRows}
+            handleDelete={handleDelete}
+            handleUndo={handleUndo}
+            locale={locale}
+          />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -174,6 +254,15 @@ function deleteTableRows(table: TableWithContext, deletedRows: string[][]): Tabl
     deletedRowCount,
     deletedRows,
   }
+}
+
+// Review-mode figure grid: `stats` tiles and `heatmap` grids read poorly at
+// half width (a tile row wants to breathe; a calendar heatmap's weeks are
+// wide), so both span both columns from `md`. Every other chart type
+// (line/bar/area/wordcloud) sits at one column so two can sit side by side.
+function visualizationSpan(vs: any): string {
+  const type = vs != null && typeof vs === "object" ? vs.type : undefined
+  return type === "stats" || type === "heatmap" ? "md:col-span-2" : ""
 }
 
 function searchRows(rows: PropsUITableRow[], search: string): Set<string> | undefined {
@@ -266,4 +355,24 @@ const translations = {
     .add("de", "Tabelle ausblenden")
     .add("it", "Nascondi tabella")
     .add("es", "Ocultar tabla"),
+  // Review variant only — templated ("{n}" replaced with the localized row
+  // count) since word order around a count differs by language.
+  showRowsTemplate: new TextBundle()
+    .add("en", "Show {n} rows")
+    .add("nl", "Toon {n} rijen")
+    .add("de", "{n} Zeilen anzeigen")
+    .add("it", "Mostra {n} righe")
+    .add("es", "Mostrar {n} filas"),
+  hideRows: new TextBundle()
+    .add("en", "Hide rows")
+    .add("nl", "Verberg rijen")
+    .add("de", "Zeilen ausblenden")
+    .add("it", "Nascondi righe")
+    .add("es", "Ocultar filas"),
+  noEntries: new TextBundle()
+    .add("en", "No entries in this export")
+    .add("nl", "Geen items in dit exportbestand")
+    .add("de", "Keine Einträge in diesem Export")
+    .add("it", "Nessuna voce in questa esportazione")
+    .add("es", "Sin entradas en esta exportación"),
 }
