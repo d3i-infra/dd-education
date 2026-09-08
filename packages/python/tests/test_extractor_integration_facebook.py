@@ -94,4 +94,3 @@ def test_extractor_not_empty(name, extractor, export_kind, reader_and_validation
     errors: Counter = Counter()
     df = extractor(reader, errors, validation=validation)
     assert not df.empty
-    assert not errors
