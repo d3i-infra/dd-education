@@ -458,6 +458,85 @@ def epoch_to_iso(epoch_timestamp: str | int | float, errors: Counter | None = No
     return out
 
 
+#: Months by the first three letters of how the Meta html exports abbreviate them,
+#: lowercased, across the languages they are written in that use Latin script. An
+#: account writes its export in whatever language it is set to, which is not always the
+#: language of the study.
+META_HTML_MONTHS = {
+    "jan": 1, "oca": 1, "ene": 1,
+    "feb": 2, "şub": 2, "sub": 2,
+    "mar": 3, "mrt": 3, "mär": 3, "mrz": 3,
+    "apr": 4, "nis": 4, "abr": 4,
+    "may": 5, "mei": 5, "mai": 5,
+    "jun": 6, "haz": 6,
+    "jul": 7, "tem": 7,
+    "aug": 8, "ağu": 8, "agu": 8, "ago": 8,
+    "sep": 9, "eyl": 9, "set": 9,
+    "oct": 10, "okt": 10, "eki": 10,
+    "nov": 11, "kas": 11,
+    "dec": 12, "dez": 12, "ara": 12, "dic": 12,
+}
+
+#: ``Jun 26, 2026 9:05:20 am`` — how the Facebook and Instagram html exports write a
+#: timestamp: the month as a word, a 12-hour clock in lower case, the seconds usually
+#: included. The meridiem and the seconds are optional so that a 24-hour locale and
+#: Instagram's minute-precision stamps read too. No zone is written beside it.
+META_HTML_TIMESTAMP = re.compile(
+    r"^([^\s\d]+)\.?\s+(\d{1,2}),?\s+(\d{4})[\s,]+(\d{1,2}):(\d{2})(?::(\d{2}))?"
+    r"(?:\s*([AaPp])\.?[Mm]\.?)?\s*$"
+)
+
+
+def parse_meta_html_timestamp(text: str) -> datetime | None:
+    """Read a Meta html display timestamp into a naive ``datetime``, or ``None``.
+
+    The clock it stands on is the caller's business: Instagram renders at a fixed
+    offset, Facebook in the timezone of the account. A regex rather than
+    ``strptime`` — an order of magnitude faster, and Pyodide is slow."""
+    if not text or not isinstance(text, str):
+        return None
+    match = META_HTML_TIMESTAMP.match(text.strip())
+    if not match:
+        return None
+    month, day, year, hour, minute, second, meridiem = match.groups()
+    number = META_HTML_MONTHS.get(month[:3].lower())
+    if number is None:
+        return None
+    hour = int(hour)
+    if meridiem:
+        # A 12-hour clock counts noon as 12 pm and midnight as 12 am.
+        hour = hour % 12 + (12 if meridiem.lower() == "p" else 0)
+    try:
+        return datetime(int(year), number, int(day), hour, int(minute), int(second or 0))
+    except ValueError:
+        return None
+
+
+def meta_html_timestamp_to_datetime_string(text: str, errors: Counter | None = None) -> str:
+    """Write a Meta html display timestamp in ``DATETIME_FORMAT``, the clock left as is.
+
+    Same contract as ``epoch_to_iso``: an empty cell is an expected absence and returns
+    ``""`` without counting; text of any other shape is returned unchanged and counted as
+    ``TimestampParseError``. Only the shape changes here — the export names no zone, so a
+    caller that knows the clock converts the parsed ``datetime`` itself.
+
+    Examples::
+
+        >>> meta_html_timestamp_to_datetime_string("Mar 02, 2026 4:57:45 pm")
+        "2026-03-02 16:57:45"
+    """
+    if not text:
+        return ""
+    moment = parse_meta_html_timestamp(text)
+    if moment is not None:
+        return moment.strftime(DATETIME_FORMAT)
+    # The value itself is not logged: a cell that failed to parse is still participant data.
+    logger.error("Could not read a Meta html timestamp")
+    if errors is not None:
+        errors["TimestampParseError"] += 1
+    return text
+
+
 def sort_isotimestamp_empty_timestamp_last(timestamp_series: pd.Series) -> pd.Series:
     """
     Creates a key for sorting a pandas Series of ISO timestamps, placing empty timestamps last.

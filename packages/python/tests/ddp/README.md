@@ -37,6 +37,8 @@ machine) — not reproduced here, per ADR-0014:
 | `whatsapp_nl_android_2026-09.zip`   | WhatsApp group-chat export, Dutch-locale Android | 2026-09 |
 | `instagram_a_json_2026-08.zip`      | Instagram export, JSON format (test-account)  | 2026-08-29 |
 | `instagram_html_2026-08.zip`        | Instagram export, HTML format (same test-account export) | 2026-08-29 |
+| `facebook_a_json_2026-08.zip`       | Facebook export, JSON format (test-account)   | 2026-08-29 |
+| `facebook_html_2026-08.zip`         | Facebook export, HTML format (same test-account export) | 2026-08-29 |
 | `youtube_html_2026-08.zip`          | YouTube Takeout export, HTML format           | 2026-08 |
 
 The Instagram JSON fixture is named `instagram_a_json_2026-08.zip` (not
@@ -46,6 +48,13 @@ returns (`a_json` < `html` lexicographically) — the JSON canary
 (`test_extractor_integration_instagram.py`) is written against the JSON
 shape, and the HTML export is for a future canary (Task 10) to pick up
 separately.
+
+The Facebook JSON fixture is named `facebook_a_json_2026-08.zip` for the
+same reason: `html` sorts before `json`, so without the `a_` infix
+`find_fixture("facebook")` would return the HTML export instead.
+`test_extractor_integration_facebook.py` matches on a "json"/"html"
+substring directly (as the Instagram canary does) rather than relying on
+`find_fixture`, so both formats are exercised.
 
 ## Re-creating the symlinks
 
@@ -62,6 +71,8 @@ ln -s "$D"/linkedin/Basic_LinkedInDataExport_*.zip          "$T/linkedin_basic_2
 ln -s "$D"/whatsapp/*.zip                                   "$T/whatsapp_nl_android_2026-09.zip"
 ln -s "$D"/instagram/*-ZQvZXHLb.zip                         "$T/instagram_a_json_2026-08.zip"
 ln -s "$D"/instagram/*-m6ADNs3V.zip                         "$T/instagram_html_2026-08.zip"
+ln -s "$D"/facebook/*-CvOb8P1q.zip                          "$T/facebook_a_json_2026-08.zip"
+ln -s "$D"/facebook/*-ixwaNMDM.zip                          "$T/facebook_html_2026-08.zip"
 ln -s "$D/youtube/Takeout-2.zip"                            "$T/youtube_html_2026-08.zip"
 ln -s ~/data/d3i/self/chatgpt/*.zip                         "$T/chatgpt_2026-08.zip"
 ```
