@@ -30,7 +30,7 @@ from dateutil import parser
 import unicodedata
 import logging
 import zipfile
-import io
+import codecs
 import re
 
 import pandas as pd
@@ -274,6 +274,11 @@ def construct_message(current_line: str, next_line: str, regex: str) -> Tuple[bo
         return False, current_line
 
 
+#: Chunk size for streaming a bare-.txt chat export off the
+#: SeekableBinaryReader protocol (see `read_chat_file`).
+CHAT_READ_CHUNK_BYTES = 64 * 1024
+
+
 def read_chat_file(chat_file: SeekableBinaryReader) -> list[str]:
     """Read chat lines out of an uploaded WhatsApp export.
 
@@ -290,17 +295,35 @@ def read_chat_file(chat_file: SeekableBinaryReader) -> list[str]:
             lines = [line.decode("utf-8") for line in lines]
 
     else:
-        # Bare .txt chat exports (Android, no-media export): read as a
-        # streaming UTF-8 text reader rather than chat_file.read() (ADR-0026
-        # forbids whole-upload reads). zipfile.is_zipfile() above consumed
-        # the reader's position while probing for a zip header, so it must
-        # be rewound before TextIOWrapper starts pulling bounded chunks.
-        chat_file.seek(0)
-        text = io.TextIOWrapper(chat_file, encoding="utf-8", newline="")  # pyright: ignore
-        try:
-            lines = list(text)
-        finally:
-            text.detach()  # leave the upload reader open for the caller
+        # Bare .txt chat exports (Android, no-media export). Read bounded
+        # chunks and decode incrementally using only the
+        # SeekableBinaryReader protocol (read/seek/tell) — the production
+        # upload object (AsyncFileAdapter) has neither `.closed` nor
+        # `.flush()`, so `io.TextIOWrapper` cannot wrap it. ADR-0026 forbids
+        # a whole-upload `read()` regardless.
+        chat_file.seek(0)  # zipfile.is_zipfile moved the position
+        decoder = codecs.getincrementaldecoder("utf-8")()
+        lines = []
+        carry = ""
+        while True:
+            chunk = chat_file.read(CHAT_READ_CHUNK_BYTES)
+            if not chunk:
+                break
+            text = decoder.decode(chunk)
+            if not lines and not carry:
+                text = text.lstrip("\ufeff")  # strip a leading UTF-8 BOM
+            if text:
+                carry += text
+                # Always hold the last split back as `carry`: it may be an
+                # incomplete final line, or (if the chunk ended exactly on
+                # a line boundary) a complete one that gets flushed on the
+                # next iteration or at EOF below — either way it is never
+                # lost.
+                *complete, carry = carry.splitlines(keepends=True)
+                lines.extend(complete)
+        carry += decoder.decode(b"", final=True)
+        if carry:
+            lines.append(carry)
 
     out = [remove_unwanted_characters(line) for line in lines]
 

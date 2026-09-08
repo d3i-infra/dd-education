@@ -37,8 +37,42 @@ def test_to_24h(hour, ampm, daypart, expected):
 CHAT = "22-07-2023 6:50 ’s avonds - Sam Voorbeeld: Hey\n22-07-2023 7:15 ’s avonds - Example User: Hey love\n"
 
 
+class _AdapterShapedReader:
+    """Minimal stand-in for the production `AsyncFileAdapter`.
+
+    Exposes only the `SeekableBinaryReader` protocol — `read`/`seek`/`tell`
+    — deliberately without `.closed` or `.flush()`, which `io.BytesIO`
+    (and `io.TextIOWrapper`) provide but the real upload adapter does not.
+    A regression here means `read_chat_file` started relying on more than
+    the documented protocol again.
+    """
+
+    def __init__(self, data: bytes):
+        self._buf = io.BytesIO(data)
+
+    def read(self, size: int = -1) -> bytes:
+        return self._buf.read(size)
+
+    def seek(self, offset: int, whence: int = 0) -> int:
+        return self._buf.seek(offset, whence)
+
+    def tell(self) -> int:
+        return self._buf.tell()
+
+
 def test_parse_chat_reads_bare_txt_reader():
     df = W.parse_chat(io.BytesIO(CHAT.encode("utf-8")))
+    assert list(df["name"]) == ["Sam Voorbeeld", "Example User"]
+
+
+def test_parse_chat_reads_adapter_shaped_reader():
+    df = W.parse_chat(_AdapterShapedReader(CHAT.encode("utf-8")))
+    assert list(df["name"]) == ["Sam Voorbeeld", "Example User"]
+
+
+def test_parse_chat_reads_bom_prefixed_crlf_export():
+    text = "﻿" + CHAT.replace("\n", "\r\n")
+    df = W.parse_chat(_AdapterShapedReader(text.encode("utf-8")))
     assert list(df["name"]) == ["Sam Voorbeeld", "Example User"]
 
 
