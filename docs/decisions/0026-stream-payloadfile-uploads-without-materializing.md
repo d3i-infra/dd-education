@@ -27,6 +27,7 @@ checks:
     - desc: no materialize_file resurrection anywhere in the Python package
       grep: 'materialize_file'
       in: ["packages/python/**"]
+      except: ["**/__pycache__/**"]
       expect: absent
     - desc: ScriptWrapper still handles the singular PayloadFile case (word-boundary, excludes PayloadFiles)
       grep: '\bPayloadFile\b'

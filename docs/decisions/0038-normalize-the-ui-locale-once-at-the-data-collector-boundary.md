@@ -9,6 +9,7 @@ category: Localization
 applies_to:
     - packages/data-collector/src/locale/policy.ts
     - packages/data-collector/src/locale/ui_locales.json
+    - packages/data-collector/src/locale/ui_locale.ts
     - packages/data-collector/src/App.tsx
     - packages/python/port/helpers/ui_locale.py
     - packages/python/port/helpers/ui_locales.json
@@ -16,6 +17,8 @@ applies_to:
 priority: invariant
 companions:
     - packages/data-collector/src/locale/policy.test.ts
+    - packages/data-collector/src/locale/ui_locale.test.ts
+    - packages/data-collector/src/routes/components/locale_toggle.tsx
     - packages/python/tests/test_ui_locale.py
     - tests/localization.spec.ts
     - packages/python/port/helpers/port_config_validator.py
@@ -28,7 +31,7 @@ checks:
     - desc: normalizeLocale is handed to the host boundary, never called a second time
       grep: 'normalizeLocale\('
       in: ["packages/data-collector/src/**"]
-      except: ["**/locale/policy.test.ts"]
+      except: ["**/locale/policy.test.ts", "**/locale/ui_locale.ts"]
       expect: absent
 ---
 
@@ -43,6 +46,7 @@ The supported participant-facing UI locales (`en`, `nl`, `de`, `it`, `es`; defau
 - Adding or dropping a UI locale is an edit to `packages/data-collector/src/locale/ui_locales.json` copied byte-for-byte into `packages/python/port/helpers/ui_locales.json`; nothing else may hardcode a locale list, and `tests/test_ui_locales_sync.py` hard-fails (never skips) when the two drift.
 - Normalize once, at the boundary: `App.tsx` hands `normalizeLocale` to `mapLocale`, and everything downstream — both engines, the worker handshake, Python — receives an already-normalized value. `ui_locale.normalize_ui_locale` is defense-in-depth for a caller that bypasses the host, never a second policy source; if it ever disagrees with `policy.ts`, `policy.ts` is right.
 - One carrier: the locale rides the existing prop/handshake chain (`App.tsx` → `ScriptHostComponent` → `Assembly` → `WorkerProcessingEngine` → `port.start`'s context dict → `ui_locale.set_ui_locale`). Don't add a React context, a module-level singleton, or a second carrier alongside it.
+- The education tool has no host to ask, so it *sources* its own starting locale rather than receiving one: `locale/ui_locale.ts` takes a remembered choice (`dfe.locale`) if there is one, else `navigator.language` through `normalizeLocale`, and hands the result to `App.tsx`'s existing `locale` prop — which is why that one module is exempt from the second-call check. The carrier below `App.tsx` is unchanged and `mapLocale` still normalizes at the boundary, so this adds a source, not a second policy or a second route. Its store is read by the two places that show the en/nl toggle (the site navbar and the tool page) and by nothing else. Only `en` and `nl` are offered to switch between, because the provisional locales have chrome but no study content; a study build passes no locale at all and keeps taking it from mono's live-init.
 - `en` is both default and fallback: every participant-facing text bundle must carry `en`. `de`, `it`, and `es` are provisional — machine-translated, pending native-speaker review — listed in the `provisional` key and marked `*` in the coverage report; treat them as shippable chrome, not as reviewed copy.
 - Researcher-facing coverage is gated by `validate_port_config.py --report`: chained after generation in `scripts/gen_port_config.sh`, run per platform in `release.sh` before anything is built, and run over every regenerated config (`--all --report`) in the `dependency-updates.yml` workflow. A bundle missing the default locale is an error there; an unsupported locale key is a warning. `validate_or_raise` at startup is the last line of defense, not the gate.
 - The UI locale never syncs with `helpers/validate.py`'s DDP-export `Language` enum or a config's `platform_info.languages` — those name the language of the participant's exported data, not the language the UI renders in.
