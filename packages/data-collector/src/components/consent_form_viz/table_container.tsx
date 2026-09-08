@@ -97,13 +97,26 @@ export const TableContainer = ({ id, table, updateTable, locale, variant = "stud
 
   if (isReview) {
     if (unfilteredRows === 0) {
+      // Born empty (the export never had rows here) reads differently from
+      // emptied by the participant's own deletions — the latter must keep
+      // TableItems' deleted-count + Undo control reachable (study mode never
+      // loses it either), so it renders inside the compact card rather than
+      // the plain "no entries" line.
+      const emptiedByDeletion = table.deletedRowCount > 0
       return (
         <div
           key={table.id}
-          className="p-4 md:p-5 flex items-center justify-between gap-4 w-full overflow-hidden border-[0.2rem] border-grey4 rounded-lg bg-grey6"
+          className="p-4 md:p-5 flex flex-col gap-2 w-full overflow-hidden border-[0.2rem] border-grey4 rounded-lg bg-grey6"
         >
-          <Title4 text={table.title} margin="" />
-          <div className="text-caption font-body text-grey2 whitespace-nowrap">{text.noEntries}</div>
+          <div className="flex items-center justify-between gap-4">
+            <Title4 text={table.title} margin="" />
+            {!emptiedByDeletion ? (
+              <div className="text-caption font-body text-grey2 whitespace-nowrap">{text.noEntries}</div>
+            ) : null}
+          </div>
+          {emptiedByDeletion ? (
+            <TableItems table={table} searchedTable={searchedTable} handleUndo={handleUndo} locale={locale} />
+          ) : null}
         </div>
       )
     }

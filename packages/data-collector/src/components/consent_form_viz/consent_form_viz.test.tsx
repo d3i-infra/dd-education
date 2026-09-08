@@ -236,5 +236,55 @@ describe("ConsentFormViz", () => {
       expect(toggle.getAttribute("aria-expanded")).toBe("true")
       expect(tableRegion.style.gridTemplateRows).not.toBe("0rem")
     })
+
+    // Regression: a table emptied by the participant's own deletions must
+    // keep Undo reachable — the compact "no entries" card is only for tables
+    // that were empty from the start (deletedRowCount === 0).
+    test("a table emptied by deletion keeps Undo, which restores its rows", () => {
+      const resolve = jest.fn()
+      root = renderConsentFormViz(container, multiTableProps(resolve))
+
+      let cardA = container.querySelector<HTMLElement>('[data-card-id="a"]')
+      if (cardA === null) throw new Error("card 'a' not found")
+
+      // Expand the table so its row checkboxes and delete control are present.
+      const toggle = cardA.querySelector<HTMLButtonElement>("button[aria-expanded]")
+      if (toggle === null) throw new Error("show/hide toggle not found")
+      act(() => {
+        toggle.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+      })
+
+      const selectAll = cardA.querySelector<HTMLElement>("#selectAll")
+      if (selectAll === null) throw new Error("select-all checkbox not found")
+      act(() => {
+        selectAll.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+      })
+
+      const deleteControl = Array.from(cardA.querySelectorAll<HTMLElement>("div")).find((el) =>
+        el.textContent?.trim().startsWith("Delete")
+      )
+      if (deleteControl === undefined) throw new Error("delete control not found")
+      act(() => {
+        deleteControl.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+      })
+
+      // Table 'a' is now empty by deletion (not born empty) — re-query since
+      // TableContainer swaps to the compact empty-state markup.
+      cardA = container.querySelector<HTMLElement>('[data-card-id="a"]')
+      if (cardA === null) throw new Error("card 'a' not found after delete")
+      expect(cardA.textContent).not.toContain("No entries in this export")
+
+      const undoButton = cardA.querySelector<HTMLImageElement>("img")
+      if (undoButton === null) throw new Error("Undo control not found after deleting all rows")
+
+      act(() => {
+        undoButton.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+      })
+
+      cardA = container.querySelector<HTMLElement>('[data-card-id="a"]')
+      if (cardA === null) throw new Error("card 'a' not found after undo")
+      expect(cardA.querySelector("button[aria-expanded]")).not.toBeNull()
+      expect(cardA.textContent).toContain("row-0")
+    })
   })
 })

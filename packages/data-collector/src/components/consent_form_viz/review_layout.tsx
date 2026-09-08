@@ -8,9 +8,10 @@ import { TableContainer } from "./table_container"
 // - Type scale: card titles keep study mode's Title4 (28px, via
 //   table_container's "review" variant) so a card reads at the same weight
 //   as its upstream counterpart; the description drops to caption (14px) so
-//   neither it nor the platform header competes with the figures above them;
-//   chips use label/labelsmall — small enough that a dozen still fit across
-//   a phone width.
+//   neither it nor the platform header competes with the figures above them —
+//   the header is a plain wrapping paragraph, no line clamp; chips use
+//   label/labelsmall — small enough that a dozen still fit across a phone
+//   width.
 // - Card treatment: white surface with the same grey4 hairline border and
 //   radius table_container's study card already uses, so review mode reads
 //   as a continuation of the fork's visual language rather than a new one.
@@ -30,8 +31,6 @@ interface ReviewLayoutProps {
 export const ReviewLayout = ({ tables, updateTable, locale, description }: ReviewLayoutProps): ReactElement => {
   const text = useMemo(() => getTranslations(locale), [locale])
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map())
-  const [activeId, setActiveId] = useState<string | undefined>(tables[0]?.id)
-
   // Tables with zero rows sink to the end; everything else keeps the order
   // Python sent it in. Recomputed on every table update, so a table emptied
   // by the participant's own deletions sinks too, not just ones born empty.
@@ -40,6 +39,8 @@ export const ReviewLayout = ({ tables, updateTable, locale, description }: Revie
     const empty = tables.filter((t) => t.body.rows.length === 0)
     return [...withRows, ...empty]
   }, [tables])
+
+  const [activeId, setActiveId] = useState<string | undefined>(orderedTables[0]?.id)
 
   const orderedIds = orderedTables.map((t) => t.id).join(",")
 
@@ -93,6 +94,7 @@ export const ReviewLayout = ({ tables, updateTable, locale, description }: Revie
                 key={table.id}
                 type="button"
                 data-chip-id={table.id}
+                aria-current={isActive ? "true" : undefined}
                 onClick={() => scrollToCard(table.id)}
                 className={`shrink-0 flex items-baseline gap-1.5 rounded-full border-2 px-4 py-2 font-label text-labelsmall md:text-label transition-colors ${
                   isActive ? "bg-primarylight border-primary text-primary" : "bg-white border-grey4 text-grey1"
@@ -106,7 +108,7 @@ export const ReviewLayout = ({ tables, updateTable, locale, description }: Revie
         </div>
       </nav>
 
-      <p className="text-caption font-body text-grey1">{description.replace(/\s*\n+\s*/g, " ").trim()}</p>
+      <p className="text-caption font-body text-grey1">{description}</p>
 
       <div className="flex flex-col gap-4">
         {orderedTables.map((table) => (
