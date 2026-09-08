@@ -12,6 +12,7 @@ All fixtures here are synthetic: table *metadata* only, never participant data.
 
 import json
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -27,8 +28,27 @@ from port.helpers.ui_locale import (
     SUPPORTED_UI_LOCALES,
 )
 
-#: The committed configs, the ones a release actually ships.
-CONFIG_DIR = Path(__file__).resolve().parent.parent / "port" / "configs"
+#: Repository root, three levels up from this file (tests -> python -> packages -> repo).
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+def committed_configs() -> list[Path]:
+    """The configs a release actually ships, asked of git rather than of the filesystem.
+
+    A glob over `port/configs/` would also pick up whatever the developer running the
+    suite last generated — `.gitignore` keeps all but an allowlist out of the repository
+    (ADR-0030) — so the guard would pass or fail depending on whose machine it ran on.
+    `git ls-files` returns the tracked set and nothing else.
+    """
+    listed = subprocess.run(
+        ["git", "ls-files", "--", "packages/python/port/configs/*_config.json"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.split()
+    paths = [REPO_ROOT / line for line in listed]
+    assert paths, "git listed no committed configs; the allowlist in .gitignore is the place to look"
+    return sorted(paths)
 
 
 def _table(**overrides) -> dict:
@@ -314,7 +334,7 @@ class TestTheDutchConfigStringsStayInformal:
             for index, value in enumerate(node):
                 yield from self._nl_strings(value, f"{path}[{index}]")
 
-    @pytest.mark.parametrize("config_path", sorted(CONFIG_DIR.glob("*_config.json")), ids=lambda p: p.name)
+    @pytest.mark.parametrize("config_path", committed_configs(), ids=lambda p: p.name)
     def test_no_config_addresses_the_participant_as_u(self, config_path):
         offenders = [
             f"{config_path.name}{path}: {text}"

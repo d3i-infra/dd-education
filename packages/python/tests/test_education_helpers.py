@@ -288,3 +288,55 @@ class TestArchiveSetMemberInfoIsCached:
 
         assert archive_set.part_index_of("shared.json") == 0
         assert archive_set.member_info("shared.json").file_size == len(b'{"a": 1}')
+
+
+class TestTheFileOverviewIsBounded:
+    """One row per archive member is a slower climb than one row per JSON leaf, but a
+    decade of Takeout photos still runs to hundreds of thousands of members, and this
+    frame goes into the same upload as the structure table."""
+
+    def _zip_of(self, member_count: int) -> io.BytesIO:
+        return create_test_zip({f"f{i}.json": b"{}" for i in range(member_count)})
+
+    def test_an_archive_under_the_cap_is_listed_whole(self, monkeypatch):
+        monkeypatch.setattr(eh, "MAX_FILE_INFO_ROWS", 10)
+        df = extract_zip_file_info(self._zip_of(4))
+
+        assert len(df) == 4
+        assert eh.TRUNCATION_MARKER not in df["modified_time"].values
+
+    def test_the_cap_stops_the_scan_and_names_the_entries_left(self, monkeypatch):
+        monkeypatch.setattr(eh, "MAX_FILE_INFO_ROWS", 5)
+        df = extract_zip_file_info(self._zip_of(9))
+
+        assert len(df) == 6, "the cap plus one marker row"
+        marker = df.iloc[-1]
+        assert marker["modified_time"] == eh.TRUNCATION_MARKER
+        assert marker["mime_type"] == eh.TRUNCATION_MARKER
+        assert marker["file_path"] == "f5.json", "the entry the scan stopped at"
+        assert marker["file_size"] == "<4 more>", "f5 through f8"
+
+    def test_the_marker_reads_the_same_way_as_the_structure_table_s(self, monkeypatch):
+        """Both markers are (member, "<truncated>", "<n more>") positionally, so a reader
+        who has seen one recognises the other."""
+        monkeypatch.setattr(eh, "MAX_FILE_INFO_ROWS", 2)
+        row = extract_zip_file_info(self._zip_of(5)).iloc[-1]
+
+        assert list(row)[:3] == ["f2.json", eh.TRUNCATION_MARKER, "<3 more>"]
+
+    def test_an_archive_set_is_capped_the_same_way(self, monkeypatch):
+        monkeypatch.setattr(eh, "MAX_FILE_INFO_ROWS", 3)
+        part = self._zip_of(8)
+        part.name = "part-1.zip"
+        part.size = len(part.getvalue())
+
+        df = extract_zip_file_info(ArchiveSet([part]))
+
+        assert len(df) == 4
+        assert df.iloc[-1]["modified_time"] == eh.TRUNCATION_MARKER
+
+    def test_directories_still_do_not_become_rows(self, monkeypatch):
+        monkeypatch.setattr(eh, "MAX_FILE_INFO_ROWS", 10)
+        df = extract_zip_file_info(create_test_zip({"dir/file.txt": b"content"}))
+
+        assert list(df["file_path"]) == ["dir/file.txt"]

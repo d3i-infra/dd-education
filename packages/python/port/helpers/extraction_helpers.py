@@ -1159,6 +1159,11 @@ def _is_structure_member(member: str) -> bool:
 MAX_STRUCTURE_ROWS_PER_MEMBER = 2000
 MAX_STRUCTURE_ROWS_TOTAL = 20000
 
+#: Row cap for the file overview. One row per archive member rather than per JSON leaf, so
+#: it grows far more slowly — but a Takeout set with a decade of photos still runs to
+#: hundreds of thousands of members, and this frame goes into the same upload.
+MAX_FILE_INFO_ROWS = 20000
+
 #: The `field_name` of the row that marks a cut, so a reader can tell a short table from a
 #: truncated one. `<...>` brackets keep it from colliding with a real field name.
 TRUNCATION_MARKER = "<truncated>"
@@ -1322,9 +1327,28 @@ def redact_member_path(path: str) -> str:
     return "/".join(redacted) + ("/" if is_dir else "")
 
 
+def _file_info_truncation_row(member: str, count: int) -> dict[str, Any]:
+    """The cut marker for the file overview, positionally the same shape as
+    :func:`_truncation_row`: the member the scan stopped at, ``"<truncated>"``, ``"<n
+    more>"``, and the marker again in the trailing column.
+
+    *n* is the entries left unexamined, directories included — the scan stops rather than
+    reading on to find out how many of them would have become rows.
+    """
+    return {
+        "file_path": member,
+        "modified_time": TRUNCATION_MARKER,
+        "file_size": f"<{count} more>",
+        "mime_type": TRUNCATION_MARKER,
+    }
+
+
 def extract_zip_file_info(archive: SeekableBinaryReader | ArchiveSet) -> pd.DataFrame:
     """Extract metadata for all files in a zip archive (a single reader) or
     an ArchiveSet (multiple uploaded parts, e.g. Google Takeout).
+
+    At most MAX_FILE_INFO_ROWS rows come back. Reaching the cap stops the scan and appends
+    one `_file_info_truncation_row` saying how many entries were left unexamined.
 
     Returns a DataFrame with columns: file_path, modified_time, file_size, mime_type.
     Uses mimetypes stdlib for MIME detection (safe for Pyodide).
@@ -1343,22 +1367,30 @@ def extract_zip_file_info(archive: SeekableBinaryReader | ArchiveSet) -> pd.Data
         }
 
     results: list[dict[str, Any]] = []
+
+    def scan(entries: list[zipfile.ZipInfo]) -> None:
+        """Row up each entry until the cap is reached."""
+        for position, info in enumerate(entries):
+            if len(results) >= MAX_FILE_INFO_ROWS:
+                left = len(entries) - position
+                results.append(_file_info_truncation_row(info.filename, left))
+                logger.warning(
+                    "File overview capped at %d rows; %d of %d entries left unexamined",
+                    MAX_FILE_INFO_ROWS, left, len(entries),
+                )
+                return
+            row = _row(info.filename, info.file_size, info.date_time, info.is_dir())
+            if row is not None:
+                results.append(row)
+
     try:
         if isinstance(archive, ArchiveSet):
-            for member in archive.members:  # already excludes macOS metadata
-                info = archive.member_info(member)
-                row = _row(info.filename, info.file_size, info.date_time, info.is_dir())
-                if row is not None:
-                    results.append(row)
+            # archive.members already excludes macOS metadata
+            scan([archive.member_info(member) for member in archive.members])
         else:
             archive.seek(0)
             with zipfile.ZipFile(archive, "r") as zf:
-                for info in zf.infolist():
-                    if is_macos_metadata(info.filename):
-                        continue
-                    row = _row(info.filename, info.file_size, info.date_time, info.is_dir())
-                    if row is not None:
-                        results.append(row)
+                scan([i for i in zf.infolist() if not is_macos_metadata(i.filename)])
     except zipfile.BadZipFile:
         logger.warning("Bad zip file")
 

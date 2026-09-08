@@ -13,8 +13,12 @@ platform is expected to reuse them rather than reinvent the format.
 Every one of them writes ``YYYY-MM-DD HH:MM:SS`` in one reference zone, so
 that the column would mean the same thing whichever platform a row came from.
 """
+import subprocess
+import sys
+import textwrap
 from collections import Counter
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import pytest
@@ -242,5 +246,32 @@ class TestTheZoneLookupIsLazy:
         assert eh.epoch_to_datetime_string(1632139200) == "2021-09-20 12:00:00"
 
     def test_importing_the_module_resolves_nothing(self):
-        """The memo is what proves it: nothing filled it in at import time."""
-        assert eh._REFERENCE_ZONE is None
+        """The memo is what proves it, and only a fresh interpreter can show it.
+
+        Asserting on ``eh._REFERENCE_ZONE`` from inside this class would prove nothing —
+        the fixture above clears it before every test — so this one imports the module in
+        a subprocess that has never touched it and reads the memo there. The child imports
+        ``conftest`` for its ``js`` shim rather than writing a second one (ADR-0015);
+        without the shim ``port`` will not import off a browser runtime.
+        """
+        program = textwrap.dedent(
+            """
+            import sys
+
+            sys.path.insert(0, "tests")
+            import conftest  # noqa: F401 -- imported for the js shim it installs
+
+            import port.helpers.extraction_helpers as eh
+
+            print(eh._REFERENCE_ZONE)
+            """
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", program],
+            cwd=Path(__file__).resolve().parent.parent,
+            capture_output=True,
+            text=True,
+        )
+
+        assert result.returncode == 0, result.stderr
+        assert result.stdout.strip() == "None", "something resolved the zone at import time"
