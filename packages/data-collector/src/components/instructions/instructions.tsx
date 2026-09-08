@@ -58,6 +58,15 @@ export const Instructions = (props: Props): JSX.Element => {
   const currentImageUrl = steps !== undefined ? steps[stepIndex] : singleImageUrl
   const nextImageUrl = steps !== undefined && stepIndex + 1 < steps.length ? steps[stepIndex + 1] : undefined
 
+  // Prefetch the next step's image via a detached Image so Next never shows
+  // a blank frame — a hidden <img> in the DOM would not actually defer to
+  // this, since browsers do not lazy-load boxless (display:none) images.
+  useEffect(() => {
+    if (nextImageUrl === undefined) return
+    const preload = new Image()
+    preload.src = nextImageUrl
+  }, [nextImageUrl])
+
   return (
     <>
       <div id="select-panel">
@@ -66,17 +75,13 @@ export const Instructions = (props: Props): JSX.Element => {
         </div>
       </div>
       {steps !== undefined && (
-        <div className="mt-4 text-center text-label font-label text-grey1">
+        <div className="mt-4 text-center text-label font-label text-grey1" aria-live="polite" aria-atomic="true">
           {Translator.translate(stepLabel(stepIndex + 1, steps.length), locale)}
         </div>
       )}
       {currentImageUrl && (
         <div className="flex items-center justify-center my-8">
           <img src={currentImageUrl} alt={steps !== undefined ? `Step ${stepIndex + 1}` : "Instructions"} className="max-w-full" />
-          {/* Prefetch the next step's image so Next never shows a blank frame. */}
-          {nextImageUrl !== undefined && (
-            <img src={nextImageUrl} alt="" aria-hidden="true" loading="lazy" className="hidden" />
-          )}
         </div>
       )}
       {steps !== undefined && (

@@ -95,6 +95,18 @@ describe("Instructions", () => {
       expect(img?.getAttribute("alt")).toBe("Step 1")
     })
 
+    test("the step counter is an aria-live region, so navigation is announced", () => {
+      const resolve = jest.fn()
+      root = renderInstructions(container, deckProps(resolve))
+
+      const counter = Array.from(container.querySelectorAll("div")).find((el) =>
+        el.textContent?.trim() === "Step 1 of 3"
+      )
+      if (counter === undefined) throw new Error("step counter element not found")
+      expect(counter.getAttribute("aria-live")).toBe("polite")
+      expect(counter.getAttribute("aria-atomic")).toBe("true")
+    })
+
     test("Next advances to the next step", () => {
       const resolve = jest.fn()
       root = renderInstructions(container, deckProps(resolve))
