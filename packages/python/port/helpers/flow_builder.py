@@ -55,10 +55,11 @@ class FlowBuilder:
 
     # Education mode (dd-education): set on the instance by platforms/education.py.
     # donate_enabled=False returns after the consent page instead of donating;
-    # instruction_image names a file under data-collector/public shown before the
-    # file prompt. Neither changes study behaviour, where both keep their defaults.
+    # instruction_image names a file (or, for a step-by-step deck, an ordered
+    # list of files) under data-collector/public shown before the file prompt.
+    # Neither changes study behaviour, where both keep their defaults.
     donate_enabled: bool = True
-    instruction_image: str | None = None
+    instruction_image: str | list[str] | None = None
 
     def __init__(self, session_id: str, platform_name: str):
         self.session_id = session_id

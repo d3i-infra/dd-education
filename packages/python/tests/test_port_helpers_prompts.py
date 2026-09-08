@@ -96,6 +96,26 @@ def test_retry_prompt_multiple_ok_cancel_labels_unchanged():
     assert single["cancel"]["translations"] == multi["cancel"]["translations"]
 
 
+def test_render_instructions_page_single_image_shape():
+    """A bare string builds imageUrl, leaving imageUrls empty — the shape
+    single-image platforms (e.g. Netflix, LinkedIn, WhatsApp) still use."""
+    body = ph.render_instructions_page("Netflix", "netflix_instructions.webp").toDict()["page"]["body"][0]
+    assert body["__type__"] == "PropsUIPromptInstructions"
+    assert body["imageUrl"] == "netflix_instructions.webp"
+    assert body["imageUrls"] == []
+    assert set(body["description"]["translations"]) >= {"en", "nl"}
+
+
+def test_render_instructions_page_step_list_shape():
+    """A list builds imageUrls, in order, leaving imageUrl empty — the shape
+    a step-by-step deck (ChatGPT, Instagram, YouTube) uses."""
+    steps = ["instructions/instagram/step-01.webp", "instructions/instagram/step-02.webp"]
+    body = ph.render_instructions_page("Instagram", steps).toDict()["page"]["body"][0]
+    assert body["__type__"] == "PropsUIPromptInstructions"
+    assert body["imageUrls"] == steps
+    assert body["imageUrl"] == ""
+
+
 def test_platform_selection_menu_shape():
     import port.helpers.port_helpers as ph
 

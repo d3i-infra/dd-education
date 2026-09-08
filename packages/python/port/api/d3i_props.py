@@ -309,15 +309,24 @@ class PropsUIPromptRetry:
 
 @dataclass
 class PropsUIPromptInstructions:
-    """Instruction page: text plus one image, then a Continue button (dd-education)."""
+    """Instruction page: text plus image(s), then a Continue button (dd-education).
+
+    Single-image platforms set ``imageUrl`` only. Platforms with a step-by-step
+    deck set ``imageUrls`` (one entry per step, in order) and may leave
+    ``imageUrl`` empty — the React side renders a stepper when ``imageUrls``
+    has more than one entry, and falls back to the single ``imageUrl`` image
+    otherwise.
+    """
     description: props.Translatable
-    imageUrl: str
+    imageUrl: str = ""
+    imageUrls: list[str] = field(default_factory=list)
 
     def toDict(self):
         return {
             "__type__": "PropsUIPromptInstructions",
             "description": self.description.toDict(),
             "imageUrl": self.imageUrl,
+            "imageUrls": self.imageUrls,
         }
 
 

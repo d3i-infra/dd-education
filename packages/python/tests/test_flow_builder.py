@@ -568,6 +568,28 @@ class TestEducationHooks:
         nxt = advance_past_logs(gen, make_payload("PayloadTrue"))
         assert type(nxt.page.body).__name__ == "PropsUIPromptFileInput"
 
+    @patch("port.helpers.uploads.check_payload_size")
+    def test_instruction_page_renders_step_list(self, _):
+        """A step-by-step deck (instruction_image as a list) reaches the page
+        as imageUrls, in order, with imageUrl left empty."""
+        flow = StubFlow()
+        flow.instruction_image = [
+            "instructions/chatgpt/step-01.webp",
+            "instructions/chatgpt/step-02.webp",
+        ]
+        gen = flow.start_flow()
+        cmd = start_and_skip_logs(gen)
+        assert isinstance(cmd, CommandUIRender)
+        body = cmd.page.body
+        assert type(body).__name__ == "PropsUIPromptInstructions"
+        assert body.imageUrls == [
+            "instructions/chatgpt/step-01.webp",
+            "instructions/chatgpt/step-02.webp",
+        ]
+        assert body.imageUrl == ""
+        nxt = advance_past_logs(gen, make_payload("PayloadTrue"))
+        assert type(nxt.page.body).__name__ == "PropsUIPromptFileInput"
+
     def test_no_instruction_page_by_default(self):
         gen = StubFlow().start_flow()
         cmd = start_and_skip_logs(gen)

@@ -560,8 +560,12 @@ def render_protocol_error_page(platform_name: str) -> CommandUIRender:
     return render_page(header, body)
 
 
-def render_instructions_page(platform_name: str, image_url: str) -> CommandUIRender:
-    """Instruction page shown before the file prompt (education mode)."""
+def render_instructions_page(platform_name: str, images: str | list[str]) -> CommandUIRender:
+    """Instruction page shown before the file prompt (education mode).
+
+    `images` is either a single image URL (single-image platforms) or a list
+    of per-step image URLs, in order (platforms with a step-by-step deck).
+    """
     header = props.Translatable({
         "en": f"Instructions to request your {platform_name} data",
         "nl": f"Instructies om je {platform_name} gegevens op te vragen",
@@ -574,7 +578,11 @@ def render_instructions_page(platform_name: str, image_url: str) -> CommandUIRen
                "Klik op de knop \"Doorgaan\" onderaan deze pagina "
                "als je klaar bent om naar de volgende stap te gaan."),
     })
-    return render_page(header, d3i_props.PropsUIPromptInstructions(description, image_url))
+    if isinstance(images, list):
+        prompt = d3i_props.PropsUIPromptInstructions(description, imageUrls=images)
+    else:
+        prompt = d3i_props.PropsUIPromptInstructions(description, imageUrl=images)
+    return render_page(header, prompt)
 
 
 def generate_platform_selection_menu(platform_names: list[str]) -> d3i_props.PropsUIPromptPlatformSelection:

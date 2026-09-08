@@ -75,12 +75,23 @@ class YouTubeOnlyGoogleFlow(GoogleFlow):
 class PlatformEntry:
     module: str
     cls: str
-    instruction_image: str | None
+    instruction_image: str | list[str] | None
     review_description: props.Translatable | None
 
 
+def _instruction_steps(platform_slug: str, step_count: int) -> list[str]:
+    """Ordered step-image URLs for a platform's instruction deck.
+
+    Matches the files rendered from doc/instructions/source/<platform>-request-steps.pdf
+    into public/instructions/<platform_slug>/step-NN.webp (see
+    tests/test_education_platform.py for the glob that checks these resolve
+    to real files).
+    """
+    return [f"instructions/{platform_slug}/step-{i:02d}.webp" for i in range(1, step_count + 1)]
+
+
 PLATFORMS: dict[str, PlatformEntry] = {
-    "YouTube": PlatformEntry("port.platforms.education", "YouTubeOnlyGoogleFlow", "youtube_instructions.svg",
+    "YouTube": PlatformEntry("port.platforms.education", "YouTubeOnlyGoogleFlow", _instruction_steps("youtube", 10),
         props.Translatable({"en": "Below you will find your YouTube watch history, search history, subscriptions, and comments, from your Google Takeout export.",
                             "nl": "Hieronder vind je je YouTube-kijkgeschiedenis, zoekgeschiedenis, abonnementen en reacties, uit je Google Takeout-export."})),
     "Google": PlatformEntry("port.platforms.google", "GoogleFlow", None,
@@ -89,7 +100,7 @@ PLATFORMS: dict[str, PlatformEntry] = {
     "Netflix": PlatformEntry("port.platforms.netflix", "NetflixFlow", "netflix_instructions.webp",
         props.Translatable({"en": "Below you will find a curated selection of your Netflix data, including your account, devices, viewing activity, ratings, and search history.",
                             "nl": "Hieronder vind je een samengestelde selectie van je Netflix-gegevens, waaronder je account, apparaten, kijkactiviteit, beoordelingen en zoekgeschiedenis."})),
-    "Instagram": PlatformEntry("port.platforms.instagram", "InstagramFlow", "instagram_instructions.svg",
+    "Instagram": PlatformEntry("port.platforms.instagram", "InstagramFlow", _instruction_steps("instagram", 12),
         props.Translatable({"en": "Below you will find the tables Instagram's export contains about your account: your account information, inferred ad-targeting categories, your off-platform link and login history, the locations and device details Instagram has inferred or stored, and the posts, videos, ads, comments, and likes recorded from your activity on Instagram.",
                             "nl": "Hieronder vind je de tabellen die de export van Instagram over je account bevat: je accountgegevens, afgeleide advertentietargetingcategorieën, je link- en logingeschiedenis buiten het platform, de locatie- en apparaatgegevens die Instagram heeft afgeleid of opgeslagen, en de berichten, video's, advertenties, reacties en likes die zijn geregistreerd van je activiteit op Instagram."})),
     "Facebook": PlatformEntry("port.platforms.facebook", "FacebookFlow", None,
@@ -101,7 +112,7 @@ PLATFORMS: dict[str, PlatformEntry] = {
     "WhatsApp": PlatformEntry("port.platforms.whatsapp", "WhatsAppFlow", "whatsapp_instructions.webp",
         props.Translatable({"en": "Below you will find your group chat's messages, emoji usage, and per-participant statistics.",
                             "nl": "Hieronder vind je de berichten van je groepschat, het emoji-gebruik en statistieken per deelnemer."})),
-    "ChatGPT": PlatformEntry("port.platforms.chatgpt", "ChatGPTFlow", "chatgpt_instructions.svg",
+    "ChatGPT": PlatformEntry("port.platforms.chatgpt", "ChatGPTFlow", _instruction_steps("chatgpt", 10),
         props.Translatable({"en": "Below you will find the account details OpenAI has on file and your conversations with ChatGPT.",
                             "nl": "Hieronder vind je de accountgegevens die OpenAI heeft vastgelegd en je gesprekken met ChatGPT."})),
     "General DDP Analyzer": PlatformEntry("port.platforms.general_ddp_analyzer", "GeneralDDPAnalyzerFlow", None, None),

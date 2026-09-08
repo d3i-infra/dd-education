@@ -144,6 +144,30 @@ def test_every_menu_entry_imports():
         assert issubclass(cls, FlowBuilder), name
 
 
+def test_instruction_image_entries_resolve_to_files_that_exist():
+    """Every URL a PlatformEntry.instruction_image names (single image or a
+    step-by-step deck's list) must resolve to a real file under
+    data-collector/public — and, for a deck, to exactly its files (no step
+    missing, none left over)."""
+    from pathlib import Path
+
+    public_dir = Path(__file__).resolve().parents[3] / "packages" / "data-collector" / "public"
+
+    for name, entry in education.PLATFORMS.items():
+        if entry.instruction_image is None:
+            continue
+        images = entry.instruction_image if isinstance(entry.instruction_image, list) else [entry.instruction_image]
+        for image in images:
+            assert (public_dir / image).is_file(), f"{name}: missing {image}"
+
+        # A deck (list) is checked exhaustively against its directory's glob:
+        # every step file on disk is named in PLATFORMS, and vice versa.
+        if isinstance(entry.instruction_image, list) and entry.instruction_image:
+            deck_dir = (public_dir / entry.instruction_image[0]).parent
+            on_disk = {f"instructions/{deck_dir.name}/{p.name}" for p in deck_dir.glob("step-*.webp")}
+            assert on_disk == set(entry.instruction_image), name
+
+
 def test_config_validates():
     from port.helpers.port_config_validator import validate_or_raise
     validate_or_raise("education")
