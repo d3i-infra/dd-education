@@ -40,12 +40,29 @@
       "visualizations": [
         {
           "title": {
+            "en": "Your group chat",
+            "nl": "Je groepsgesprek"
+          },
+          "type": "thread",
+          "singleThreadTitle": {
+            "en": "Your group chat",
+            "nl": "Je groepsgesprek"
+          },
+          "roleColumn": "Name",
+          "textColumn": "Message",
+          "timeColumn": "Timestamp"
+        },
+        {
+          "title": {
             "en": "Most common words in your chats",
             "nl": "Meest gebruikte woorden in je gesprekken"
           },
           "type": "wordcloud",
           "textColumn": "Message",
-          "tokenize": true
+          "tokenize": true,
+          "stripMentions": true,
+          "excludeColumn": "Name",
+          "stripPlaceholders": true
         },
         {
           "title": {

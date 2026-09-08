@@ -12,8 +12,8 @@ import json
 import zipfile
 from collections import Counter
 
-from port.helpers.extraction_helpers import ZipArchiveReader
-from port.platforms.chatgpt import account_info_to_df, conversations_to_df, models_used_to_df
+from port.helpers.extraction_helpers import ZipArchiveReader, epoch_to_iso
+from port.platforms.chatgpt import account_info_to_df, conversations_to_df, messages_to_df, models_used_to_df
 
 USER_JSON = json.dumps({
     "chatgpt_plus_user": True,
@@ -121,15 +121,80 @@ class TestAccountInfo:
 
 
 class TestConversations:
-    def test_still_includes_blank_model_user_turns(self):
-        """Unchanged behaviour: conversations_to_df keeps every turn,
-        user included, with a blank model on user turns."""
+    """conversations_to_df now returns one row per conversation, aggregated
+    from the same turns messages_to_df returns per-row (task 21b)."""
+
+    def test_one_row_per_conversation_in_first_appearance_order(self):
         reader = _reader_for({"conversations-000.json": CONVERSATIONS_JSON})
         out = conversations_to_df(reader, Counter())
+        assert list(out.columns) == ["Conversation title", "Started", "Last message", "Turns", "Models"]
+        assert list(out["Conversation title"]) == ["Test conversation A", "Test conversation B"]
+
+    def test_turns_counts_every_visible_turn_including_user(self):
+        reader = _reader_for({"conversations-000.json": CONVERSATIONS_JSON})
+        out = conversations_to_df(reader, Counter())
+        turns = dict(zip(out["Conversation title"], out["Turns"]))
+        assert turns["Test conversation A"] == 2  # 1 user + 1 assistant
+        assert turns["Test conversation B"] == 3  # 1 user + 2 assistant (hidden node excluded)
+
+    def test_started_and_last_message_are_the_conversation_s_min_and_max_turn_time(self):
+        reader = _reader_for({"conversations-000.json": CONVERSATIONS_JSON})
+        out = conversations_to_df(reader, Counter())
+        row_a = out[out["Conversation title"] == "Test conversation A"].iloc[0]
+        assert row_a["Started"] == epoch_to_iso(1700000000)  # n1, user turn
+        assert row_a["Last message"] == epoch_to_iso(1700000010)  # n2, assistant turn
+
+        row_b = out[out["Conversation title"] == "Test conversation B"].iloc[0]
+        assert row_b["Started"] == epoch_to_iso(1700000100)  # n3, user turn
+        assert row_b["Last message"] == epoch_to_iso(1700000120)  # n5, latest non-hidden turn
+
+    def test_models_is_the_comma_joined_distinct_assistant_models(self):
+        """Conversation A has one assistant model; conversation B has two,
+        joined and sorted. The hidden turn's model ('gpt-test-hidden') never
+        appears — it is excluded from the turns entirely, upstream of this
+        aggregation."""
+        reader = _reader_for({"conversations-000.json": CONVERSATIONS_JSON})
+        out = conversations_to_df(reader, Counter())
+        models = dict(zip(out["Conversation title"], out["Models"]))
+        assert models["Test conversation A"] == "gpt-test-large"
+        assert models["Test conversation B"] == "gpt-test-large, gpt-test-mini"
+        assert "gpt-test-hidden" not in models["Test conversation B"]
+
+    def test_absent_file_yields_empty_no_error(self):
+        reader = _reader_for({})
+        errors: Counter = Counter()
+        out = conversations_to_df(reader, errors)
+        assert out.empty
+        assert sum(errors.values()) == 0
+
+
+class TestMessages:
+    """messages_to_df is the per-turn frame conversations_to_df used to
+    return directly, now under its own table with Title Case columns
+    (task 21b) — see also the thread visualization in the config, which
+    reads these exact column names as groupColumn/roleColumn/etc."""
+
+    def test_column_order(self):
+        reader = _reader_for({"conversations-000.json": CONVERSATIONS_JSON})
+        out = messages_to_df(reader, Counter())
+        assert list(out.columns) == ["Time", "Conversation title", "Role", "Message", "Model"]
+
+    def test_still_includes_blank_model_user_turns(self):
+        """Unchanged behaviour from the pre-split conversations_to_df: every
+        turn is kept, user included, with a blank model on user turns."""
+        reader = _reader_for({"conversations-000.json": CONVERSATIONS_JSON})
+        out = messages_to_df(reader, Counter())
         assert len(out) == 5  # 2 user + 3 assistant (hidden node excluded)
-        user_rows = out[out["role"] == "user"]
+        user_rows = out[out["Role"] == "user"]
         assert len(user_rows) == 2
-        assert set(user_rows["model"]) == {""}
+        assert set(user_rows["Model"]) == {""}
+
+    def test_absent_file_yields_empty_no_error(self):
+        reader = _reader_for({})
+        errors: Counter = Counter()
+        out = messages_to_df(reader, errors)
+        assert out.empty
+        assert sum(errors.values()) == 0
 
 
 class TestModelsUsed:
@@ -161,11 +226,11 @@ class TestModelsUsed:
 
 
 class TestTheConversationsAreParsedOnce:
-    """``conversations-*.json`` is the biggest member of a ChatGPT export, and two
-    extractors in the same flow want the same turns out of it. The second one reuses the
-    first one's parse."""
+    """``conversations-*.json`` is the biggest member of a ChatGPT export, and three
+    extractors in the same flow (task 21b: conversations, messages, models_used) want
+    the same turns out of it. Only the first one actually parses it."""
 
-    def test_two_extractors_on_one_reader_read_the_file_once(self, monkeypatch):
+    def test_three_extractors_on_one_reader_read_the_file_once(self, monkeypatch):
         reader = _reader_for({"conversations-000.json": CONVERSATIONS_JSON})
         errors = Counter()
 
@@ -179,10 +244,11 @@ class TestTheConversationsAreParsedOnce:
         monkeypatch.setattr(ZipArchiveReader, "json_all", spy_json_all)
 
         conversations = conversations_to_df(reader, errors)
+        messages = messages_to_df(reader, errors)
         models = models_used_to_df(reader, errors)
 
-        assert len(calls) == 1, "the second extractor reuses the first extractor's parse"
-        assert not conversations.empty and not models.empty
+        assert len(calls) == 1, "the second and third extractors reuse the first extractor's parse"
+        assert not conversations.empty and not messages.empty and not models.empty
 
     def test_a_second_reader_gets_its_own_parse(self):
         """The memo is keyed on the reader, so a different upload is a different parse

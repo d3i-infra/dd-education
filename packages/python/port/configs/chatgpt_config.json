@@ -49,29 +49,29 @@
         "nl": "Je gesprekken met ChatGPT"
       },
       "description": {
-        "en": "Your ChatGPT conversations, from the conversations export files.",
-        "nl": "Je ChatGPT-gesprekken, uit de conversations-exportbestanden."
+        "en": "One row per ChatGPT conversation, from the conversations export files.",
+        "nl": "Eén rij per ChatGPT-gesprek, uit de conversations-exportbestanden."
       },
       "headers": {
-        "conversation title": {
+        "Conversation title": {
           "en": "Conversation title",
           "nl": "Gesprektitel"
         },
-        "role": {
-          "en": "Role",
-          "nl": "Rol"
+        "Started": {
+          "en": "Started",
+          "nl": "Gestart"
         },
-        "message": {
-          "en": "Message",
-          "nl": "Bericht"
+        "Last message": {
+          "en": "Last message",
+          "nl": "Laatste bericht"
         },
-        "model": {
-          "en": "Model",
-          "nl": "Model"
+        "Turns": {
+          "en": "Turns",
+          "nl": "Beurten"
         },
-        "time": {
-          "en": "Time",
-          "nl": "Tijd"
+        "Models": {
+          "en": "Models",
+          "nl": "Modellen"
         }
       },
       "visualizations": [
@@ -84,26 +84,26 @@
           "tiles": [
             {
               "label": {
-                "en": "Messages",
-                "nl": "Berichten"
+                "en": "Conversations",
+                "nl": "Gesprekken"
               },
               "aggregate": "count"
             },
             {
               "label": {
-                "en": "First message",
-                "nl": "Eerste bericht"
+                "en": "First conversation",
+                "nl": "Eerste gesprek"
               },
               "aggregate": "first_date",
-              "column": "time"
+              "column": "Started"
             },
             {
               "label": {
-                "en": "Last message",
-                "nl": "Laatste bericht"
+                "en": "Last conversation",
+                "nl": "Laatste gesprek"
               },
               "aggregate": "last_date",
-              "column": "time"
+              "column": "Started"
             },
             {
               "label": {
@@ -111,9 +111,93 @@
                 "nl": "Drukste dag"
               },
               "aggregate": "busiest_day",
-              "column": "time"
+              "column": "Started"
             }
           ]
+        },
+        {
+          "title": {
+            "en": "Conversations started per month",
+            "nl": "Gesprekken gestart per maand"
+          },
+          "type": "area",
+          "group": {
+            "column": "Started",
+            "dateFormat": "month",
+            "label": {
+              "en": "Month",
+              "nl": "Maand"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Conversations",
+                "nl": "Gesprekken"
+              }
+            }
+          ]
+        }
+      ],
+      "extractor": "conversations_to_df",
+      "documentation": {
+        "summary": "Each row represents one ChatGPT conversation: its title, when it started and last had a message, how many turns it has, and which AI models answered in it.",
+        "source_file": "conversations files (conversations-000.json, conversations-001.json, ...)",
+        "columns": {
+          "Conversation title": "Title of the conversation as stored in the export.",
+          "Started": "ISO 8601 timestamp of the conversation's earliest turn.",
+          "Last message": "ISO 8601 timestamp of the conversation's latest turn.",
+          "Turns": "Number of message turns (user and assistant) in the conversation.",
+          "Models": "Comma-joined distinct ChatGPT model slugs that answered in this conversation."
+        }
+      }
+    },
+    {
+      "id": "chatgpt_messages",
+      "title": {
+        "en": "Your messages with ChatGPT",
+        "nl": "Je berichten met ChatGPT"
+      },
+      "description": {
+        "en": "Every message turn across your ChatGPT conversations, from the conversations export files.",
+        "nl": "Elke berichtbeurt uit je ChatGPT-gesprekken, uit de conversations-exportbestanden."
+      },
+      "headers": {
+        "Time": {
+          "en": "Time",
+          "nl": "Tijd"
+        },
+        "Conversation title": {
+          "en": "Conversation title",
+          "nl": "Gesprektitel"
+        },
+        "Role": {
+          "en": "Role",
+          "nl": "Rol"
+        },
+        "Message": {
+          "en": "Message",
+          "nl": "Bericht"
+        },
+        "Model": {
+          "en": "Model",
+          "nl": "Model"
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Your conversations",
+            "nl": "Je gesprekken"
+          },
+          "type": "thread",
+          "groupColumn": "Conversation title",
+          "roleColumn": "Role",
+          "textColumn": "Message",
+          "timeColumn": "Time",
+          "badgeColumn": "Model",
+          "selfRole": "user"
         },
         {
           "title": {
@@ -121,32 +205,8 @@
             "nl": "Je berichten in een woordwolk"
           },
           "type": "wordcloud",
-          "textColumn": "message",
+          "textColumn": "Message",
           "tokenize": true
-        },
-        {
-          "title": {
-            "en": "What time of day you talk to ChatGPT",
-            "nl": "Op welk moment van de dag je met ChatGPT praat"
-          },
-          "type": "bar",
-          "group": {
-            "column": "time",
-            "dateFormat": "hour_cycle",
-            "label": {
-              "en": "Hour of the day",
-              "nl": "Uur van de dag"
-            }
-          },
-          "values": [
-            {
-              "aggregate": "count",
-              "label": {
-                "en": "Number of messages",
-                "nl": "Aantal berichten"
-              }
-            }
-          ]
         },
         {
           "title": {
@@ -155,7 +215,7 @@
           },
           "type": "bar",
           "group": {
-            "column": "time",
+            "column": "Time",
             "dateFormat": "weekday_cycle",
             "label": {
               "en": "Day of the week",
@@ -171,18 +231,27 @@
               }
             }
           ]
+        },
+        {
+          "title": {
+            "en": "When you talk to ChatGPT",
+            "nl": "Wanneer je met ChatGPT praat"
+          },
+          "type": "heatmap",
+          "mode": "weekday_hour",
+          "dateColumn": "Time"
         }
       ],
-      "extractor": "conversations_to_df",
+      "extractor": "messages_to_df",
       "documentation": {
         "summary": "Each row represents one message turn in a ChatGPT conversation, including the role (user or assistant), the message text, the model used, and the timestamp.",
         "source_file": "conversations files (conversations-000.json, conversations-001.json, ...)",
         "columns": {
-          "conversation title": "Title of the conversation as stored in the export.",
-          "role": "Role of the message author: 'user' or 'assistant'.",
-          "message": "Full text of the message.",
-          "model": "ChatGPT model slug used to generate the assistant reply.",
-          "time": "ISO 8601 timestamp of when the message was created."
+          "Time": "ISO 8601 timestamp of when the message was created.",
+          "Conversation title": "Title of the conversation as stored in the export.",
+          "Role": "Role of the message author: 'user' or 'assistant'.",
+          "Message": "Full text of the message.",
+          "Model": "ChatGPT model slug used to generate the assistant reply."
         }
       }
     },
