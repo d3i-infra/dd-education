@@ -297,6 +297,42 @@ def _sort_by_date(out: pd.DataFrame, date_column: str) -> pd.DataFrame:
     return out.sort_values(by=date_column, key=eh.sort_isotimestamp_empty_timestamp_last)
 
 
+def _naive_local_datetime(timestamp: str) -> datetime | None:
+    """Parse an html-style local timestamp string into a naive ``datetime``, ignoring
+    timezone.
+
+    ``link_history.json`` writes its per-visit start/end times in this same
+    ``Aug 26, 2026 4:59:34am`` shape the html export uses, but at a different,
+    unmeasured offset from UTC (a spot check against the file's own epoch
+    ``timestamp`` field put it near UTC-7, not the html export's measured
+    UTC-8 — a different field, on a different clock). Rather than guess at a
+    second offset, this is used only to take the *difference* between two such
+    strings from the same item, which is offset-independent as long as both
+    fall on the same local day.
+
+    Returns ``None`` when the string cannot be parsed.
+    """
+    if not timestamp or not isinstance(timestamp, str):
+        return None
+
+    match = _HTML_TIMESTAMP.match(timestamp.strip())
+    if not match:
+        return None
+
+    month, day, year, hour, minute, second, meridiem = match.groups()
+    number = _HTML_MONTHS.get(month[:3].lower())
+    if number is None:
+        return None
+
+    hour = int(hour)
+    if meridiem:
+        hour = hour % 12 + (12 if meridiem.lower() == "p" else 0)
+    try:
+        return datetime(int(year), number, int(day), hour, int(minute), int(second or 0))
+    except ValueError:
+        return None
+
+
 def _first_present(data: dict[str, Any], keys: list[str]) -> dict[str, Any]:
     """Return the first dict value found for the given keys, or empty dict.
 
@@ -2776,6 +2812,790 @@ def _subscription_for_no_ads_html(reader: ZipArchiveReader, errors: Counter) -> 
 
 
 # ---------------------------------------------------------------------------
+# New extractors (Task 15b, story edu-curation): tables built for the "what
+# they know about you" lens and the Digital Trace Data Lab 2 requirement of a
+# first, account-identifying table. None of these have an html twin in the
+# algosoc-2026 source module (checked against
+# ddt-forks/algosoc-2026/packages/python/port/platforms/instagram.py, which
+# carries the same 18 extractors this module started with and no more) — every
+# one of them is JSON-only. The html export always returns an empty table
+# here, which run_extraction drops without incrementing the error counter
+# (ADR-0024); validation is accepted on each, for calling-convention parity
+# with the rest of the registry, but ignored.
+# ---------------------------------------------------------------------------
+
+def account_info_to_df(
+    reader: ZipArchiveReader,
+    errors: Counter,
+    *,
+    filename: str = "personal_information/personal_information.json",
+    validation=None,
+) -> pd.DataFrame:
+    """Extract the participant's core account fields into a DataFrame.
+
+    Reads every ``string_map_data`` field under ``profile_user`` (username,
+    name, email address, phone number, and whatever else Instagram bundles
+    into this file) as a generic label/value dump — the point of this table,
+    the lab's requirement for a first, account-identifying table, is showing
+    the account's own fingerprint in one place rather than a curated subset
+    of it.
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load JSON files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+    filename:
+        Path inside the zip archive to read.  Defaults to
+        ``"personal_information/personal_information.json"``.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Field``, ``Value``.
+        Empty DataFrame when the file is absent, empty, or carries no
+        ``profile_user`` entries.
+
+    Table documentation::
+
+        {
+          "summary": "One row per account field Instagram stores for the participant's profile — username, name, contact details, and whatever else this file bundles.",
+          "source_file": "personal_information/personal_information.json",
+          "columns": {
+            "Field": "Name of the account field (e.g. Username, Email address).",
+            "Value": "Value Instagram has on file for that field."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "instagram_account_info",
+          "title": {
+            "en": "Your Instagram account information",
+            "nl": "Jouw Instagram-accountgegevens"
+          },
+          "description": {
+            "en": "The core account details Instagram stores for your profile — name, username, contact details, and more — read from your export's personal_information.json file.",
+            "nl": "De belangrijkste accountgegevens die Instagram voor je profiel bewaart — naam, gebruikersnaam, contactgegevens en meer — gelezen uit het bestand personal_information.json van je export."
+          },
+          "headers": {
+            "Field": {"en": "Field", "nl": "Veld"},
+            "Value": {"en": "Value", "nl": "Waarde"}
+          }
+        }
+    """
+    result = reader.json(filename)
+    if not result.found:
+        return pd.DataFrame()
+    data = result.data
+
+    out = pd.DataFrame()
+    datapoints = []
+
+    try:
+        items = data.get("profile_user", []) if isinstance(data, dict) else []
+        for item in items:
+            string_map_data = item.get("string_map_data", {}) if isinstance(item, dict) else {}
+            for field, entry in string_map_data.items():
+                value = entry.get("value", "") if isinstance(entry, dict) else str(entry)
+                datapoints.append((field, eh.fix_latin1_string(str(value))))
+
+        out = pd.DataFrame(datapoints, columns=["Field", "Value"])  # pyright: ignore
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return out
+
+
+def ad_targeting_categories_to_df(
+    reader: ZipArchiveReader,
+    errors: Counter,
+    *,
+    filename: str = "ads_information/instagram_ads_and_businesses/other_categories_used_to_reach_you.json",
+    validation=None,
+) -> pd.DataFrame:
+    """Extract the inferred ad-targeting segment labels into a DataFrame.
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load JSON files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+    filename:
+        Path inside the zip archive to read.  Defaults to
+        ``"ads_information/instagram_ads_and_businesses/other_categories_used_to_reach_you.json"``.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Category``.
+        Empty DataFrame when the file is absent, empty, or carries no labels.
+
+    Table documentation::
+
+        {
+          "summary": "Each row is one inferred targeting-segment label Instagram's ad system has assigned to the participant's account.",
+          "source_file": "ads_information/instagram_ads_and_businesses/other_categories_used_to_reach_you.json",
+          "columns": {
+            "Category": "One inferred targeting-segment label."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "instagram_ad_targeting_categories",
+          "title": {
+            "en": "Categories advertisers used to target you",
+            "nl": "Categorieën die adverteerders gebruikten om jou te bereiken"
+          },
+          "description": {
+            "en": "Targeting-segment labels Instagram's ad system has assigned to your account, read from your export's other_categories_used_to_reach_you.json file.",
+            "nl": "Targeting-segmentlabels die het advertentiesysteem van Instagram aan je account heeft toegekend, gelezen uit het bestand other_categories_used_to_reach_you.json van je export."
+          },
+          "headers": {
+            "Category": {"en": "Category", "nl": "Categorie"}
+          },
+          "visualizations": [
+            {
+              "title": {
+                "en": "Categories advertisers used to target you",
+                "nl": "Categorieën die adverteerders gebruikten om jou te bereiken"
+              },
+              "type": "wordcloud",
+              "textColumn": "Category",
+              "tokenize": false
+            }
+          ]
+        }
+    """
+    result = reader.json(filename)
+    if not result.found:
+        return pd.DataFrame()
+    data = result.data
+
+    out = pd.DataFrame()
+    datapoints = []
+
+    try:
+        label_values = data.get("label_values", []) if isinstance(data, dict) else []
+        for group in label_values:
+            for entry in group.get("vec", []):
+                value = entry.get("value", "")
+                if value:
+                    datapoints.append((eh.fix_latin1_string(str(value)),))
+
+        out = pd.DataFrame(datapoints, columns=["Category"])  # pyright: ignore
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return out
+
+
+def link_history_to_df(
+    reader: ZipArchiveReader,
+    errors: Counter,
+    *,
+    filename: str = "logged_information/link_history/link_history.json",
+    validation=None,
+) -> pd.DataFrame:
+    """Extract off-Instagram links Instagram logged the participant visiting.
+
+    ``Visit end`` comes from the item's own epoch ``timestamp``, which a spot
+    check against the fixture confirmed lines up with the end of the visit.
+    ``Visit start`` is derived from it by subtracting the duration between the
+    file's own local-time ``Website session start/end time`` strings — a
+    difference is offset-independent, so this does not need (and does not
+    guess at) the strings' own timezone, which is measurably not the html
+    export's UTC-8 (see ``_naive_local_datetime``). Falls back to repeating
+    ``Visit end`` when either local string cannot be parsed.
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load JSON files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+    filename:
+        Path inside the zip archive to read.  Defaults to
+        ``"logged_information/link_history/link_history.json"``.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Page title``, ``URL``, ``Visit start``, ``Visit end``.
+        Empty DataFrame when the file is absent, empty, or carries no items.
+
+    Table documentation::
+
+        {
+          "summary": "Each row is one off-Instagram website visit Instagram logged for the participant, with the full URL and page title.",
+          "source_file": "logged_information/link_history/link_history.json",
+          "columns": {
+            "Page title": "Title of the visited web page.",
+            "URL": "Full URL of the visited web page, tracking parameters included when present.",
+            "Visit start": "ISO 8601 timestamp of when the visit started.",
+            "Visit end": "ISO 8601 timestamp of when the visit ended."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "instagram_link_history",
+          "title": {
+            "en": "Websites Instagram logged you visiting",
+            "nl": "Websites die Instagram registreerde dat je bezocht"
+          },
+          "description": {
+            "en": "Websites you visited outside Instagram, recorded in your export's link_history.json file, including the full URL. These URLs sometimes carry tracking parameters (such as utm or fbclid codes) added by the platform.",
+            "nl": "Websites die je buiten Instagram hebt bezocht, vastgelegd in het bestand link_history.json van je export, inclusief de volledige URL. Deze URL's bevatten soms trackingparameters (zoals utm- of fbclid-codes) die door het platform zijn toegevoegd."
+          },
+          "headers": {
+            "Page title": {"en": "Page title", "nl": "Paginatitel"},
+            "URL": {"en": "URL", "nl": "URL"},
+            "Visit start": {"en": "Visit start", "nl": "Bezoek gestart"},
+            "Visit end": {"en": "Visit end", "nl": "Bezoek beëindigd"}
+          },
+          "visualizations": [
+            {
+              "title": {
+                "en": "Websites Instagram logged you visiting",
+                "nl": "Websites die Instagram registreerde dat je bezocht"
+              },
+              "type": "area",
+              "group": {"column": "Visit start", "dateFormat": "auto", "label": {"en": "Date", "nl": "Datum"}},
+              "values": [{"aggregate": "count", "label": {"en": "Site visits logged", "nl": "Geregistreerde websitebezoeken"}}]
+            }
+          ]
+        }
+    """
+    result = reader.json(filename)
+    if not result.found:
+        return pd.DataFrame()
+    data = result.data
+
+    out = pd.DataFrame()
+    datapoints = []
+
+    try:
+        items = data if isinstance(data, list) else []
+        for item in items:
+            label_values = item.get("label_values", []) if isinstance(item, dict) else []
+            fields = {lv.get("label", ""): lv.get("value", "") for lv in label_values if "value" in lv}
+
+            title = fields.get("Title of website page that you visited", "")
+            url = fields.get("Website link that you visited", "")
+            start_text = fields.get("Website session start time", "")
+            end_text = fields.get("Website session end time", "")
+
+            end_str = eh.epoch_to_datetime_string(item.get("timestamp", ""), errors=errors)
+            start_str = end_str
+
+            end_epoch = item.get("timestamp", "")
+            start_dt = _naive_local_datetime(start_text)
+            end_dt = _naive_local_datetime(end_text)
+            if start_dt is not None and end_dt is not None and end_epoch not in ("", None):
+                try:
+                    delta_seconds = (end_dt - start_dt).total_seconds()
+                    start_str = eh.epoch_to_datetime_string(float(end_epoch) - delta_seconds, errors=errors)
+                except (TypeError, ValueError):
+                    start_str = end_str
+
+            datapoints.append((
+                eh.fix_latin1_string(str(title)),
+                str(url),
+                start_str,
+                end_str,
+            ))
+
+        out = pd.DataFrame(datapoints, columns=["Page title", "URL", "Visit start", "Visit end"])  # pyright: ignore
+        out = _sort_by_date(out, "Visit start")
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return out
+
+
+def login_activity_to_df(
+    reader: ZipArchiveReader,
+    errors: Counter,
+    *,
+    filename: str = "security_and_login_information/login_and_profile_creation/login_activity.json",
+    validation=None,
+) -> pd.DataFrame:
+    """Extract per-login records into a DataFrame.
+
+    The ``IP address`` column is kept deliberately (per Danielle's 2026-09-08
+    ruling) rather than dropped as most of the other new "surprise" tables
+    drop it — login activity is the one source file in this fork's Instagram
+    curation where showing the address itself is the point. ``Port`` and
+    ``Cookie name`` are left out: too technical to read as a fact about the
+    participant, and the cookie name is already partially masked in the
+    export itself.
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load JSON files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+    filename:
+        Path inside the zip archive to read.  Defaults to
+        ``"security_and_login_information/login_and_profile_creation/login_activity.json"``.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Timestamp``, ``IP address``, ``Language code``.
+        Empty DataFrame when the file is absent, empty, or carries no items.
+
+    Table documentation::
+
+        {
+          "summary": "Each row is one login Instagram recorded for the participant's account, with the IP address it was made from.",
+          "source_file": "security_and_login_information/login_and_profile_creation/login_activity.json",
+          "columns": {
+            "Timestamp": "ISO 8601 timestamp of the login.",
+            "IP address": "IP address the login was made from.",
+            "Language code": "Language code the client reported at login time."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "instagram_login_activity",
+          "title": {
+            "en": "When and where you logged in",
+            "nl": "Wanneer en waar je bent ingelogd"
+          },
+          "description": {
+            "en": "Login events Instagram recorded for your account, including the IP address used, read from your export's login_activity.json file. An IP address is the network identifier a device is assigned when it connects to the internet.",
+            "nl": "Login-gebeurtenissen die Instagram voor je account heeft geregistreerd, inclusief het gebruikte IP-adres, gelezen uit het bestand login_activity.json van je export. Een IP-adres is de netwerkidentificatie die een apparaat krijgt toegewezen wanneer het verbinding maakt met internet."
+          },
+          "headers": {
+            "Timestamp": {"en": "Timestamp", "nl": "Datum en tijd"},
+            "IP address": {"en": "IP address", "nl": "IP-adres"},
+            "Language code": {"en": "Language", "nl": "Taal"}
+          },
+          "visualizations": [
+            {
+              "title": {
+                "en": "When and where you logged in",
+                "nl": "Wanneer en waar je bent ingelogd"
+              },
+              "type": "area",
+              "group": {"column": "Timestamp", "dateFormat": "auto", "label": {"en": "Date", "nl": "Datum"}},
+              "values": [{"aggregate": "count", "label": {"en": "Logins", "nl": "Inlogmomenten"}}]
+            }
+          ]
+        }
+    """
+    result = reader.json(filename)
+    if not result.found:
+        return pd.DataFrame()
+    data = result.data
+
+    out = pd.DataFrame()
+    datapoints = []
+
+    try:
+        items = data.get("account_history_login_history", []) if isinstance(data, dict) else []
+        for item in items:
+            string_map_data = item.get("string_map_data", {}) if isinstance(item, dict) else {}
+            ip = string_map_data.get("IP address", {}).get("value", "")
+            lang = string_map_data.get("Language code", {}).get("value", "")
+            time_field = string_map_data.get("Time", {})
+            timestamp = eh.epoch_to_datetime_string(time_field.get("timestamp", ""), errors=errors)
+            datapoints.append((timestamp, str(ip), str(lang)))
+
+        out = pd.DataFrame(datapoints, columns=["Timestamp", "IP address", "Language code"])  # pyright: ignore
+        out = _sort_by_date(out, "Timestamp")
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return out
+
+
+def locations_of_interest_to_df(
+    reader: ZipArchiveReader,
+    errors: Counter,
+    *,
+    filename: str = "personal_information/information_about_you/locations_of_interest.json",
+    validation=None,
+) -> pd.DataFrame:
+    """Extract place names Instagram has inferred interest in into a DataFrame.
+
+    Only the ``label_values`` group that carries a ``vec`` (a list of places)
+    is read; a sibling group such as "Usage explanation" carries a single
+    descriptive ``value`` rather than a place, and is skipped by the same
+    ``"vec" in group`` check.
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load JSON files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+    filename:
+        Path inside the zip archive to read.  Defaults to
+        ``"personal_information/information_about_you/locations_of_interest.json"``.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Location``.
+        Empty DataFrame when the file is absent, empty, or carries no places.
+
+    Table documentation::
+
+        {
+          "summary": "Each row is one place name Instagram has inferred the participant is interested in.",
+          "source_file": "personal_information/information_about_you/locations_of_interest.json",
+          "columns": {
+            "Location": "One inferred place of interest (typically a city/region pair)."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "instagram_locations_of_interest",
+          "title": {
+            "en": "Places Instagram thinks you're interested in",
+            "nl": "Plaatsen waarvan Instagram denkt dat je erin geïnteresseerd bent"
+          },
+          "description": {
+            "en": "Place names Instagram has inferred you're interested in, read from your export's locations_of_interest.json file.",
+            "nl": "Plaatsnamen waarvan Instagram heeft afgeleid dat je erin geïnteresseerd bent, gelezen uit het bestand locations_of_interest.json van je export."
+          },
+          "headers": {
+            "Location": {"en": "Location", "nl": "Locatie"}
+          },
+          "visualizations": [
+            {
+              "title": {
+                "en": "Places Instagram thinks you're interested in",
+                "nl": "Plaatsen waarvan Instagram denkt dat je erin geïnteresseerd bent"
+              },
+              "type": "wordcloud",
+              "textColumn": "Location",
+              "tokenize": false
+            }
+          ]
+        }
+    """
+    result = reader.json(filename)
+    if not result.found:
+        return pd.DataFrame()
+    data = result.data
+
+    out = pd.DataFrame()
+    datapoints = []
+
+    try:
+        label_values = data.get("label_values", []) if isinstance(data, dict) else []
+        for group in label_values:
+            if "vec" not in group:
+                continue
+            for entry in group.get("vec", []):
+                value = entry.get("value", "")
+                if value:
+                    datapoints.append((eh.fix_latin1_string(str(value)),))
+
+        out = pd.DataFrame(datapoints, columns=["Location"])  # pyright: ignore
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return out
+
+
+def off_meta_activity_to_df(
+    reader: ZipArchiveReader,
+    errors: Counter,
+    *,
+    filename: str = "apps_and_websites_off_of_instagram/apps_and_websites/your_activity_off_meta_technologies_settings.json",
+    validation=None,
+) -> pd.DataFrame:
+    """Extract off-Meta activity tracking settings and counters into a DataFrame.
+
+    A settings/counters snapshot (whether cross-app account association is
+    enabled, how many times the clear-history tools have been used), not an
+    itemized event log — this account's export carries only the settings
+    layer of this file, not individual off-Meta events.
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load JSON files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+    filename:
+        Path inside the zip archive to read.  Defaults to
+        ``"apps_and_websites_off_of_instagram/apps_and_websites/your_activity_off_meta_technologies_settings.json"``.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Label``, ``Value``.
+        Empty DataFrame when the file is absent, empty, or carries no flat
+        label/value fields.
+
+    Table documentation::
+
+        {
+          "summary": "One row per off-Meta activity tracking setting or counter Instagram keeps for the participant's account.",
+          "source_file": "apps_and_websites_off_of_instagram/apps_and_websites/your_activity_off_meta_technologies_settings.json",
+          "columns": {
+            "Label": "Name of the setting or counter.",
+            "Value": "Its current value."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "instagram_off_meta_activity",
+          "title": {
+            "en": "Your off-Instagram activity tracking settings",
+            "nl": "Je trackinginstellingen voor activiteit buiten Instagram"
+          },
+          "description": {
+            "en": "Settings and counters for whether Instagram links your activity to other Meta apps and websites, read from your export's your_activity_off_meta_technologies_settings.json file.",
+            "nl": "Instellingen en tellers die aangeven of Instagram je activiteit koppelt aan andere Meta-apps en -websites, gelezen uit het bestand your_activity_off_meta_technologies_settings.json van je export."
+          },
+          "headers": {
+            "Label": {"en": "Setting", "nl": "Instelling"},
+            "Value": {"en": "Value", "nl": "Waarde"}
+          }
+        }
+    """
+    result = reader.json(filename)
+    if not result.found:
+        return pd.DataFrame()
+    data = result.data
+
+    out = pd.DataFrame()
+    datapoints = []
+
+    try:
+        label_values = data.get("label_values", []) if isinstance(data, dict) else []
+        for item in label_values:
+            label = item.get("label", "")
+            if not label:
+                continue
+            if "value" in item:
+                value = str(item.get("value", ""))
+            elif "timestamp_value" in item:
+                ts = item.get("timestamp_value", 0)
+                value = eh.epoch_to_datetime_string(ts, errors=errors) if ts else ""
+            else:
+                # Nested-dict entries (e.g. "Your latest and upcoming profile
+                # association states") carry no flat scalar value on this
+                # fixture; skipped rather than guessed at.
+                continue
+            datapoints.append((label, eh.fix_latin1_string(value)))
+
+        out = pd.DataFrame(datapoints, columns=["Label", "Value"])  # pyright: ignore
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return out
+
+
+def profile_based_in_to_df(
+    reader: ZipArchiveReader,
+    errors: Counter,
+    *,
+    filename: str = "personal_information/information_about_you/profile_based_in.json",
+    validation=None,
+) -> pd.DataFrame:
+    """Extract the inferred Country/Region/City the account is based in.
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load JSON files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+    filename:
+        Path inside the zip archive to read.  Defaults to
+        ``"personal_information/information_about_you/profile_based_in.json"``.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Field``, ``Value``.
+        Empty DataFrame when the file is absent, empty, or carries no fields.
+
+    Table documentation::
+
+        {
+          "summary": "The country, region, and city Instagram has inferred as the participant's base.",
+          "source_file": "personal_information/information_about_you/profile_based_in.json",
+          "columns": {
+            "Field": "Name of the inferred field (Country, Region, or City).",
+            "Value": "Its inferred value."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "instagram_profile_based_in",
+          "title": {
+            "en": "Where Instagram thinks you're based",
+            "nl": "Waar Instagram denkt dat je woont"
+          },
+          "description": {
+            "en": "The country, region, and city Instagram has inferred as your base, read from your export's profile_based_in.json file.",
+            "nl": "Het land, de regio en de stad die Instagram als jouw thuisbasis heeft afgeleid, gelezen uit het bestand profile_based_in.json van je export."
+          },
+          "headers": {
+            "Field": {"en": "Field", "nl": "Veld"},
+            "Value": {"en": "Value", "nl": "Waarde"}
+          }
+        }
+    """
+    result = reader.json(filename)
+    if not result.found:
+        return pd.DataFrame()
+    data = result.data
+
+    out = pd.DataFrame()
+    datapoints = []
+
+    try:
+        label_values = data.get("label_values", []) if isinstance(data, dict) else []
+        for group in label_values:
+            if "value" in group:
+                label = group.get("label", "")
+                if label:
+                    datapoints.append((label, eh.fix_latin1_string(str(group.get("value", "")))))
+            for entry in group.get("dict", []):
+                label = entry.get("label", "")
+                if label:
+                    datapoints.append((label, eh.fix_latin1_string(str(entry.get("value", "")))))
+
+        out = pd.DataFrame(datapoints, columns=["Field", "Value"])  # pyright: ignore
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return out
+
+
+def camera_info_to_df(
+    reader: ZipArchiveReader,
+    errors: Counter,
+    *,
+    filename: str = "personal_information/device_information/camera_information.json",
+    validation=None,
+) -> pd.DataFrame:
+    """Extract the device/camera fingerprint Instagram has recorded.
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load JSON files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+    filename:
+        Path inside the zip archive to read.  Defaults to
+        ``"personal_information/device_information/camera_information.json"``.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Field``, ``Value``.
+        Empty DataFrame when the file is absent, empty, or carries no fields.
+
+    Table documentation::
+
+        {
+          "summary": "A device and camera fingerprint (device ID, supported camera SDK versions) Instagram has recorded for the participant.",
+          "source_file": "personal_information/device_information/camera_information.json",
+          "columns": {
+            "Field": "Name of the fingerprint field.",
+            "Value": "Its recorded value."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "instagram_camera_info",
+          "title": {
+            "en": "The camera and device Instagram has detected",
+            "nl": "De camera en het apparaat die Instagram heeft gedetecteerd"
+          },
+          "description": {
+            "en": "A device and camera fingerprint Instagram has recorded for your account, read from your export's camera_information.json file.",
+            "nl": "Een apparaat- en cameravingerafdruk die Instagram voor je account heeft geregistreerd, gelezen uit het bestand camera_information.json van je export."
+          },
+          "headers": {
+            "Field": {"en": "Field", "nl": "Veld"},
+            "Value": {"en": "Value", "nl": "Waarde"}
+          }
+        }
+    """
+    result = reader.json(filename)
+    if not result.found:
+        return pd.DataFrame()
+    data = result.data
+
+    out = pd.DataFrame()
+    datapoints = []
+
+    try:
+        label_values = data.get("label_values", []) if isinstance(data, dict) else []
+        for item in label_values:
+            label = item.get("label", "")
+            if not label:
+                continue
+            if "value" in item:
+                datapoints.append((label, eh.fix_latin1_string(str(item.get("value", "")))))
+            elif "dict" in item:
+                for entry in item.get("dict", []):
+                    sub_label = entry.get("label", "")
+                    if sub_label:
+                        datapoints.append((sub_label, eh.fix_latin1_string(str(entry.get("value", "")))))
+
+        out = pd.DataFrame(datapoints, columns=["Field", "Value"])  # pyright: ignore
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Commented out: not in algosoc-2026 extraction list
 # ---------------------------------------------------------------------------
 
@@ -2879,7 +3699,6 @@ EXTRACTOR_REGISTRY: dict[str, Callable[..., pd.DataFrame]] = {
     "post_comments_to_df": post_comments_to_df,
     "liked_comments_to_df": liked_comments_to_df,
     "liked_posts_to_df": liked_posts_to_df,
-    "story_likes_to_df": story_likes_to_df,
     "saved_posts_to_df": saved_posts_to_df,
     "word_or_phrase_searches_to_df": word_or_phrase_searches_to_df,
     "stories_published_to_df": stories_published_to_df,
@@ -2890,6 +3709,20 @@ EXTRACTOR_REGISTRY: dict[str, Callable[..., pd.DataFrame]] = {
     "ads_clicked_to_df": ads_clicked_to_df,
     "posts_published_to_df": posts_published_to_df,
     "subscription_for_no_ads_to_df": subscription_for_no_ads_to_df,
+    # Task 15b (story edu-curation) additions — "what they know about you" +
+    # the lab's account-identifying first table. story_likes_to_df is
+    # intentionally no longer registered here (dropped per Danielle's
+    # 2026-09-08 ruling); the function definition is left in place above,
+    # unused, rather than deleted, matching this file's existing convention
+    # for algosoc extractors this fork does not surface.
+    "account_info_to_df": account_info_to_df,
+    "ad_targeting_categories_to_df": ad_targeting_categories_to_df,
+    "link_history_to_df": link_history_to_df,
+    "login_activity_to_df": login_activity_to_df,
+    "locations_of_interest_to_df": locations_of_interest_to_df,
+    "off_meta_activity_to_df": off_meta_activity_to_df,
+    "profile_based_in_to_df": profile_based_in_to_df,
+    "camera_info_to_df": camera_info_to_df,
 }
 
 

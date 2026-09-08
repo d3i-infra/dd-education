@@ -1,7 +1,7 @@
 """Canary over real Instagram exports at tests/ddp/instagram_*.zip (skips if
-absent): the json export and the html export of the same account. Each of
-the 18 registry extractors runs against both, so a table that only reads one
-format is only asserted non-empty on that format's run.
+absent): the json export and the html export of the same account. Each
+registry extractor runs against both, so a table that only reads one format
+is only asserted non-empty on that format's run.
 
 The fixtures are named ``instagram_a_json_2026-08.zip`` and
 ``instagram_html_2026-08.zip`` rather than the plain ``instagram_<kind>_*.zip``
@@ -47,12 +47,25 @@ EXPECTED_EMPTY_JSON = {
 #     reader, regardless of what the export contains.
 #   - word_or_phrase_searches_to_df, ads_clicked_to_df: source page absent for
 #     this participant, same as the json export (see EXPECTED_EMPTY_JSON).
+#   - the eight Task 15b additions (account_info_to_df and onward): all
+#     JSON-only (see the module note above account_info_to_df in
+#     instagram.py) — always empty when run against an html reader, since
+#     none of their source files have an html counterpart the algosoc-2026
+#     module ever read.
 EXPECTED_EMPTY_HTML = {
     "followers_to_df",
     "profile_searches_to_df",
     "threads_viewed_to_df",
     "word_or_phrase_searches_to_df",
     "ads_clicked_to_df",
+    "account_info_to_df",
+    "ad_targeting_categories_to_df",
+    "link_history_to_df",
+    "login_activity_to_df",
+    "locations_of_interest_to_df",
+    "off_meta_activity_to_df",
+    "profile_based_in_to_df",
+    "camera_info_to_df",
 }
 
 SPECS = list(I.EXTRACTOR_REGISTRY.items())
