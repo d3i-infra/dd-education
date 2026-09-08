@@ -308,7 +308,17 @@ export type ThreadPageSize = z.infer<typeof zThreadPageSize>
 
 export const zThreadVisualization = zVisualizationProps.extend({
   type: zThreadVisualizationType,
+  // The grouping key: two rows with the same groupColumn value are the same
+  // thread. Use a stable id column here, not a display title -- two distinct
+  // threads can carry the same title (a renamed or never-renamed chat), and
+  // grouping by title alone would silently merge them.
   groupColumn: z.string().optional(),
+  // The column supplying each thread's displayed title. Defaults to
+  // groupColumn itself, so a table whose grouping key is already
+  // display-worthy (e.g. a WhatsApp chat's single synthetic group) needs
+  // nothing extra; a ChatGPT-style table groups by id and points this at
+  // the title column instead.
+  titleColumn: z.string().optional(),
   // Label, not a plain string: it is UI copy the researcher writes (like
   // `title`), not a value read off a table row -- resolved with
   // resolveFlatText at render time, same as a grouped thread's title (a raw
@@ -361,6 +371,10 @@ export interface ThreadVisualizationData {
   threads: Thread[]
   // True when more than 5000 groups were found and the tail was dropped.
   truncated: boolean
+  // The number of groups found before capping -- equal to threads.length
+  // when truncated is false. Lets the figure show "first N of TOTAL" without
+  // knowing the cap itself.
+  totalThreads: number
   // Defaults already resolved here, so figures/thread_view.tsx never needs
   // the original visualization config.
   pageSize: { threads: number, turns: number }

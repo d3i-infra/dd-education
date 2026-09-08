@@ -12,7 +12,7 @@ interface Props {
 // turns), each with its own Previous/Next and an arrow-key shortcut for the
 // same action -- see handlePageKey.
 export default function ThreadView ({ visualizationData, locale }: Props): ReactElement | null {
-  const { threads, pageSize, selfRole } = visualizationData
+  const { threads, truncated, totalThreads, pageSize, selfRole } = visualizationData
   const text = useMemo(() => prepareTexts(locale), [locale])
 
   const [search, setSearch] = useState('')
@@ -57,12 +57,17 @@ export default function ThreadView ({ visualizationData, locale }: Props): React
   }
 
   return (
-    <div className='w-full h-full flex flex-col md:flex-row gap-3 p-2 overflow-hidden'>
+    <div className='w-full flex flex-col md:flex-row gap-4 p-2'>
       <div
         data-pane='list'
-        className='flex flex-col gap-2 md:w-2/5 md:max-w-[22rem] min-h-0'
+        className='flex flex-col gap-2 md:w-1/3 min-w-0 min-h-[32rem]'
         onKeyDown={(e) => handlePageKey(e, pageList)}
       >
+        {truncated && (
+          <div data-truncated-notice className='text-captionsmall text-grey2 bg-grey5 rounded-md px-3 py-1.5'>
+            {truncationMessage(text, threads.length, totalThreads)}
+          </div>
+        )}
         <input
           type='search'
           value={search}
@@ -71,7 +76,11 @@ export default function ThreadView ({ visualizationData, locale }: Props): React
           aria-label={text.searchPlaceholder}
           className='text-grey1 font-body px-3 w-full border-2 border-solid border-grey3 focus:outline-none focus:border-primary rounded-lg h-9'
         />
-        <div className='flex-1 min-h-0 overflow-auto flex flex-col gap-1' role='list'>
+        {/* No fixed/flex-1 height here: a page (<=20 items) lays out at its
+            natural height, so the page control -- not an inner scrollbar --
+            is what "sees more" of the list. max-h/overflow only guards
+            against a pathologically tall page (very long titles wrapping). */}
+        <div className='flex flex-col gap-1 max-h-[70vh] overflow-y-auto' role='list'>
           {pageThreads.length === 0 && <div className='text-captionsmall text-grey2 p-2'>{text.noResults}</div>}
           {pageThreads.map((thread) => (
             <button
@@ -107,14 +116,14 @@ export default function ThreadView ({ visualizationData, locale }: Props): React
 
       <div
         data-pane='transcript'
-        className='flex flex-col flex-1 min-h-0 gap-2 border-t md:border-t-0 md:border-l border-grey4 pt-3 md:pt-0 md:pl-3'
+        className='flex flex-col flex-1 min-w-0 min-h-[32rem] gap-2 border-t md:border-t-0 md:border-l border-grey4 pt-3 md:pt-0 md:pl-3'
         onKeyDown={(e) => handlePageKey(e, pageTurnsBy)}
       >
         {selected === undefined
-          ? <div className='m-auto text-grey2 text-sm'>{text.selectPrompt}</div>
+          ? <div className='flex-1 flex items-center justify-center text-grey2 text-sm'>{text.selectPrompt}</div>
           : (
             <>
-              <div className='flex-1 min-h-0 overflow-auto flex flex-col gap-2 p-1'>
+              <div className='flex flex-col gap-2 p-1 max-h-[70vh] overflow-y-auto'>
                 {pageTurns.map((turn, i) => (
                   <Bubble key={turnStart + i} turn={turn} isSelf={selfRole !== undefined && turn.role === selfRole} locale={locale} />
                 ))}
@@ -249,6 +258,13 @@ function turnCountLabel (count: number, text: Record<string, string>): string {
   return `${count} ${count === 1 ? text.turnSingular : text.turnPlural}`
 }
 
+// text.truncatedNotice carries '{count}'/'{total}' placeholders (this file's
+// own tiny templating -- prepareThreadData.ts's truncated/totalThreads are
+// the only two fields here that ever need one).
+function truncationMessage (text: Record<string, string>, count: number, total: number): string {
+  return text.truncatedNotice.replace('{count}', String(count)).replace('{total}', String(total))
+}
+
 function prepareTexts (locale: string): Record<string, string> {
   const texts = {
     noResults: { en: 'No conversations match your search', nl: 'Geen gesprekken komen overeen met je zoekopdracht' },
@@ -259,7 +275,11 @@ function prepareTexts (locale: string): Record<string, string> {
     of: { en: 'of', nl: 'van' },
     jumpToLatest: { en: 'Jump to latest', nl: 'Naar het laatste bericht' },
     turnSingular: { en: 'message', nl: 'bericht' },
-    turnPlural: { en: 'messages', nl: 'berichten' }
+    turnPlural: { en: 'messages', nl: 'berichten' },
+    truncatedNotice: {
+      en: 'Showing the first {count} of {total} conversations',
+      nl: 'De eerste {count} van {total} gesprekken worden getoond'
+    }
   }
 
   const resolved: Record<string, string> = {}

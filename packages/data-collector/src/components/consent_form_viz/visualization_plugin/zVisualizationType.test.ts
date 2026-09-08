@@ -115,6 +115,14 @@ describe('zVisualizationType: thread blocks', () => {
     expect(zVisualizationType.safeParse(block).success).toBe(true)
   })
 
+  it('accepts a thread block with titleColumn alongside groupColumn', () => {
+    const block = {
+      title: { en: 'Chats' }, type: 'thread', groupColumn: 'Conversation id', titleColumn: 'Conversation title',
+      roleColumn: 'role', textColumn: 'text'
+    }
+    expect(zVisualizationType.safeParse(block).success).toBe(true)
+  })
+
   it('accepts singleThreadTitle in place of groupColumn (WhatsApp-style flat chat)', () => {
     const block = {
       title: { en: 'Your chat' },

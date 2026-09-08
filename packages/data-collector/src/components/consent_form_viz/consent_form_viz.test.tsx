@@ -174,6 +174,13 @@ describe("ConsentFormViz", () => {
       }
     }
 
+    function tableWithVisualizations(id: string, title: string, visualizations: any[]): PropsUIPromptConsentFormTableViz {
+      return {
+        ...tableWithRows(id, title, 2),
+        visualizations,
+      }
+    }
+
     function multiTableProps(resolve: (payload: any) => void): Props {
       return {
         __type__: "PropsUIPromptConsentFormViz",
@@ -221,6 +228,29 @@ describe("ConsentFormViz", () => {
       expect(byId("b")?.textContent).toContain("0")
       expect(byId("c")?.textContent).toContain("Gamma table")
       expect(byId("c")?.textContent).toContain("3")
+    })
+
+    // A thread figure's two-pane list+transcript layout needs the same full
+    // width the stats/heatmap figures already get, or the transcript pane
+    // has nowhere to grow (Danielle, live run).
+    test("a thread figure's wrapper spans both columns of the review grid, like stats and heatmap", () => {
+      const resolve = jest.fn()
+      root = renderConsentFormViz(container, {
+        ...multiTableProps(resolve),
+        tables: [
+          tableWithVisualizations("a", "Alpha table", [
+            { type: "thread", title: { en: "Conversations" }, groupColumn: "col", roleColumn: "col", textColumn: "col" },
+            { type: "bar", title: { en: "A bar chart" }, group: { column: "col" }, values: [{ column: ".COUNT" }] },
+          ]),
+        ],
+      })
+
+      const cardA = container.querySelector<HTMLElement>('[data-card-id="a"]')
+      if (cardA === null) throw new Error("card 'a' not found")
+      const figureWrappers = Array.from(cardA.querySelectorAll<HTMLElement>(".grid.grid-cols-1.md\\:grid-cols-2 > div"))
+      expect(figureWrappers).toHaveLength(2)
+      expect(figureWrappers[0].className).toContain("md:col-span-2") // thread
+      expect(figureWrappers[1].className).not.toContain("md:col-span-2") // bar
     })
 
     test("empty tables sink to the end of the page", () => {

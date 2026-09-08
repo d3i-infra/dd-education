@@ -57,6 +57,7 @@ function visualizationColumns (visualization: VisualizationType): string[] {
   if (visualization.type === 'thread') {
     const thread = visualization as ThreadVisualization
     if (thread.groupColumn !== undefined) columns.add(thread.groupColumn)
+    if (thread.titleColumn !== undefined) columns.add(thread.titleColumn)
     columns.add(thread.roleColumn)
     columns.add(thread.textColumn)
     if (thread.timeColumn !== undefined) columns.add(thread.timeColumn)

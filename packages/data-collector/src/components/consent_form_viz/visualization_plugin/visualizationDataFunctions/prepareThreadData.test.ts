@@ -142,6 +142,40 @@ describe('prepareThreadData: single-thread mode (singleThreadTitle)', () => {
   })
 })
 
+describe('prepareThreadData: titleColumn (grouping key distinct from displayed title)', () => {
+  function makeIdTitleTable (rows: Array<[string, string, string, string]>): Table {
+    // columns: id, title, role, text -- groupColumn is 'id' (unique per
+    // conversation), titleColumn is 'title' (can repeat across conversations).
+    return {
+      id: 't1',
+      head: { cells: ['id', 'title', 'role', 'text'] },
+      body: { rows: rows.map((cells, i) => ({ id: String(i), cells })) }
+    }
+  }
+
+  it('two conversations with identical titles but distinct groupColumn ids yield two threads', async () => {
+    const table = makeIdTitleTable([
+      ['conv-x', 'Duplicate title', 'user', 'hello from x'],
+      ['conv-x', 'Duplicate title', 'assistant', 'hi there x'],
+      ['conv-y', 'Duplicate title', 'user', 'hello from y']
+    ])
+    const viz: ThreadVisualization = {
+      title: {}, type: 'thread', groupColumn: 'id', titleColumn: 'title', roleColumn: 'role', textColumn: 'text'
+    }
+    const result = await prepareThreadData(table, viz)
+    expect(result.threads).toHaveLength(2)
+    expect(result.threads.map((t) => t.title)).toEqual(['Duplicate title', 'Duplicate title'])
+    expect(result.threads.map((t) => t.count)).toEqual([2, 1])
+  })
+
+  it('falls back to groupColumn itself as the title when titleColumn is not given', async () => {
+    const table = makeIdTitleTable([['conv-x', 'Duplicate title', 'user', 'hello']])
+    const viz: ThreadVisualization = { title: {}, type: 'thread', groupColumn: 'id', roleColumn: 'role', textColumn: 'text' }
+    const result = await prepareThreadData(table, viz)
+    expect(result.threads[0].title).toBe('conv-x')
+  })
+})
+
 describe('prepareThreadData: cap at 5000 threads', () => {
   it('truncates beyond 5000 groups and sets the truncation flag', async () => {
     const rows: Array<[string, string, string]> = []
@@ -151,6 +185,7 @@ describe('prepareThreadData: cap at 5000 threads', () => {
     const result = await prepareThreadData(table, viz)
     expect(result.threads).toHaveLength(5000)
     expect(result.truncated).toBe(true)
+    expect(result.totalThreads).toBe(5010)
   })
 
   it('does not truncate at exactly 5000 groups', async () => {
@@ -161,5 +196,6 @@ describe('prepareThreadData: cap at 5000 threads', () => {
     const result = await prepareThreadData(table, viz)
     expect(result.threads).toHaveLength(5000)
     expect(result.truncated).toBe(false)
+    expect(result.totalThreads).toBe(5000)
   })
 })

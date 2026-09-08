@@ -16,11 +16,14 @@ export async function prepareThreadData (table: Table, visualization: ThreadVisu
     threads: visualization.pageSize?.threads ?? DEFAULT_THREAD_PAGE_SIZE.threads,
     turns: visualization.pageSize?.turns ?? DEFAULT_THREAD_PAGE_SIZE.turns,
   }
-  const empty: ThreadVisualizationData = { type: 'thread', threads: [], truncated: false, pageSize, selfRole: visualization.selfRole }
+  const empty: ThreadVisualizationData = {
+    type: 'thread', threads: [], truncated: false, totalThreads: 0, pageSize, selfRole: visualization.selfRole
+  }
   if (table.body.rows.length === 0) return empty
 
   const groups = groupRows(table, visualization)
-  const truncated = groups.length > MAX_THREADS
+  const totalThreads = groups.length
+  const truncated = totalThreads > MAX_THREADS
   const kept = truncated ? groups.slice(0, MAX_THREADS) : groups
 
   const times = visualization.timeColumn !== undefined ? getTableColumn(table, visualization.timeColumn) : null
@@ -43,12 +46,15 @@ export async function prepareThreadData (table: Table, visualization: ThreadVisu
     }
   })
 
-  return { type: 'thread', threads, truncated, pageSize, selfRole: visualization.selfRole }
+  return { type: 'thread', threads, truncated, totalThreads, pageSize, selfRole: visualization.selfRole }
 }
 
-// Groups row indices by groupColumn's cell value, preserving the order each
-// group first appears in the table. In single-thread mode (no groupColumn --
-// a flat chat export, see types.ts) every row belongs to the one group.
+// Groups row indices by groupColumn's cell value (the grouping key -- e.g. a
+// conversation id, so that two threads sharing a display title never merge),
+// preserving the order each group first appears in the table. The displayed
+// title comes from titleColumn when given, falling back to the grouping key
+// itself. In single-thread mode (no groupColumn -- a flat chat export, see
+// types.ts) every row belongs to the one group.
 function groupRows (table: Table, visualization: ThreadVisualization): Group[] {
   if (visualization.groupColumn === undefined) {
     const rows = table.body.rows.map((_, i) => i)
@@ -56,13 +62,14 @@ function groupRows (table: Table, visualization: ThreadVisualization): Group[] {
   }
 
   const keys = getTableColumn(table, visualization.groupColumn)
+  const titles = visualization.titleColumn !== undefined ? getTableColumn(table, visualization.titleColumn) : keys
   const order: string[] = []
   const byKey: Record<string, Group> = {}
 
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i]
     if (byKey[key] === undefined) {
-      byKey[key] = { title: key, rows: [] }
+      byKey[key] = { title: titles[i], rows: [] }
       order.push(key)
     }
     byKey[key].rows.push(i)

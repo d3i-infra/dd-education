@@ -285,11 +285,14 @@ function deleteTableRows(table: TableWithContext, deletedRows: string[][]): Tabl
 
 // Review-mode figure grid: `stats` tiles and `heatmap` grids read poorly at
 // half width (a tile row wants to breathe; a calendar heatmap's weeks are
-// wide), so both span both columns from `md`. Every other chart type
-// (line/bar/area/wordcloud) sits at one column so two can sit side by side.
+// wide), so both span both columns from `md`. `thread`'s two-pane list +
+// transcript layout needs the same full width, or the transcript pane has
+// nowhere to grow. Every other chart type (line/bar/area/wordcloud) sits at
+// one column so two can sit side by side. Below `md` the grid is already
+// grid-cols-1, so every figure -- span or not -- is full width there.
 function visualizationSpan(vs: any): string {
   const type = vs != null && typeof vs === "object" ? vs.type : undefined
-  return type === "stats" || type === "heatmap" ? "md:col-span-2" : ""
+  return type === "stats" || type === "heatmap" || type === "thread" ? "md:col-span-2" : ""
 }
 
 function searchRows(rows: PropsUITableRow[], search: string): Set<string> | undefined {

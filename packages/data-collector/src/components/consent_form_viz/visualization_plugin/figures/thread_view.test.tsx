@@ -23,10 +23,12 @@ function makeThreads(n: number, turnsPerThread = 1): ThreadVisualizationData["th
 }
 
 function baseData(overrides: Partial<ThreadVisualizationData> = {}): ThreadVisualizationData {
+  const threads = overrides.threads ?? makeThreads(3)
   return {
     type: "thread",
-    threads: makeThreads(3),
+    threads,
     truncated: false,
+    totalThreads: threads.length,
     pageSize: { threads: 20, turns: 50 },
     selfRole: "user",
     ...overrides,
@@ -149,6 +151,18 @@ describe("ThreadView", () => {
     expect(container.textContent).toContain("1–2 of 3")
   })
 
+  test("shows a truncation notice with the kept and total counts when truncated", () => {
+    root = renderThreadView(container, baseData({ threads: makeThreads(3), truncated: true, totalThreads: 5010 }))
+    const notice = container.querySelector("[data-truncated-notice]")
+    expect(notice).not.toBeNull()
+    expect(notice?.textContent).toBe("Showing the first 3 of 5010 conversations")
+  })
+
+  test("shows no truncation notice when not truncated", () => {
+    root = renderThreadView(container, baseData({ threads: makeThreads(3), truncated: false, totalThreads: 3 }))
+    expect(container.querySelector("[data-truncated-notice]")).toBeNull()
+  })
+
   test("search filters the thread list by title", () => {
     root = renderThreadView(container, baseData())
     const search = container.querySelector<HTMLInputElement>('input[type="search"]')
@@ -191,5 +205,70 @@ describe("ThreadView", () => {
     expect(bubbleRows).toHaveLength(2)
     expect(bubbleRows[0].className).toContain("justify-end")
     expect(bubbleRows[1].className).toContain("justify-start")
+  })
+
+  // Regression (Danielle, live run): the transcript pane stopped short of
+  // the card's width. The root must stretch full width with nothing
+  // max-width-capped, the list pane takes a fixed fraction, and the
+  // transcript pane takes the rest -- both min-w-0 so a long unbroken
+  // string in either pane shrinks instead of forcing an overflow that
+  // keeps the sibling pane from claiming its share.
+  test("the root spans full width and the panes share it (list at a fixed fraction, transcript flex-1), with no max-width on either", () => {
+    root = renderThreadView(container, baseData())
+
+    const rootDiv = container.firstElementChild as HTMLElement
+    expect(rootDiv.className).toContain("w-full")
+    expect(rootDiv.className).not.toMatch(/\bmax-w/)
+
+    const list = listPane(container)
+    expect(list.className).toContain("md:w-1/3")
+    expect(list.className).toContain("min-w-0")
+    expect(list.className).not.toMatch(/\bmax-w/)
+
+    const transcript = transcriptPane(container)
+    expect(transcript.className).toContain("flex-1")
+    expect(transcript.className).toContain("min-w-0")
+    expect(transcript.className).not.toMatch(/\bmax-w/)
+  })
+
+  // Regression (Danielle, live run #2): even with the panes stretching full
+  // width, the list rendered as a ~120px scrollbox and the transcript's
+  // placeholder was clipped below the list's paging row. Both panes need a
+  // real minimum height so the card is an actual reading area, and neither
+  // may be capped by a fixed/flex-1 height that turns it into a tiny inner
+  // scrollbox -- min-h-[32rem] on both, no h-full/overflow-hidden on the root.
+  test("both panes carry a real minimum height (min-h-[32rem]), and the root has no h-full/overflow-hidden that would clip them", () => {
+    root = renderThreadView(container, baseData())
+
+    const rootDiv = container.firstElementChild as HTMLElement
+    expect(rootDiv.className).not.toMatch(/\bh-full\b/)
+    expect(rootDiv.className).not.toMatch(/\boverflow-hidden\b/)
+
+    expect(listPane(container).className).toContain("min-h-[32rem]")
+    expect(transcriptPane(container).className).toContain("min-h-[32rem]")
+  })
+
+  test("the list has no fixed/flex-1 height (a full page lays out without an inner scrollbar)", () => {
+    root = renderThreadView(container, baseData())
+
+    const list = listPane(container)
+    const listItemsContainer = list.querySelector('[role="list"]')
+    if (listItemsContainer === null) throw new Error("list items container not found")
+    expect(listItemsContainer.className).not.toMatch(/\bflex-1\b/)
+    expect(listItemsContainer.className).not.toMatch(/\bmin-h-0\b/)
+  })
+
+  test("turns scroll inside the transcript pane via max-h-[70vh] overflow-y-auto", () => {
+    root = renderThreadView(container, baseData({ threads: makeThreads(1, 3) }))
+    act(() => {
+      threadButtons(container)[0].dispatchEvent(new MouseEvent("click", { bubbles: true }))
+    })
+
+    const transcript = transcriptPane(container)
+    const turnsContainer = Array.from(transcript.querySelectorAll<HTMLElement>("div")).find((el) =>
+      el.className.includes("max-h-[70vh]")
+    )
+    if (turnsContainer === undefined) throw new Error("turns scroll container not found")
+    expect(turnsContainer.className).toContain("overflow-y-auto")
   })
 })

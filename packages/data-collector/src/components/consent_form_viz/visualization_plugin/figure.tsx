@@ -113,8 +113,18 @@ export const FigureComponent = ({
   let height = visualization.height ?? 250
   if (showStatus === 'double') height = height * 2
 
+  // `thread`'s two-pane list+transcript layout manages its own height (each
+  // pane is min-h-[32rem], scrolling internally past that via max-h-[70vh] --
+  // see thread_view.tsx) and must not be squeezed into every other figure
+  // type's fixed default row: the outer card's overflow-hidden combined
+  // with a fixed-pixel gridTemplateRows hard-clipped the transcript pane
+  // below ~250px (Danielle, live run). Auto height applies only when the
+  // block gives no explicit `height` -- an explicit height on a thread
+  // block is still honoured exactly like every other figure type's.
+  const threadAutoHeight = visualization.type === 'thread' && visualization.height === undefined
+
   return (
-    <div className=' max-w overflow-hidden  bg-grey6 rounded-md border-[0.2rem] border-grey4'>
+    <div className={`max-w ${threadAutoHeight ? '' : 'overflow-hidden'} bg-grey6 rounded-md border-[0.2rem] border-grey4`}>
       <div className='flex justify-between'>
         <div className='font-bold p-3'>{resolveFlatText(visualization.title, locale)}</div>
         <button onClick={toggleDouble} className={showStatus !== 'hidden' && canDouble ? 'text-primary' : 'hidden'}>
@@ -125,8 +135,9 @@ export const FigureComponent = ({
         <div className='flex flex-col '>
           <div
             // ref={ref}
-            className='grid relative z-50 w-full pr-1  min-w-[250px]'
-            style={{ gridTemplateRows: String(height) + 'px' }}
+            data-figure-row
+            className={`grid relative z-50 w-full pr-1 min-w-[250px] ${threadAutoHeight ? 'h-auto' : ''}`}
+            style={threadAutoHeight ? undefined : { gridTemplateRows: String(height) + 'px' }}
           >
             <RenderVisualization
               visualizationData={visualizationData}

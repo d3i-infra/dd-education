@@ -126,6 +126,19 @@ describe('selectVisualizationColumns', () => {
     expect(projected.head.cells).toEqual(['category', 'title', 'url', 'date', 'duration'])
   })
 
+  it('keeps titleColumn alongside groupColumn for a thread (grouping key distinct from displayed title)', () => {
+    const visualization: VisualizationType = {
+      title: { en: 'chats' },
+      type: 'thread',
+      groupColumn: 'url',
+      titleColumn: 'title',
+      roleColumn: 'category',
+      textColumn: 'duration'
+    }
+    const projected = selectVisualizationColumns(makeTable(), visualization)
+    expect(projected.head.cells).toEqual(['url', 'title', 'category', 'duration'])
+  })
+
   it('keeps only roleColumn and textColumn for a thread with no groupColumn (single-thread mode)', () => {
     const visualization: VisualizationType = {
       title: { en: 'chat' },

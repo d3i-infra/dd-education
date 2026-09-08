@@ -177,7 +177,8 @@ conversations today, WhatsApp / Meta message exports later. Data prep:
 {
   "title": { "en": "Your conversations", "nl": "Je gesprekken" },
   "type": "thread",
-  "groupColumn": "Conversation title",
+  "groupColumn": "Conversation id",
+  "titleColumn": "Conversation title",
   "roleColumn": "Role",
   "textColumn": "Message",
   "timeColumn": "Time",
@@ -189,7 +190,8 @@ conversations today, WhatsApp / Meta message exports later. Data prep:
 
 | field | type | notes |
 |---|---|---|
-| `groupColumn` | `string` | groups rows into threads by this column's value; required unless `singleThreadTitle` is given instead |
+| `groupColumn` | `string` | the grouping key: two rows with the same value are the same thread. Use a stable id column, not a display title -- two distinct threads can share a title (a renamed or never-renamed chat), and grouping by title alone would silently merge them. Required unless `singleThreadTitle` is given instead |
+| `titleColumn` | `string` | optional; the column supplying each thread's displayed title. Defaults to `groupColumn` itself, for a table whose grouping key is already display-worthy |
 | `singleThreadTitle` | `Label` | renders every row as one thread titled with this text, for a table with no natural group column (e.g. a flat WhatsApp chat export); required unless `groupColumn` is given instead -- exactly one of the two is required |
 | `roleColumn` | `string` | required; the speaker of each turn (e.g. `"user"` / `"assistant"`, or a WhatsApp display name) |
 | `textColumn` | `string` | required; the message text |
@@ -201,10 +203,16 @@ conversations today, WhatsApp / Meta message exports later. Data prep:
 Grouping preserves each thread's first-appearance order in the table (not
 sorted by time or count). Threads are capped at 5000; beyond that the tail is
 dropped silently (the underlying data is never altered, ADR-0031 -- only what
-this one figure renders). The list has a search box that filters by thread
+this one figure renders) and the list shows a "Showing the first 5000 of N
+conversations" notice. The list has a search box that filters by thread
 title and by message text; list items are real `<button>` elements, so Enter
 selects one for free, and the arrow key matching each pane's Previous/Next
 direction pages it from anywhere focus lands inside that pane.
+
+The review-mode figure grid (`table_container.tsx`'s `visualizationSpan`)
+gives `thread` the same `md:col-span-2` full-width treatment as `stats` and
+`heatmap` -- its two-pane list+transcript layout needs the width, or the
+transcript pane has nowhere to grow.
 
 WhatsApp reuse (a flat chat table with no conversation column): set
 `roleColumn` to the sender-name column and `singleThreadTitle` instead of
