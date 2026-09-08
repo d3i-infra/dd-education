@@ -163,6 +163,10 @@
           "en": "Country",
           "nl": "Land"
         },
+        "Region": {
+          "en": "Region",
+          "nl": "Regio"
+        },
         "Ip": {
           "en": "IP address",
           "nl": "IP-adres"
@@ -186,6 +190,7 @@
         "source_file": "IpAddressesLogin.csv, IpAddressesStreaming.csv",
         "columns": {
           "Country": "Country Netflix associated with the IP address.",
+          "Region": "Region Netflix associated with the session — Region Code for a login row, Region Code Display Name for a streaming row.",
           "Ip": "The raw IP address recorded for the session.",
           "Device Description": "Description of the device used for the session.",
           "Ts": "ISO 8601 timestamp of the login or streaming session.",
@@ -219,6 +224,10 @@
         "Last Playback Date": {
           "en": "Last used",
           "nl": "Laatst gebruikt"
+        },
+        "Access Date": {
+          "en": "Access date",
+          "nl": "Toegangsdatum"
         },
         "Source": {
           "en": "Source file",
@@ -257,8 +266,9 @@
         "columns": {
           "Esn": "Device fingerprint (Electronic Serial Number) Netflix assigned to the device.",
           "Device Type": "Type or model of the device.",
-          "First Playback Date": "Earliest playback date recorded for the device.",
-          "Last Playback Date": "Most recent playback date recorded for the device.",
+          "First Playback Date": "Earliest playback date recorded for the device (Devices.csv rows only).",
+          "Last Playback Date": "Most recent playback date recorded for the device (Devices.csv rows only).",
+          "Access Date": "Date of the account-wide access event recorded (AccessAndDevices.csv rows only).",
           "Source": "Which export file the row came from."
         }
       }

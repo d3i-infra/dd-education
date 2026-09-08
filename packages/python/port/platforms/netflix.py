@@ -74,7 +74,7 @@ DDP_CATEGORIES = [
             "ChatTranscripts.txt", "Cover Sheet.pdf", "Devices.csv",
             "ParentalControlsRestrictedTitles.txt", "AvatarHistory.csv",
             "Profiles.csv", "Clickstream.csv", "BillingHistory.csv",
-            "AccessAndDevices.csv", "ExtraMembers.txt",
+            "AccessAndDevices.csv", "ExtraMembers.txt", "SubscriptionHistory.csv",
         ]
     )
 ]
@@ -509,7 +509,10 @@ def ip_addresses_to_df(
     Returns
     -------
     pd.DataFrame
-        Columns: ``Country``, ``Ip``, ``Device Description``, ``Ts``, ``Event Type``.
+        Columns: ``Country``, ``Region``, ``Ip``, ``Device Description``,
+        ``Ts``, ``Event Type``. ``Region`` normalises the login file's
+        ``Region Code`` and the streaming file's ``Region Code Display
+        Name`` into one column (blank on whichever side didn't supply it).
         Empty DataFrame when both source files are absent or parsing fails.
 
     Table documentation::
@@ -519,6 +522,7 @@ def ip_addresses_to_df(
           "source_file": "IpAddressesLogin.csv, IpAddressesStreaming.csv",
           "columns": {
             "Country": "Country Netflix associated with the IP address.",
+            "Region": "Region Netflix associated with the session — Region Code for a login row, Region Code Display Name for a streaming row.",
             "Ip": "The raw IP address recorded for the session.",
             "Device Description": "Description of the device used for the session.",
             "Ts": "ISO 8601 timestamp of the login or streaming session.",
@@ -540,6 +544,7 @@ def ip_addresses_to_df(
           },
           "headers": {
             "Country": {"en": "Country", "nl": "Land"},
+            "Region": {"en": "Region", "nl": "Regio"},
             "Ip": {"en": "IP address", "nl": "IP-adres"},
             "Device Description": {"en": "Device", "nl": "Apparaat"},
             "Ts": {"en": "Date and time", "nl": "Datum en tijd"},
@@ -548,21 +553,28 @@ def ip_addresses_to_df(
         }
     """
     columns_to_keep = ["Country", "Ip", "Device Description", "Ts"]
+    column_order = ["Country", "Region", "Ip", "Device Description", "Ts", "Event Type"]
     out = pd.DataFrame()
     try:
         frames = []
         login_result = reader.csv("IpAddressesLogin.csv")
         if login_result.found and not login_result.data.empty:
             login_df = pd.DataFrame(login_result.data[columns_to_keep])
+            login_df["Region"] = login_result.data["Region Code"] if "Region Code" in login_result.data.columns else ""
             login_df["Event Type"] = "Login"
             frames.append(login_df)
         streaming_result = reader.csv("IpAddressesStreaming.csv")
         if streaming_result.found and not streaming_result.data.empty:
             streaming_df = pd.DataFrame(streaming_result.data[columns_to_keep])
+            streaming_df["Region"] = (
+                streaming_result.data["Region Code Display Name"]
+                if "Region Code Display Name" in streaming_result.data.columns else ""
+            )
             streaming_df["Event Type"] = "Streaming"
             frames.append(streaming_df)
         if frames:
             out = pd.concat(frames, ignore_index=True)
+            out = pd.DataFrame(out[column_order])
             out = out.sort_values(by="Ts", ascending=False).reset_index(drop=True)
     except Exception as e:
         logger.error("Data extraction error: %s", e)
@@ -599,7 +611,10 @@ def devices_to_df(
     -------
     pd.DataFrame
         Columns: ``Esn``, ``Device Type``, ``First Playback Date``,
-        ``Last Playback Date``, ``Source``.
+        ``Last Playback Date``, ``Access Date``, ``Source``. The playback
+        dates are blank for ``AccessAndDevices.csv`` rows (that file has no
+        playback date, only an access-event date); ``Access Date`` is blank
+        for ``Devices.csv`` rows.
         Empty DataFrame when both source files are absent or parsing fails.
 
     Table documentation::
@@ -610,8 +625,9 @@ def devices_to_df(
           "columns": {
             "Esn": "Device fingerprint (Electronic Serial Number) Netflix assigned to the device.",
             "Device Type": "Type or model of the device.",
-            "First Playback Date": "Earliest playback date recorded for the device.",
-            "Last Playback Date": "Most recent playback date recorded for the device.",
+            "First Playback Date": "Earliest playback date recorded for the device (Devices.csv rows only).",
+            "Last Playback Date": "Most recent playback date recorded for the device (Devices.csv rows only).",
+            "Access Date": "Date of the account-wide access event recorded (AccessAndDevices.csv rows only).",
             "Source": "Which export file the row came from."
           }
         }
@@ -633,6 +649,7 @@ def devices_to_df(
             "Device Type": {"en": "Device type", "nl": "Apparaattype"},
             "First Playback Date": {"en": "First used", "nl": "Voor het eerst gebruikt"},
             "Last Playback Date": {"en": "Last used", "nl": "Laatst gebruikt"},
+            "Access Date": {"en": "Access date", "nl": "Toegangsdatum"},
             "Source": {"en": "Source file", "nl": "Bronbestand"}
           },
           "visualizations": [
@@ -648,6 +665,7 @@ def devices_to_df(
           ]
         }
     """
+    device_columns = ["Esn", "Device Type", "First Playback Date", "Last Playback Date", "Access Date", "Source"]
     out = pd.DataFrame()
     try:
         frames = []
@@ -658,6 +676,7 @@ def devices_to_df(
                 "Profile Last Playback Date": "Last Playback Date",
             })
             frame = pd.DataFrame(renamed[["Esn", "Device Type", "First Playback Date", "Last Playback Date"]])
+            frame["Access Date"] = ""
             frame["Source"] = "Devices.csv"
             frames.append(frame)
 
@@ -667,14 +686,16 @@ def devices_to_df(
             frame = pd.DataFrame({
                 "Esn": access_df["Esn"],
                 "Device Type": access_df["Devices"],
-                "First Playback Date": access_df["Date"],
-                "Last Playback Date": access_df["Date"],
+                "First Playback Date": "",
+                "Last Playback Date": "",
+                "Access Date": access_df["Date"],
                 "Source": "AccessAndDevices.csv",
             })
             frames.append(frame)
 
         if frames:
             out = pd.concat(frames, ignore_index=True)
+            out = pd.DataFrame(out[device_columns])
     except Exception as e:
         logger.error("Data extraction error: %s", e)
         errors[type(e).__name__] += 1
@@ -950,8 +971,18 @@ def account_and_billing_to_df(
     One row per payment transaction (``BillingHistory.csv``), with the
     account-wide membership status, country, marketing-consent flags, and
     current plan (``AccountDetails.csv`` / ``SubscriptionHistory.csv``)
-    repeated onto every row. All three source files are account-wide, so
-    ``selected_user`` is accepted for consistency but not used to filter rows.
+    repeated onto every row. When ``BillingHistory.csv`` is absent or empty
+    (a zero-transaction account) but either of the other two sources is
+    present, a single row of account/plan fields is still returned, with the
+    billing columns left blank — a zero-transaction account should not lose
+    the whole table (ADR-0024: an absent file is not an error, and here it
+    must not make an otherwise-present table disappear either). All three
+    source files are account-wide, so ``selected_user`` is accepted for
+    consistency but not used to filter rows.
+
+    The current plan is the ``SubscriptionHistory.csv`` row with the latest
+    parseable ``Plan Change Date`` (falling back to the last row in file
+    order when that column is missing or unparseable).
 
     Parameters
     ----------
@@ -970,7 +1001,8 @@ def account_and_billing_to_df(
         Columns: ``Membership Status``, ``Country Of Registration``, ``Plan``,
         the 15 ``MARKETING_CONSENT_COLUMNS`` entries, ``Transaction Date``,
         ``Gross Sale Amt``, ``Currency``, ``Payment Type``.
-        Empty DataFrame when ``BillingHistory.csv`` is absent or parsing fails.
+        Empty DataFrame only when all three source files are absent/empty or
+        parsing fails.
 
     Table documentation::
 
@@ -1041,29 +1073,47 @@ def account_and_billing_to_df(
     out = pd.DataFrame()
     try:
         billing_result = reader.csv("BillingHistory.csv")
-        if not billing_result.found or billing_result.data.empty:
-            return out
-        out = pd.DataFrame(billing_result.data[billing_columns])
-
         account_result = reader.csv("AccountDetails.csv")
+        subscription_result = reader.csv("SubscriptionHistory.csv")
+
+        has_billing = billing_result.found and not billing_result.data.empty
         account_row = account_result.data.iloc[0] if account_result.found and not account_result.data.empty else None
+        has_subscription = subscription_result.found and not subscription_result.data.empty
+
+        if not has_billing and account_row is None and not has_subscription:
+            # ADR-0024: all three sources absent/empty — nothing to show,
+            # not an error.
+            return out
+
+        if has_billing:
+            out = pd.DataFrame(billing_result.data[billing_columns])
+        else:
+            # A zero-transaction account still has account/plan fields worth
+            # showing — one blank-billing row, not a dropped table.
+            out = pd.DataFrame([{column: "" for column in billing_columns}])
+
         out["Membership Status"] = _account_field(account_row, "Membership Status") if account_row is not None else ""
         out["Country Of Registration"] = _account_field(account_row, "Country Of Registration") if account_row is not None else ""
         for column in MARKETING_CONSENT_COLUMNS:
             out[column] = _account_field(account_row, column) if account_row is not None else ""
 
         plan = ""
-        subscription_result = reader.csv("SubscriptionHistory.csv")
-        if subscription_result.found and not subscription_result.data.empty:
-            last_row = subscription_result.data.iloc[-1]
-            plan = _account_field(last_row, "Plan Change New Category")
+        if has_subscription:
+            subscription_df = subscription_result.data.reset_index(drop=True)
+            position = len(subscription_df) - 1
+            if "Plan Change Date" in subscription_df.columns:
+                parsed_dates = pd.to_datetime(subscription_df["Plan Change Date"], errors="coerce")
+                if parsed_dates.notna().any():
+                    position = int(parsed_dates.argmax())
+            plan_row = subscription_df.iloc[position]
+            plan = _account_field(plan_row, "Plan Change New Category")
             if plan == "":
-                plan = _account_field(last_row, "Signup Plan Category")
+                plan = _account_field(plan_row, "Signup Plan Category")
         out["Plan"] = plan
 
         column_order = ["Membership Status", "Country Of Registration", "Plan"] + MARKETING_CONSENT_COLUMNS + billing_columns
         out = pd.DataFrame(out[column_order])
-        if "Transaction Date" in out.columns:
+        if has_billing:
             out = out.sort_values(by="Transaction Date", ascending=False).reset_index(drop=True)
     except Exception as e:
         logger.error("Data extraction error: %s", e)

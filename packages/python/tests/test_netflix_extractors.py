@@ -88,6 +88,16 @@ SUBSCRIPTION_HISTORY_CSV = (
     "BASIC,PREMIUM,20240101\n"
 )
 
+# Rows deliberately out of file order: the earlier plan change (BASIC ->
+# STANDARD) is listed *after* the later one (STANDARD -> PREMIUM), so a test
+# picking "the last row" instead of "the latest Plan Change Date" would get
+# the wrong plan.
+SUBSCRIPTION_HISTORY_MULTI_CSV = (
+    "Signup Plan Category,Plan Change New Category,Plan Change Date\n"
+    "STANDARD,PREMIUM,20240301\n"
+    "BASIC,STANDARD,20240101\n"
+)
+
 BILLING_HISTORY_CSV = (
     "Transaction Date,Gross Sale Amt,Currency,Payment Type\n"
     "2024-01-05,9.99,EUR,IDEAL\n"
@@ -128,15 +138,29 @@ class TestIpAddresses:
         })
         out = ip_addresses_to_df(reader, Counter())
         assert len(out) == 4
-        assert set(out.columns) == {"Country", "Ip", "Device Description", "Ts", "Event Type"}
+        assert set(out.columns) == {"Country", "Region", "Ip", "Device Description", "Ts", "Event Type"}
         assert set(out["Event Type"]) == {"Login", "Streaming"}
         assert "203.0.113.10" in set(out["Ip"])
+
+    def test_region_normalises_login_region_code_and_streaming_display_name(self):
+        reader = _reader_for({
+            "IpAddressesLogin.csv": IP_ADDRESSES_LOGIN_CSV,
+            "IpAddressesStreaming.csv": IP_ADDRESSES_STREAMING_CSV,
+        })
+        out = ip_addresses_to_df(reader, Counter())
+        login_row = out[out["Event Type"] == "Login"].iloc[0]
+        streaming_row = out[out["Event Type"] == "Streaming"].iloc[0]
+        # Login's Region Code (numeric-looking) and streaming's Region Code
+        # Display Name (a place name) both land in the one Region column.
+        assert str(login_row["Region"]) in {"10", "20"}
+        assert streaming_row["Region"] in {"Utrecht", "Berlin"}
 
     def test_only_one_source_present(self):
         reader = _reader_for({"IpAddressesLogin.csv": IP_ADDRESSES_LOGIN_CSV})
         out = ip_addresses_to_df(reader, Counter())
         assert len(out) == 2
         assert set(out["Event Type"]) == {"Login"}
+        assert {str(v) for v in out["Region"]} == {"10", "20"}
 
     def test_absent_files_yield_empty_no_error(self):
         reader = _reader_for({})
@@ -159,6 +183,26 @@ class TestDevices:
         assert set(out["Source"]) == {"Devices.csv", "AccessAndDevices.csv"}
         assert "Smart TV" in set(out["Device Type"])
         assert "Streaming Stick" in set(out["Device Type"])
+
+    def test_access_date_and_playback_dates_are_not_conflated(self):
+        """Finding 5: AccessAndDevices' Date is an access-event timestamp,
+        not a playback date — it must not be mislabelled as one."""
+        reader = _reader_for({
+            "Devices.csv": DEVICES_CSV,
+            "AccessAndDevices.csv": ACCESS_AND_DEVICES_CSV,
+        })
+        out = devices_to_df(reader, Counter(), selected_user="Alex")
+        assert "Access Date" in out.columns
+
+        devices_row = out[out["Source"] == "Devices.csv"].iloc[0]
+        assert devices_row["First Playback Date"] == "2023-01-01"
+        assert devices_row["Last Playback Date"] == "2023-06-01"
+        assert devices_row["Access Date"] == ""
+
+        access_row = out[out["Source"] == "AccessAndDevices.csv"].iloc[0]
+        assert access_row["First Playback Date"] == ""
+        assert access_row["Last Playback Date"] == ""
+        assert access_row["Access Date"] == "2023-03-01"
 
     def test_absent_files_yield_empty_no_error(self):
         reader = _reader_for({})
@@ -234,11 +278,28 @@ class TestAccountAndBilling:
         # Never card details: no card-number-shaped column made it through.
         assert not any("card" in c.lower() or "mop" in c.lower() for c in out.columns)
 
-    def test_absent_billing_file_yields_empty_no_error(self):
+    def test_billing_absent_others_present_still_yields_one_row(self):
+        """Finding 2: a zero-transaction account (BillingHistory.csv absent
+        or empty) must not lose the whole table — it gets one row of
+        account/plan fields with the billing columns blank."""
         reader = _reader_for({
             "AccountDetails.csv": ACCOUNT_DETAILS_CSV,
             "SubscriptionHistory.csv": SUBSCRIPTION_HISTORY_CSV,
         })
+        errors: Counter = Counter()
+        out = account_and_billing_to_df(reader, errors)
+        assert len(out) == 1
+        assert out.iloc[0]["Membership Status"] == "CURRENT_MEMBER"
+        assert out.iloc[0]["Country Of Registration"] == "NL"
+        assert out.iloc[0]["Plan"] == "PREMIUM"
+        for column in ["Transaction Date", "Gross Sale Amt", "Currency", "Payment Type"]:
+            assert out.iloc[0][column] == ""
+        assert sum(errors.values()) == 0
+
+    def test_all_three_sources_absent_yields_empty_no_error(self):
+        """ADR-0024: only when every source is absent/empty is the table
+        itself empty."""
+        reader = _reader_for({})
         errors: Counter = Counter()
         out = account_and_billing_to_df(reader, errors)
         assert out.empty
@@ -255,6 +316,29 @@ class TestAccountAndBilling:
         assert set(out["Plan"]) == {""}
         assert sum(errors.values()) == 0
 
+    def test_plan_picked_by_latest_plan_change_date_not_last_row(self):
+        """Minor fix: pick the plan by the latest parseable Plan Change
+        Date, not by file row order."""
+        reader = _reader_for({
+            "AccountDetails.csv": ACCOUNT_DETAILS_CSV,
+            "SubscriptionHistory.csv": SUBSCRIPTION_HISTORY_MULTI_CSV,
+            "BillingHistory.csv": BILLING_HISTORY_CSV,
+        })
+        out = account_and_billing_to_df(reader, Counter())
+        # The last row in file order is the BASIC -> STANDARD change
+        # (2024-01-01); the latest by date is STANDARD -> PREMIUM
+        # (2024-03-01). The plan must reflect the latter.
+        assert set(out["Plan"]) == {"PREMIUM"}
+
+    def test_plan_falls_back_to_last_row_when_date_column_missing(self):
+        reader = _reader_for({
+            "AccountDetails.csv": ACCOUNT_DETAILS_CSV,
+            "SubscriptionHistory.csv": "Signup Plan Category,Plan Change New Category\nBASIC,STANDARD\n",
+            "BillingHistory.csv": BILLING_HISTORY_CSV,
+        })
+        out = account_and_billing_to_df(reader, Counter())
+        assert set(out["Plan"]) == {"STANDARD"}
+
 
 def test_no_real_names_or_pii_in_synthetic_fixtures():
     """Guard against accidentally pasting real-looking data into this file's
@@ -262,7 +346,8 @@ def test_no_real_names_or_pii_in_synthetic_fixtures():
     module_source = "\n".join([
         INDICATED_PREFERENCES_CSV, IP_ADDRESSES_LOGIN_CSV, IP_ADDRESSES_STREAMING_CSV,
         DEVICES_CSV, ACCESS_AND_DEVICES_CSV, PROFILES_CSV, MY_LIST_CSV, CLICKSTREAM_CSV,
-        ACCOUNT_DETAILS_CSV, SUBSCRIPTION_HISTORY_CSV, BILLING_HISTORY_CSV,
+        ACCOUNT_DETAILS_CSV, SUBSCRIPTION_HISTORY_CSV, SUBSCRIPTION_HISTORY_MULTI_CSV,
+        BILLING_HISTORY_CSV,
     ])
     assert "@" not in module_source
     assert pd is not None  # pandas import is exercised via the extractors above

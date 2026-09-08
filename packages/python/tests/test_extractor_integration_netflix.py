@@ -8,8 +8,7 @@ demographics, My List). One ``ExtractorSpec`` per registry entry, built
 generically from the registry so a newly-registered extractor is picked up
 automatically.
 
-``first_user`` is the first profile alphabetically on the fixture
-(``Felix``, on ``netflix_2026-03.zip``'s three-profile account). Every
+``first_user`` is the first profile alphabetically on the fixture. Every
 registry entry returns a non-empty frame for that profile on this fixture,
 so ``EXPECTED_EMPTY`` is unused here — add it, with a reason, if a future
 extractor is legitimately empty for this account (mirroring
