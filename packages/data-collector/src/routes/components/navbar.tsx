@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { LocaleToggle } from "./locale_toggle";
 
 export const NavBar = () => {
   const location = useLocation();
@@ -27,6 +28,9 @@ export const NavBar = () => {
             <Link to="/about" className={getLinkClasses("/about")}>
               About
             </Link>
+          </li>
+          <li className="flex items-center pl-2">
+            <LocaleToggle />
           </li>
         </ul>
       </div>

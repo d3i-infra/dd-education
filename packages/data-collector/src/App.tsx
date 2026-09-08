@@ -8,12 +8,20 @@ import { IssueFormFactory } from "./components/issue_form/factory"
 import { PlatformSelectionFactory } from "./components/platform_selection/factory"
 import { InstructionsFactory } from "./components/instructions/factory"
 import { normalizeLocale, DEFAULT_UI_LOCALE } from "./locale/policy"
+import { useUiLocale } from "./locale/ui_locale"
+import { LocaleToggle } from "./routes/components/locale_toggle"
+import { buildEnv } from "./build_env"
 
 // DEV-gated query param: the Playwright e2e injection point. Production locale
 // comes only from mono's live-init (LiveBridge), never from the URL.
-const devLocale = import.meta.env.DEV
+const devLocale = buildEnv.DEV
   ? new URLSearchParams(window.location.search).get('locale') ?? undefined
   : undefined
+
+// The education tool is served standalone (ADR-0041): there is no host to send a locale,
+// so it picks its own — the participant's stored choice, else their browser's language.
+// A study build keeps handing that decision to mono's live-init, so it passes nothing.
+const isEducation = buildEnv.VITE_PLATFORM === "education"
 
 const LoadingScreen = (
   <div className="flex items-center justify-center min-h-[80vh]">
@@ -33,17 +41,24 @@ const LoadingScreen = (
 );
 
 function App() {
+  const uiLocale = useUiLocale()
+
   return (
     <div className="App">
+      {isEducation && (
+        <div className="flex justify-end px-4 py-2">
+          <LocaleToggle />
+        </div>
+      )}
       <ScriptHostComponent
         workerUrl="./py_worker.js"
         // The Pages deployment (VITE_PLATFORM=education) has no host to hand
         // off to (ADR-0041), so it must run standalone even in a production build.
-        standalone={import.meta.env.DEV || import.meta.env.VITE_PLATFORM === "education"}
-        logLevel={import.meta.env.DEV ? "debug" : "info"}
-        platform={import.meta.env.VITE_PLATFORM}
+        standalone={buildEnv.DEV || isEducation}
+        logLevel={buildEnv.DEV ? "debug" : "info"}
+        platform={buildEnv.VITE_PLATFORM}
         defaultLocale={DEFAULT_UI_LOCALE}
-        locale={devLocale}
+        locale={devLocale ?? (isEducation ? uiLocale : undefined)}
         mapLocale={normalizeLocale}
         fallback={LoadingScreen}
         factories={[

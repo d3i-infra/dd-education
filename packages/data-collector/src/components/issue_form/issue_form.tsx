@@ -1,10 +1,23 @@
 import { useState } from "react"
 import { ReactFactoryContext, Translator } from "@eyra/feldspar"
 import { PropsUIPromptIssueForm } from "./types"
+import { buildEnv } from "../../build_env"
 
 type Props = PropsUIPromptIssueForm & ReactFactoryContext
 
-const UPLOAD_URL = "https://late-sunset-4214.ncdeschipper.workers.dev"
+/**
+ * Where a submitted issue report is PUT.
+ *
+ * The default is the Cloudflare worker this study's reports already go to, so a build
+ * that configures nothing keeps working. A fork that runs its own tool points
+ * `VITE_ISSUE_REPORT_URL` at its own endpoint at build time, which is the only thing
+ * that has to change (see the README's Development section).
+ */
+const DEFAULT_ISSUE_REPORT_URL = "https://late-sunset-4214.ncdeschipper.workers.dev"
+
+function issueReportUrl(): string {
+  return buildEnv.VITE_ISSUE_REPORT_URL ?? DEFAULT_ISSUE_REPORT_URL
+}
 
 /** Convert column-oriented DataFrame JSON to array of row objects. */
 function dataFrameToRows(
@@ -55,7 +68,7 @@ export function IssueForm({ description, tables, platform, locale, resolve }: Pr
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
       const filename = `${platform}-${timestamp}.json`
-      const response = await fetch(`${UPLOAD_URL}?filename=${encodeURIComponent(filename)}`, {
+      const response = await fetch(`${issueReportUrl()}?filename=${encodeURIComponent(filename)}`, {
         method: "PUT",
         headers: { "Content-Type": "text/plain; charset=utf-8" },
         body: serializeData(),
