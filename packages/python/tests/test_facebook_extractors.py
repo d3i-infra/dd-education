@@ -393,37 +393,54 @@ class TestFriendsYouSeeLess:
 
 
 # ---------------------------------------------------------------------------
-# facebook_your_friends (re-enabled in the registry — Task 15d): json-only,
-# unchanged extraction logic, now takes an (unused) ``validation`` kwarg for
-# calling-convention parity with the rest of the registry.
+# facebook_your_friends (re-enabled in the registry — Task 15d, then given an
+# html twin and changed to list friends by name and since-date rather than
+# just a count, per fix-round-1 review): json and html twin pattern like the
+# rest of the module.
 # ---------------------------------------------------------------------------
+
+_YOUR_FRIENDS_HTML = "export/connections/friends/your_friends.html"
 
 _YOUR_FRIENDS_PAYLOAD = """
 {"friends_v2": [
-  {"name": "Test Friend A"},
-  {"name": "Test Friend B"},
-  {"name": "Test Friend C"}
+  {"name": "Test Friend A", "timestamp": 1690000000},
+  {"name": "Test Friend B", "timestamp": 1680000000}
 ]}
 """
 
+_YOUR_FRIENDS_PAGE = """<html><body><main>
+<section class="_a6-g"><h2>Test Friend A</h2><footer><div class="_a72d">Jul 22, 2023 6:26:40 am</div></footer></section>
+<section class="_a6-g"><h2>Test Friend B</h2><footer><div class="_a72d">Mar 28, 2023 12:40:00 pm</div></footer></section>
+</main></body></html>"""
+
 
 class TestYourFriends:
-    def test_counts_friends_json(self):
+    def test_lists_friends_with_since_date_json(self):
         reader = _reader((_YOUR_FRIENDS_JSON, _YOUR_FRIENDS_PAYLOAD))
         out = F.your_friends_to_df(reader, Counter())
-        assert len(out) == 1
-        assert out.iloc[0]["Number of friends"] == 3
+        assert len(out) == 2
+        assert list(out.columns) == ["Name", "Timestamp"]
+        by_name = dict(zip(out["Name"], out["Timestamp"]))
+        assert by_name["Test Friend A"] == "2023-07-22 06:26:40"
+        assert by_name["Test Friend B"] == "2023-03-28 12:40:00"
+        # Newest first.
+        assert list(out["Name"]) == ["Test Friend A", "Test Friend B"]
 
-    def test_accepts_validation_kwarg_without_using_it(self):
-        """Every table in the registry is called with ``validation=...`` by
-        ``extraction()`` (Task 15d re-enabled this extractor into the
-        registry) — it must accept the kwarg even though it never reads it."""
-        reader = _reader((_YOUR_FRIENDS_JSON, _YOUR_FRIENDS_PAYLOAD))
+    def test_lists_friends_with_since_date_html(self):
+        reader = _reader((_YOUR_FRIENDS_HTML, _YOUR_FRIENDS_PAGE))
         out = F.your_friends_to_df(reader, Counter(), validation=_HTML_VALIDATION)
-        assert out.iloc[0]["Number of friends"] == 3
+        assert len(out) == 2
+        assert set(out["Name"]) == {"Test Friend A", "Test Friend B"}
 
     def test_absent_file_yields_empty_no_error(self):
         reader = _reader()
+        errors: Counter = Counter()
+        out = F.your_friends_to_df(reader, errors)
+        assert out.empty
+        assert sum(errors.values()) == 0
+
+    def test_empty_file_yields_empty_no_error(self):
+        reader = _reader((_YOUR_FRIENDS_JSON, ""))
         errors: Counter = Counter()
         out = F.your_friends_to_df(reader, errors)
         assert out.empty

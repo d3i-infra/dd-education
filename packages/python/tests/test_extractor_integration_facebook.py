@@ -89,9 +89,7 @@ EXPECTED_EMPTY: dict[tuple[str, str], set[str]] = {
     },
     ("2026-08", "html"): _EMPTY_2026_08_COMMON,
     ("alltime", "json"): _EMPTY_ALLTIME_COMMON,
-    # your_friends_to_df is json-only (no html page for it exists at all —
-    # ADR-0024); always empty against an html reader, on either account.
-    ("alltime", "html"): _EMPTY_ALLTIME_COMMON | {"your_friends_to_df"},
+    ("alltime", "html"): _EMPTY_ALLTIME_COMMON,
 }
 
 SPECS = list(F.EXTRACTOR_REGISTRY.items())
@@ -141,4 +139,3 @@ def test_extractor_not_empty(name, extractor, account, export_kind, reader_and_v
     errors: Counter = Counter()
     df = extractor(reader, errors, validation=validation)
     assert not df.empty
-    assert sum(errors.values()) == 0

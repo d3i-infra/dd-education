@@ -180,21 +180,26 @@
         "nl": "Je vrienden op Facebook"
       },
       "description": {
-        "en": "This table lists your current friends on Facebook.",
-        "nl": "Deze tabel toont je huidige vrienden op Facebook."
+        "en": "The people currently on your Facebook friends list, and the date you became friends, where Facebook has that on record.",
+        "nl": "De mensen die momenteel op je Facebook-vriendenlijst staan, en de datum waarop jullie vrienden werden, voor zover Facebook dat heeft vastgelegd."
       },
       "headers": {
-        "Number of friends": {
-          "en": "Number of friends",
-          "nl": "Aantal vrienden op facebook"
+        "Name": {
+          "en": "Name",
+          "nl": "Naam"
+        },
+        "Timestamp": {
+          "en": "Since",
+          "nl": "Sinds"
         }
       },
       "extractor": "your_friends_to_df",
       "documentation": {
-        "summary": "Contains the total number of friends the participant has on Facebook.",
-        "source_file": "your_friends.json",
+        "summary": "Each row is one person on the participant's current Facebook friends list, with the date they became friends where the export records one.",
+        "source_file": "your_friends.json / your_friends.html",
         "columns": {
-          "Number of friends": "Total count of Facebook friends."
+          "Name": "Name of the friend.",
+          "Timestamp": "ISO 8601 timestamp of when the participant and this friend connected, when the export records one."
         }
       }
     },
@@ -302,12 +307,27 @@
       "visualizations": [
         {
           "title": {
-            "en": "Advertisers with your data",
-            "nl": "Adverteerders met jouw gegevens"
+            "en": "Advertisers with your data (top 15)",
+            "nl": "Adverteerders met jouw gegevens (top 15)"
           },
-          "type": "wordcloud",
-          "textColumn": "Value",
-          "tokenize": false
+          "type": "bar",
+          "group": {
+            "column": "Value",
+            "top": 15,
+            "label": {
+              "en": "Advertiser",
+              "nl": "Adverteerder"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Times listed",
+                "nl": "Aantal keer vermeld"
+              }
+            }
+          ]
         }
       ]
     },
@@ -399,12 +419,27 @@
       "visualizations": [
         {
           "title": {
-            "en": "Businesses tracking you off Facebook",
-            "nl": "Bedrijven die je buiten Facebook volgen"
+            "en": "Businesses tracking you off Facebook (top 15)",
+            "nl": "Bedrijven die je buiten Facebook volgen (top 15)"
           },
-          "type": "wordcloud",
-          "textColumn": "Business",
-          "tokenize": false
+          "type": "bar",
+          "group": {
+            "column": "Business",
+            "top": 15,
+            "label": {
+              "en": "Business",
+              "nl": "Bedrijf"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Events",
+                "nl": "Gebeurtenissen"
+              }
+            }
+          ]
         }
       ]
     },

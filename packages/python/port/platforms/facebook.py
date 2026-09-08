@@ -797,34 +797,32 @@ def _your_search_history_html(reader: ZipArchiveReader, errors: Counter) -> pd.D
 
 
 def your_friends_to_df(reader: ZipArchiveReader, errors: Counter, validation=None) -> pd.DataFrame:
-    """Extract the number of Facebook friends.
+    """Extract the participant's Facebook friends list.
 
     Parameters
     ----------
     reader:
-        Archive reader used to load JSON files from the DDP zip.
+        Archive reader used to load JSON or HTML files from the DDP zip.
     errors:
         Mutable counter that accumulates error type counts encountered during
         extraction.  Updated in-place.
     validation:
-        Accepted for calling-convention parity with the rest of the registry
-        (``extraction()`` passes ``validation`` to every table) but unused —
-        this extractor is json-only; an html export has no ``your_friends``
-        page to read (ADR-0024).
+        Validation result; its DDP category selects the JSON or HTML path.
 
     Returns
     -------
     pd.DataFrame
-        Columns: ``Number of friends``.
+        Columns: ``Name``, ``Timestamp``, newest first.
         Empty DataFrame when the file is absent or parsing fails.
 
     Table documentation::
 
         {
-          "summary": "Contains the total number of friends the participant has on Facebook.",
-          "source_file": "your_friends.json",
+          "summary": "Each row is one person on the participant's current Facebook friends list, with the date they became friends where the export records one.",
+          "source_file": "your_friends.json / your_friends.html",
           "columns": {
-            "Number of friends": "Total count of Facebook friends."
+            "Name": "Name of the friend.",
+            "Timestamp": "ISO 8601 timestamp of when the participant and this friend connected, when the export records one."
           }
         }
 
@@ -837,14 +835,22 @@ def your_friends_to_df(reader: ZipArchiveReader, errors: Counter, validation=Non
             "nl": "Je vrienden op Facebook"
           },
           "description": {
-            "en": "This table lists your current friends on Facebook.",
-            "nl": "Deze tabel toont je huidige vrienden op Facebook."
+            "en": "The people currently on your Facebook friends list, and the date you became friends, where Facebook has that on record.",
+            "nl": "De mensen die momenteel op je Facebook-vriendenlijst staan, en de datum waarop jullie vrienden werden, voor zover Facebook dat heeft vastgelegd."
           },
           "headers": {
-            "Number of friends": {"en": "Number of friends", "nl": "Aantal vrienden op facebook"}
+            "Name": {"en": "Name", "nl": "Naam"},
+            "Timestamp": {"en": "Since", "nl": "Sinds"}
           }
         }
     """
+    if validation and validation.current_ddp_category.ddp_filetype == DDPFiletype.HTML:
+        return _sort_by_date(_your_friends_html(reader, errors), "Timestamp")
+
+    return _sort_by_date(_your_friends_json(reader, errors), "Timestamp")
+
+
+def _your_friends_json(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
     result = reader.json("your_friends.json")
     if not result.found:
         return pd.DataFrame()
@@ -854,16 +860,45 @@ def your_friends_to_df(reader: ZipArchiveReader, errors: Counter, validation=Non
     datapoints = []
 
     try:
-        items = d["friends_v2"]  # pyright: ignore
-        datapoints.append((len(items)))
+        items = d.get("friends_v2", [])  # pyright: ignore
+        for item in items:
+            datapoints.append((
+                eh.fix_latin1_string(item.get("name", "")),
+                eh.epoch_to_datetime_string(item.get("timestamp", ""), errors=errors),
+            ))
 
-        out = pd.DataFrame(datapoints, columns=["Number of friends"]) #pyright: ignore
+        out = pd.DataFrame(datapoints, columns=["Name", "Timestamp"])  # pyright: ignore
 
     except Exception as e:
         logger.error("Exception caught: %s", e)
         errors[type(e).__name__] += 1
 
     return out
+
+
+def _your_friends_html(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
+    result = reader.raw("your_friends.html")
+    if not result.found:
+        return pd.DataFrame()
+
+    datapoints = []
+
+    try:
+        tree = etree.HTML(result.data.read())
+        for record in eh.xpath_nodes(tree, "//section[contains(@class, '_a6-g') and not(ancestor::section)]"):
+            h2 = record.xpath(".//h2")
+            name = h2[0].text.strip() if h2 and h2[0].text else ""
+            timestamp = _section_timestamp(record, errors)
+            datapoints.append((name, timestamp))
+
+        if datapoints:
+            return pd.DataFrame(datapoints, columns=["Name", "Timestamp"])  # pyright: ignore
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return pd.DataFrame()
 
 
 def ads_interests_to_df(reader: ZipArchiveReader, errors: Counter, validation=None) -> pd.DataFrame:
