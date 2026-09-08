@@ -8,6 +8,12 @@ extracting it locally in the browser, and showing them what that platform actual
 knows about them. There is no consent-to-donate step and no host to hand data to —
 **nothing is donated.**
 
+That guarantee is scoped to the **education module** (`VITE_PLATFORM=education`,
+the tool at `/#/port`): its consent step always runs review-only. Building a
+single platform with the generic `VITE_PLATFORM=<platform> pnpm start` command
+gets upstream's own study flow instead, where `FlowBuilder`'s `donate_enabled`
+defaults to `True` and the flow does donate.
+
 Run the tool at `/#/port`; a landing page, an about page, and a privacy-policy page
 live at `/`, `/#/about`, and `/#/privacy-policy`. The platform menu offers YouTube,
 Google, Netflix, Instagram, LinkedIn, WhatsApp, ChatGPT, and a General DDP Analyzer
@@ -74,17 +80,19 @@ sink; each one stubs `/data-submission` itself before driving the flow.
 
 | Command | Description |
 |---|---|
-| `VITE_PLATFORM=<platform> pnpm start` | Start dev server with hot reload |
-| `VITE_PLATFORM=education pnpm start` / `pnpm start:education` | Start the education tool's dev server |
+| `VITE_PLATFORM=<platform> pnpm start` | Start dev server with hot reload — a single-platform study flow, donates by default |
+| `VITE_PLATFORM=education pnpm start` / `pnpm start:education` | Start the education tool's dev server — review-only, never donates |
 | `pnpm build:education` | Production build of the education tool |
 | `pnpm generate-config <platform>` | Generate `configs/<platform>_config.json` from extractor docstrings |
 | `pnpm run build` | Full production build (Python wheel + feldspar + data-collector) |
 | `pnpm doctor` | Check environment setup (13 checks) |
 
-Canary tests (`pnpm test:py`) exercise each extractor against real DDP exports.
-Those exports are never committed: symlink them into `packages/python/tests/ddp/`
-and see that directory's [`README.md`](packages/python/tests/ddp/README.md) for
-the naming convention and which fixtures the canaries look for.
+The Python suite (`pnpm test:py`) includes canaries that run each menu
+platform's extractors against real DDP exports, skipping cleanly when a
+fixture is absent. Those exports are never committed: symlink them into
+`packages/python/tests/ddp/` and see that directory's
+[`README.md`](packages/python/tests/ddp/README.md) for the naming convention
+and which fixtures the canaries look for.
 
 ### Testing & Type Checking
 

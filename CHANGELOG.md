@@ -16,9 +16,11 @@ work landed as these stories:
 * **FlowBuilder hooks** — `FlowBuilder` gained education-mode hooks so a
   platform flow can run its file prompt, validation, and extraction without a
   donation step at the end.
-* **Education prompts** — new prompt types and structure-helpers let a flow
-  show a participant their DDP's file structure without extracting or
-  donating its contents.
+* **Education prompts** — new prompt types and a shared structure-helper let a
+  flow show a participant their DDP's file structure. The two callers use it
+  differently by design: the issue-report page replaces every value with its
+  type name, while the General DDP Analyzer shows the real field values so a
+  learner can inspect what's actually in their export.
 * **Education module** — a composite `education` platform module assembles
   the enabled platforms into one menu-driven flow (ADR-0041).
 * **Configs** — every enabled platform's `configs/*.json` carries educational
