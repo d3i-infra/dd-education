@@ -7,7 +7,7 @@ import logging
 from collections import Counter
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Any, Callable, IO, Iterator
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -257,7 +257,34 @@ DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 #: timestamp carries no location, so that information is not in the data and no conversion
 #: can recover it.
 REFERENCE_TIMEZONE = "Europe/Amsterdam"
-_REFERENCE_ZONE = ZoneInfo(REFERENCE_TIMEZONE)
+
+#: Memo for :func:`_reference_zone`. Resolved on first use, never at import time.
+_REFERENCE_ZONE: tzinfo | None = None
+
+
+def _reference_zone() -> tzinfo:
+    """The reference zone, resolved once, or UTC when the runtime has no zone database.
+
+    ``ZoneInfo`` reads the IANA database at call time, and a Pyodide build without the
+    ``tzdata`` package has none to read. Resolving the zone at import time would turn that
+    into an import error for every module that touches ``extraction_helpers`` — the whole
+    port — so the lookup happens here, on first use, and a runtime that cannot answer it
+    gets UTC and one local warning instead of a dead worker.
+
+    Falling back shifts written timestamps by one or two hours; it does not lose them.
+    """
+    global _REFERENCE_ZONE
+    if _REFERENCE_ZONE is None:
+        try:
+            _REFERENCE_ZONE = ZoneInfo(REFERENCE_TIMEZONE)
+        except Exception:  # ZoneInfoNotFoundError, and whatever else a runtime raises
+            logger.warning(
+                "No timezone database for %s; writing timestamps in UTC instead",
+                REFERENCE_TIMEZONE,
+            )
+            _REFERENCE_ZONE = timezone.utc
+    return _REFERENCE_ZONE
+
 
 #: A zone spelled out at the end of a timestamp rather than as an offset (``... 10:09:50
 #: UTC``). Only the zero-offset names are listed, so anything else falls through to the
@@ -268,12 +295,11 @@ NAMED_UTC = re.compile(r"[\s_]+(?:UTC|GMT)$", re.IGNORECASE)
 def _to_reference(moment: datetime) -> str:
     """Write *moment*, an aware datetime, in ``REFERENCE_TIMEZONE`` and ``DATETIME_FORMAT``.
 
-    The zone's rules come from ``zoneinfo``, the IANA database the standard library ships;
-    Pyodide's stdlib carries the tzdata it needs to resolve names such as
-    ``Europe/Amsterdam``, so this is the one timezone lookup used on both the browser and
-    desktop runtimes.
+    The zone's rules come from ``zoneinfo``, the IANA database the standard library ships.
+    A runtime carrying no database — a Pyodide build without ``tzdata`` — writes UTC
+    instead; see :func:`_reference_zone`.
     """
-    return moment.astimezone(_REFERENCE_ZONE).strftime(DATETIME_FORMAT)
+    return moment.astimezone(_reference_zone()).strftime(DATETIME_FORMAT)
 
 
 def resolve_timezone(name: str | None) -> ZoneInfo | None:
@@ -1124,12 +1150,39 @@ def _is_structure_member(member: str) -> bool:
     return lower.endswith(".json") or lower.endswith(".csv")
 
 
+#: Row caps for the structure overview. `dict_denester` flattens a JSON document to one
+#: row per leaf, so a single export member — a year of messages in one file — flattens to
+#: hundreds of thousands of rows, and a whole export to millions. The table is read by a
+#: human looking for the *shape* of an export, and the issue report is uploaded, so both
+#: the frame in memory and the payload on the wire have to stop somewhere. A few thousand
+#: rows already show every distinct field name an export has.
+MAX_STRUCTURE_ROWS_PER_MEMBER = 2000
+MAX_STRUCTURE_ROWS_TOTAL = 20000
+
+#: The `field_name` of the row that marks a cut, so a reader can tell a short table from a
+#: truncated one. `<...>` brackets keep it from colliding with a real field name.
+TRUNCATION_MARKER = "<truncated>"
+
+
+def _truncation_row(member: str, count: int) -> dict[str, Any]:
+    """The single row that marks a cut: `(member, "<truncated>", "<n more>")`.
+
+    What *n* counts depends on which cap fired, and the two are told apart by where the
+    row sits: after a member's own rows it is the fields of that member left unlisted;
+    as the last row of the whole table it is the members left unread.
+    """
+    return {"filepath": member, "field_name": TRUNCATION_MARKER, "value": f"<{count} more>"}
+
+
 def _structure_rows_for_member(member: str, raw: bytes, infer_types: bool) -> list[dict[str, Any]]:
     """Extract field-name/value rows for one JSON or CSV archive member.
     Caller must already have filtered to `_is_structure_member(member)`.
 
     If infer_types is True, values are replaced with their Python type
     names (used to anonymize the issue-report structure table).
+
+    At most MAX_STRUCTURE_ROWS_PER_MEMBER rows come back, plus one
+    `_truncation_row` naming how many fields were left out.
     """
     rows: list[dict[str, Any]] = []
     lower = member.lower()
@@ -1137,6 +1190,9 @@ def _structure_rows_for_member(member: str, raw: bytes, infer_types: bool) -> li
         data = json.loads(raw.decode("utf-8-sig"))
         flat = dict_denester(data)
         for key, value in flat.items():
+            if len(rows) >= MAX_STRUCTURE_ROWS_PER_MEMBER:
+                rows.append(_truncation_row(member, len(flat) - MAX_STRUCTURE_ROWS_PER_MEMBER))
+                break
             v = type(value).__name__ if infer_types else value
             rows.append({"filepath": member, "field_name": key, "value": v})
     elif lower.endswith(".csv"):
@@ -1145,6 +1201,9 @@ def _structure_rows_for_member(member: str, raw: bytes, infer_types: bool) -> li
         first_row = next(reader, None)
         if first_row:
             for key, value in first_row.items():
+                if len(rows) >= MAX_STRUCTURE_ROWS_PER_MEMBER:
+                    rows.append(_truncation_row(member, len(first_row) - MAX_STRUCTURE_ROWS_PER_MEMBER))
+                    break
                 v = type(value).__name__ if infer_types else value
                 rows.append({"filepath": member, "field_name": key, "value": v})
     return rows
@@ -1161,40 +1220,106 @@ def extract_file_structures_from_zip(
     videos, ...) is skipped by name before any bytes are pulled, so a real
     export's large binary members are never read just to be discarded.
 
+    Each member contributes at most MAX_STRUCTURE_ROWS_PER_MEMBER rows and the whole call
+    at most MAX_STRUCTURE_ROWS_TOTAL. Reaching the total stops the scan — the remaining
+    members are not read at all, and one `_truncation_row` says how many they were.
+
     Returns a DataFrame with columns: filepath, field_name, value.
     If infer_types is True, values are replaced with their Python type names.
     """
     results: list[dict[str, Any]] = []
+
+    def scan(members: list[str], read: Callable[[str], bytes | None], where: str) -> None:
+        """Read each structure member in *members* until the total row cap is reached.
+
+        *read* returns None for a member it declined to read and has already logged.
+        """
+        for position, member in enumerate(members):
+            if len(results) >= MAX_STRUCTURE_ROWS_TOTAL:
+                results.append(_truncation_row(member, len(members) - position))
+                logger.warning(
+                    "Structure overview capped at %d rows; %d of %d members left unread",
+                    MAX_STRUCTURE_ROWS_TOTAL, len(members) - position, len(members),
+                )
+                return
+            if not _is_structure_member(member):
+                continue
+            try:
+                raw = read(member)
+                if raw is None:
+                    continue
+                results.extend(_structure_rows_for_member(member, raw, infer_types))
+            except Exception:
+                logger.warning("Could not process %s in %s", member, where)
+
     try:
         if isinstance(archive, ArchiveSet):
-            for member in archive.members:  # already excludes macOS metadata
-                if not _is_structure_member(member):
-                    continue
-                try:
-                    results.extend(_structure_rows_for_member(member, archive.read_member(member), infer_types))
-                except Exception:
-                    logger.warning("Could not process %s in archive set", member)
+            # archive.members already excludes macOS metadata
+            scan(archive.members, archive.read_member, "archive set")
         else:
             archive.seek(0)
             with zipfile.ZipFile(archive, "r") as zf:
-                for member in zf.namelist():
-                    if is_macos_metadata(member) or not _is_structure_member(member):
-                        continue
-                    try:
-                        info = zf.getinfo(member)
-                        if info.file_size > MAX_MEMBER_UNCOMPRESSED_BYTES:
-                            logger.warning(
-                                "Skipping oversize member %s (%d bytes exceeds %d cap)",
-                                member, info.file_size, MAX_MEMBER_UNCOMPRESSED_BYTES,
-                            )
-                            continue
-                        results.extend(_structure_rows_for_member(member, zf.read(member), infer_types))
-                    except Exception:
-                        logger.warning("Could not process %s in zip", member)
+                def read_guarded(member: str) -> bytes | None:
+                    info = zf.getinfo(member)
+                    if info.file_size > MAX_MEMBER_UNCOMPRESSED_BYTES:
+                        logger.warning(
+                            "Skipping oversize member %s (%d bytes exceeds %d cap)",
+                            member, info.file_size, MAX_MEMBER_UNCOMPRESSED_BYTES,
+                        )
+                        return None
+                    return zf.read(member)
+
+                members = [m for m in zf.namelist() if not is_macos_metadata(m)]
+                scan(members, read_guarded, "zip")
     except zipfile.BadZipFile:
         logger.warning("Bad zip file")
 
     return pd.DataFrame(results) if results else pd.DataFrame(columns=["filepath", "field_name", "value"])
+
+
+#: What a redacted path segment is written as. Two placeholders rather than one, so a
+#: reader can still tell a folder from the file at the end of the path.
+REDACTED_DIR = "<dir>"
+REDACTED_FILE = "<file>"
+
+
+def redact_member_path(path: str) -> str:
+    """Reduce an archive member path to its shape: top-level folder, depth, extension.
+
+    Export archives name folders and files after people — ``messages/inbox/jane_doe_17``,
+    a contact's name as a filename — so a full member path is participant data even when
+    every value inside the file has been replaced by its type. What a bug report actually
+    needs from a path is none of that: which top-level section the file sits in, how deep
+    it is, and what kind of file it is.
+
+    Every segment below the top level becomes ``<dir>`` and the leaf name becomes
+    ``<file>``, keeping its extension::
+
+        >>> redact_member_path("messages/inbox/name_123/message_1.json")
+        'messages/<dir>/<dir>/<file>.json'
+
+    The top-level folder is kept because it names the export section rather than a person.
+    """
+    if not path:
+        return path
+
+    is_dir = path.endswith("/")
+    segments = [segment for segment in path.rstrip("/").split("/") if segment]
+    if not segments:
+        return path
+
+    if is_dir:
+        leaf = REDACTED_DIR
+    else:
+        stem, dot, extension = segments[-1].rpartition(".")
+        leaf = f"{REDACTED_FILE}.{extension}" if dot and stem else REDACTED_FILE
+
+    if len(segments) == 1:
+        redacted = [leaf]
+    else:
+        redacted = [segments[0]] + [REDACTED_DIR] * (len(segments) - 2) + [leaf]
+
+    return "/".join(redacted) + ("/" if is_dir else "")
 
 
 def extract_zip_file_info(archive: SeekableBinaryReader | ArchiveSet) -> pd.DataFrame:

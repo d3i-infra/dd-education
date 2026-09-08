@@ -15,7 +15,7 @@ that the column would mean the same thing whichever platform a row came from.
 """
 from collections import Counter
 from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import pytest
 
@@ -196,3 +196,51 @@ class TestZoneTimes:
     def test_a_zone_that_is_not_in_the_database_is_none(self):
         assert eh.resolve_timezone("Mars/Olympus_Mons") is None
         assert eh.resolve_timezone("") is None
+
+
+class TestTheZoneLookupIsLazy:
+    """``_reference_zone()`` resolves the zone on first use rather than at import time, so
+    a runtime with no IANA database — a Pyodide build without ``tzdata`` — degrades to UTC
+    instead of failing every import of ``extraction_helpers``."""
+
+    @pytest.fixture(autouse=True)
+    def _forget_the_memo(self, monkeypatch):
+        """Each test starts with the memo cleared and restores it afterwards."""
+        monkeypatch.setattr(eh, "_REFERENCE_ZONE", None)
+
+    def test_the_zone_is_resolved_once_and_reused(self, monkeypatch):
+        calls = []
+
+        def counting_zoneinfo(name):
+            calls.append(name)
+            return AMSTERDAM
+
+        monkeypatch.setattr(eh, "ZoneInfo", counting_zoneinfo)
+
+        assert eh._reference_zone() is AMSTERDAM
+        assert eh._reference_zone() is AMSTERDAM
+        assert calls == [eh.REFERENCE_TIMEZONE]
+
+    def test_no_database_falls_back_to_utc_with_one_warning(self, monkeypatch, caplog):
+        def no_database(name):
+            raise ZoneInfoNotFoundError(name)
+
+        monkeypatch.setattr(eh, "ZoneInfo", no_database)
+
+        with caplog.at_level("WARNING", logger="port.helpers.extraction_helpers"):
+            assert eh._reference_zone() is timezone.utc
+            assert eh._reference_zone() is timezone.utc
+
+        warnings = [r for r in caplog.records if r.levelname == "WARNING"]
+        assert len(warnings) == 1, "the fallback warns once, not once per conversion"
+        assert eh.REFERENCE_TIMEZONE in warnings[0].getMessage()
+
+    def test_timestamps_are_still_written_without_a_database(self, monkeypatch):
+        monkeypatch.setattr(eh, "ZoneInfo", lambda name: (_ for _ in ()).throw(ZoneInfoNotFoundError(name)))
+
+        # 1632139200 is 2021-09-20 12:00:00 UTC — 14:00 in Amsterdam, 12:00 without a database.
+        assert eh.epoch_to_datetime_string(1632139200) == "2021-09-20 12:00:00"
+
+    def test_importing_the_module_resolves_nothing(self):
+        """The memo is what proves it: nothing filled it in at import time."""
+        assert eh._REFERENCE_ZONE is None

@@ -14,6 +14,7 @@ import pytest
 from port.helpers.extraction_helpers import (
     EMAIL_PATTERN,
     anonymize_dataframe,
+    redact_member_path,
     replace_email,
     replace_username,
 )
@@ -103,3 +104,39 @@ class TestXpathNodes:
         assert xpath_nodes(tree, "string(//p)") == []
         assert xpath_nodes(tree, "boolean(//p)") == []
         assert xpath_nodes(tree, "//nothing") == []
+
+
+class TestRedactMemberPath:
+    """An archive member path is participant data: exports name folders and files after
+    the people the participant talked to. What survives is the shape — which top-level
+    section, how deep, what kind of file."""
+
+    @pytest.mark.parametrize("path,expected", [
+        ("messages/inbox/name_123/message_1.json", "messages/<dir>/<dir>/<file>.json"),
+        ("messages/inbox/message_1.json", "messages/<dir>/<file>.json"),
+        ("ads_information/advertisers.json", "ads_information/<file>.json"),
+        ("archive_browser.html", "<file>.html"),
+        ("Takeout/YouTube/history/watch-history.html", "Takeout/<dir>/<dir>/<file>.html"),
+    ])
+    def test_the_shape_is_kept_and_the_names_are_not(self, path, expected):
+        assert redact_member_path(path) == expected
+
+    def test_a_leaf_without_an_extension_is_still_a_leaf(self):
+        assert redact_member_path("messages/inbox/README") == "messages/<dir>/<file>"
+
+    def test_a_dotfile_has_no_extension_to_keep(self):
+        assert redact_member_path("config/.gitignore") == "config/<file>"
+
+    def test_only_the_last_dot_names_the_kind(self):
+        assert redact_member_path("logs/session.tar.gz") == "logs/<file>.gz"
+
+    def test_a_directory_entry_stays_a_directory(self):
+        assert redact_member_path("messages/inbox/name_123/") == "messages/<dir>/<dir>/"
+
+    def test_empty_and_degenerate_paths_are_returned_as_they_are(self):
+        assert redact_member_path("") == ""
+        assert redact_member_path("/") == "/"
+
+    def test_redaction_is_idempotent(self):
+        once = redact_member_path("messages/inbox/name_123/message_1.json")
+        assert redact_member_path(once) == once

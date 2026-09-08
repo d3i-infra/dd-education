@@ -609,6 +609,29 @@ class TestEducationHooks:
             advance_past_logs(gen, make_payload("PayloadTrue"))
 
     @patch("port.helpers.uploads.check_payload_size")
+    def test_decline_with_donation_disabled_records_nothing(self, _):
+        """A decline in education mode has nothing to record: there is no host to send a
+        decline status to, so the flow ends where a study flow would donate one."""
+        flow = StubFlow()
+        flow.donate_enabled = False
+        gen = flow.start_flow()
+        start_and_skip_logs(gen)
+        advance_past_logs(gen, make_payload_file())          # consent form
+
+        commands = []
+        with pytest.raises(StopIteration):
+            cmd = gen.send(make_payload("PayloadFalse"))
+            while True:
+                commands.append(cmd)
+                cmd = gen.send(make_payload("PayloadVoid"))
+
+        assert not any(isinstance(c, CommandSystemDonate) for c in commands), \
+            "education mode donates nothing, a decline included"
+        messages = [c.message for c in commands if isinstance(c, CommandSystemLog)]
+        assert any("Consent: declined" in m for m in messages)
+        assert any("Donation skipped (education mode)" in m for m in messages)
+
+    @patch("port.helpers.uploads.check_payload_size")
     def test_study_prompt_is_not_review_only(self, _):
         gen = StubFlow().start_flow()
         start_and_skip_logs(gen)

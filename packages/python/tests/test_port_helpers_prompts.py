@@ -155,6 +155,89 @@ def test_render_issue_page_builds_tables_from_archive_set():
     assert [t.id for t in body.tables] == ["file_structures", "file_info"]
 
 
+def test_completion_prompt_buttons_are_labelled_for_what_they_do():
+    """Both buttons return to the menu (ADR-0041: the loop has no exit), so they are
+    labelled for the two reasons a participant is here, not as two outcomes."""
+    prompt = ph.generate_platform_completion_prompt()
+    assert prompt.ok.translations["en"] == "Explore another platform"
+    assert prompt.ok.translations["nl"] == "Verken nog een platform"
+    assert prompt.cancel.translations["en"] == "Back to the menu"
+    assert prompt.cancel.translations["nl"] == "Terug naar het menu"
+    assert prompt.ok.translations != prompt.cancel.translations
+
+
+def test_platform_error_page_names_the_platform_and_offers_one_way_on():
+    page = ph.render_platform_error_page("Netflix").toDict()["page"]
+    body = page["body"][0]
+    assert set(body["text"]["translations"]) >= {"en", "nl"}
+    assert "Netflix" in body["text"]["translations"]["en"]
+    assert "Netflix" in body["text"]["translations"]["nl"]
+    assert "cancel" not in body, "there is one way on from here: back to the menu"
+    assert body["ok"]["translations"]["en"] == "Continue"
+
+
+class TestTheIssueReportNamesNobody:
+    """The issue report is uploaded, so the member paths in it must carry the archive's
+    shape and nothing else — an export names folders and files after the people the
+    participant talked to."""
+
+    def _synthetic_export(self):
+        """A synthetic archive shaped like a real export: contact names as folder and
+        file names, at several depths."""
+        import io
+        import zipfile
+
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as zf:
+            zf.writestr("messages/inbox/name_123/message_1.json", '{"sender": "name"}')
+            zf.writestr("messages/inbox/other_person_99/message_1.json", '{"sender": "other"}')
+            zf.writestr("ads_information/advertisers.json", '{"a": 1}')
+            zf.writestr("archive_browser.html", b"<html></html>")
+        buf.seek(0)
+        return buf
+
+    def _rows(self, table, column):
+        return list(table.data_frame[column])
+
+    def test_no_leaf_or_intermediate_name_survives_in_the_file_info_table(self):
+        import port.helpers.port_helpers as ph
+
+        body = ph.render_issue_page("Instagram", self._synthetic_export()).page.body
+        file_info = next(t for t in body.tables if t.id == "file_info")
+        paths = self._rows(file_info, "file_path")
+
+        assert sorted(paths) == sorted([
+            "messages/<dir>/<dir>/<file>.json",
+            "messages/<dir>/<dir>/<file>.json",
+            "ads_information/<file>.json",
+            "<file>.html",
+        ])
+        joined = " ".join(paths)
+        for name in ("name_123", "other_person_99", "message_1", "advertisers", "archive_browser"):
+            assert name not in joined
+
+    def test_the_structure_table_is_redacted_too(self):
+        """Both tables are serialized into the same upload, so both are redacted."""
+        import port.helpers.port_helpers as ph
+
+        body = ph.render_issue_page("Instagram", self._synthetic_export()).page.body
+        structures = next(t for t in body.tables if t.id == "file_structures")
+        paths = set(self._rows(structures, "filepath"))
+
+        assert paths == {"messages/<dir>/<dir>/<file>.json", "ads_information/<file>.json"}
+
+    def test_the_top_level_section_and_the_depth_are_what_is_kept(self):
+        """What a bug report needs from a path: which section, how deep, what kind."""
+        import port.helpers.port_helpers as ph
+
+        body = ph.render_issue_page("Instagram", self._synthetic_export()).page.body
+        file_info = next(t for t in body.tables if t.id == "file_info")
+        paths = self._rows(file_info, "file_path")
+
+        assert "messages/<dir>/<dir>/<file>.json" in paths, "depth and section preserved"
+        assert all(p.endswith((".json", ".html")) for p in paths), "extension preserved"
+
+
 def test_review_data_prompt_default_is_not_review_only():
     import port.helpers.port_helpers as ph
     prompt = ph.generate_review_data_prompt(props.Translatable({"en": "d", "nl": "d"}), [])

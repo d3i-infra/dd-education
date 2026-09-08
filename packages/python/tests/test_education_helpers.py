@@ -10,6 +10,8 @@ import io
 import json
 import zipfile
 
+import pytest
+
 import port.helpers.extraction_helpers as eh
 from port.helpers.archive_set import ArchiveSet
 from port.helpers.extraction_helpers import (
@@ -156,3 +158,133 @@ class TestExtractZipFileInfo:
         df = extract_zip_file_info(buf)
         # Should only have the file, not the directory
         assert all("file.txt" in p for p in df["file_path"].values)
+
+
+class TestTheStructureOverviewIsBounded:
+    """`dict_denester` makes one row per JSON leaf, so an export with a year of messages
+    in one member flattens to a frame nobody can read and nobody should upload. Two caps
+    bound it: one per member, one per call."""
+
+    def _member_with(self, field_count: int) -> dict[str, bytes]:
+        return {"big.json": json.dumps({f"f{i}": i for i in range(field_count)}).encode()}
+
+    def test_a_member_under_the_cap_is_listed_whole(self):
+        df = extract_file_structures_from_zip(create_test_zip(self._member_with(10)))
+        assert len(df) == 10
+        assert eh.TRUNCATION_MARKER not in df["field_name"].values
+
+    def test_a_member_over_the_cap_is_cut_and_says_so(self):
+        over = eh.MAX_STRUCTURE_ROWS_PER_MEMBER + 37
+        df = extract_file_structures_from_zip(create_test_zip(self._member_with(over)))
+
+        assert len(df) == eh.MAX_STRUCTURE_ROWS_PER_MEMBER + 1, "the cap plus one marker row"
+        marker = df.iloc[-1]
+        assert marker["field_name"] == eh.TRUNCATION_MARKER
+        assert marker["filepath"] == "big.json"
+        assert marker["value"] == "<37 more>"
+
+    def test_a_csv_header_over_the_cap_is_cut_too(self):
+        over = eh.MAX_STRUCTURE_ROWS_PER_MEMBER + 5
+        header = ",".join(f"c{i}" for i in range(over))
+        row = ",".join("v" for _ in range(over))
+        df = extract_file_structures_from_zip(create_test_zip({"wide.csv": f"{header}\n{row}\n".encode()}))
+
+        assert len(df) == eh.MAX_STRUCTURE_ROWS_PER_MEMBER + 1
+        assert df.iloc[-1]["value"] == "<5 more>"
+
+    def test_the_total_cap_stops_the_scan_and_names_the_members_left(self, monkeypatch):
+        """Reaching the total cap leaves the remaining members unread, not merely
+        unlisted — the point of the cap is to stop the work, not to trim the output."""
+        monkeypatch.setattr(eh, "MAX_STRUCTURE_ROWS_PER_MEMBER", 10)
+        monkeypatch.setattr(eh, "MAX_STRUCTURE_ROWS_TOTAL", 25)
+
+        files = {f"m{i}.json": json.dumps({f"f{j}": j for j in range(10)}).encode() for i in range(8)}
+        buf = create_test_zip(files)
+
+        original_read = zipfile.ZipFile.read
+        read_calls: list[str] = []
+
+        def spy_read(self, name, *args, **kwargs):
+            read_calls.append(name)
+            return original_read(self, name, *args, **kwargs)
+
+        monkeypatch.setattr(zipfile.ZipFile, "read", spy_read)
+
+        df = extract_file_structures_from_zip(buf)
+
+        assert read_calls == ["m0.json", "m1.json", "m2.json"], "the fourth member is never read"
+        marker = df.iloc[-1]
+        assert marker["field_name"] == eh.TRUNCATION_MARKER
+        assert marker["filepath"] == "m3.json"
+        assert marker["value"] == "<5 more>", "m3 through m7"
+
+    def test_an_archive_set_is_capped_the_same_way(self, monkeypatch):
+        monkeypatch.setattr(eh, "MAX_STRUCTURE_ROWS_PER_MEMBER", 10)
+        monkeypatch.setattr(eh, "MAX_STRUCTURE_ROWS_TOTAL", 25)
+
+        part = create_test_zip(
+            {f"m{i}.json": json.dumps({f"f{j}": j for j in range(10)}).encode() for i in range(8)}
+        )
+        part.name = "part-1.zip"
+        part.size = len(part.getvalue())
+
+        df = extract_file_structures_from_zip(ArchiveSet([part]))
+
+        assert len(df) == 31, "three whole members, plus one marker"
+        assert df.iloc[-1]["field_name"] == eh.TRUNCATION_MARKER
+
+
+class TestArchiveSetMemberInfoIsCached:
+    """`extract_zip_file_info` asks for every member's metadata in turn. Reopening the
+    owning part per call reparsed one central directory once per member; the map is built
+    once instead."""
+
+    def _set_of(self, member_count: int) -> ArchiveSet:
+        part = create_test_zip({f"f{i}.json": b"{}" for i in range(member_count)})
+        part.name = "part-1.zip"
+        part.size = len(part.getvalue())
+        return ArchiveSet([part])
+
+    def test_the_parts_are_opened_once_however_many_members_are_asked_about(self, monkeypatch):
+        archive_set = self._set_of(12)
+
+        original_init = zipfile.ZipFile.__init__
+        opens: list[int] = []
+
+        def counting_init(self, *args, **kwargs):
+            opens.append(1)
+            return original_init(self, *args, **kwargs)
+
+        monkeypatch.setattr(zipfile.ZipFile, "__init__", counting_init)
+
+        for member in archive_set.members:
+            archive_set.member_info(member)
+
+        assert len(opens) == 1, "one pass over the one part, not one open per member"
+
+    def test_the_metadata_is_the_same_as_before_the_cache(self):
+        archive_set = self._set_of(3)
+        for member in archive_set.members:
+            info = archive_set.member_info(member)
+            assert info.filename == member
+            assert info.file_size == 2
+
+    def test_a_path_the_set_does_not_hold_is_a_key_error(self):
+        archive_set = self._set_of(2)
+        with pytest.raises(KeyError):
+            archive_set.member_info("nothing/here.json")
+
+    def test_a_path_owned_by_the_first_part_is_not_shadowed_by_a_later_part(self):
+        """Across-part duplicates resolve to the first part in canonical order, and the
+        cached map has to resolve them the same way `read_member` does."""
+        first = create_test_zip({"shared.json": b'{"a": 1}'})
+        first.name = "a-part.zip"
+        first.size = len(first.getvalue())
+        second = create_test_zip({"shared.json": b'{"a": 1, "b": 2, "c": 3}'})
+        second.name = "b-part.zip"
+        second.size = len(second.getvalue())
+
+        archive_set = ArchiveSet([second, first])
+
+        assert archive_set.part_index_of("shared.json") == 0
+        assert archive_set.member_info("shared.json").file_size == len(b'{"a": 1}')

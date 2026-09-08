@@ -74,7 +74,7 @@ def generate_retry_prompt(platform_name: str, multiple: bool = False) -> props.P
         text = props.Translatable(
             {
                 "en": f"Unfortunately, we cannot process your {platform_name} files. Continue, if you are sure that you selected the right files. Try again to select ALL the files.",
-                "nl": f"Helaas, kunnen we uw {platform_name} bestanden niet verwerken. Weet u zeker dat u de juiste bestanden heeft gekozen? Ga dan verder. Probeer opnieuw om ALLE bestanden te selecteren.",
+                "nl": f"Helaas, kunnen we je {platform_name} bestanden niet verwerken. Weet je zeker dat je de juiste bestanden hebt gekozen? Ga dan verder. Probeer opnieuw om ALLE bestanden te selecteren.",
                 "de": f"Leider können wir Ihre {platform_name}-Dateien nicht verarbeiten. Fahren Sie fort, wenn Sie sicher sind, dass Sie die richtigen Dateien ausgewählt haben. Versuchen Sie es erneut, um ALLE Dateien auszuwählen.",
                 "it": f"Purtroppo non possiamo elaborare i suoi file di {platform_name}. Continui se è sicuro di aver selezionato i file giusti. Riprovi per selezionare TUTTI i file.",
                 "es": f"Lamentablemente, no podemos procesar sus archivos de {platform_name}. Continúe si está seguro de que ha seleccionado los archivos correctos. Intente de nuevo para seleccionar TODOS los archivos.",
@@ -84,7 +84,7 @@ def generate_retry_prompt(platform_name: str, multiple: bool = False) -> props.P
         text = props.Translatable(
             {
                 "en": f"Unfortunately, we cannot process your {platform_name} file. Continue, if you are sure that you selected the right file. Try again to select a different file.",
-                "nl": f"Helaas, kunnen we uw {platform_name} bestand niet verwerken. Weet u zeker dat u het juiste bestand heeft gekozen? Ga dan verder. Probeer opnieuw als u een ander bestand wilt kiezen.",
+                "nl": f"Helaas, kunnen we je {platform_name} bestand niet verwerken. Weet je zeker dat je het juiste bestand hebt gekozen? Ga dan verder. Probeer opnieuw als je een ander bestand wilt kiezen.",
                 "de": f"Leider können wir Ihre {platform_name}-Datei nicht verarbeiten. Fahren Sie fort, wenn Sie sicher sind, dass Sie die richtige Datei ausgewählt haben. Versuchen Sie es erneut, um eine andere Datei auszuwählen.",
                 "it": f"Purtroppo non possiamo elaborare il suo file di {platform_name}. Continui se è sicuro di aver selezionato il file giusto. Riprovi per selezionare un file diverso.",
                 "es": f"Lamentablemente, no podemos procesar su archivo de {platform_name}. Continúe si está seguro de que ha seleccionado el archivo correcto. Intente de nuevo para seleccionar un archivo diferente.",
@@ -130,7 +130,7 @@ def generate_file_prompt(
     description = props.Translatable(
         {
             "en": "Please follow the download instructions and choose the file that you stored on your device.",
-            "nl": "Volg de downloadinstructies en kies het bestand dat u op uw apparaat heeft opgeslagen.",
+            "nl": "Volg de downloadinstructies en kies het bestand dat je op je apparaat hebt opgeslagen.",
             "de": "Bitte folgen Sie der Download-Anleitung und wählen Sie die Datei aus, die Sie auf Ihrem Gerät gespeichert haben.",
             "it": "Segua le istruzioni per il download e scelga il file che ha salvato sul suo dispositivo.",
             "es": "Siga las instrucciones de descarga y elija el archivo que ha guardado en su dispositivo.",
@@ -139,7 +139,7 @@ def generate_file_prompt(
     if multiple:
         description = props.Translatable({
             "en": "Please follow the download instructions and select ALL the files you received — Google Takeout usually delivers several zip files that belong together.",
-            "nl": "Volg de downloadinstructies en selecteer ALLE bestanden die u heeft ontvangen — Google Takeout levert meestal meerdere zipbestanden die bij elkaar horen.",
+            "nl": "Volg de downloadinstructies en selecteer ALLE bestanden die je hebt ontvangen — Google Takeout levert meestal meerdere zipbestanden die bij elkaar horen.",
             "de": "Bitte folgen Sie der Download-Anleitung und wählen Sie ALLE erhaltenen Dateien aus — Google Takeout liefert meist mehrere zusammengehörige ZIP-Dateien.",
             "it": "Segua le istruzioni per il download e selezioni TUTTI i file ricevuti — Google Takeout di solito fornisce più file ZIP appartenenti alla stessa esportazione.",
             "es": "Siga las instrucciones de descarga y seleccione TODOS los archivos recibidos — Google Takeout suele entregar varios archivos zip que van juntos.",
@@ -188,7 +188,7 @@ def generate_review_data_prompt(
         donate_question = props.Translatable(
             {
                 "en": "Do you want to share this data for research?",
-                "nl": "Wilt u deze gegevens delen voor onderzoek?",
+                "nl": "Wil je deze gegevens delen voor onderzoek?",
                 "de": "Möchten Sie diese Daten für die Forschung teilen?",
                 "it": "Vuole condividere questi dati per la ricerca?",
                 "es": "¿Desea compartir estos datos para la investigación?",
@@ -320,7 +320,7 @@ def generate_questionnaire() -> d3i_props.PropsUIPromptQuestionnaire:
     mc_question = props.Translatable(
         translations={
             "en": "How would you rate your overall experience?",
-            "nl": "Hoe zou u uw algemene ervaring beoordelen?",
+            "nl": "Hoe zou je je algemene ervaring beoordelen?",
             "de": "Wie würden Sie Ihre Gesamterfahrung bewerten?",
             "it": "Come valuterebbe la sua esperienza complessiva?",
             "es": "¿Cómo valoraría su experiencia general?",
@@ -344,7 +344,7 @@ def generate_questionnaire() -> d3i_props.PropsUIPromptQuestionnaire:
     checkbox_question = props.Translatable(
         translations={
             "en": "Which of our products have you purchased? (Select all that apply)",
-            "nl": "Welke van onze producten heeft u gekocht? (Selecteer alle toepasselijke)",
+            "nl": "Welke van onze producten heb je gekocht? (Selecteer alle toepasselijke)",
             "de": "Welche unserer Produkte haben Sie gekauft? (Wählen Sie alle zutreffenden aus)",
             "it": "Quali dei nostri prodotti ha acquistato? (Selezioni tutte le opzioni pertinenti)",
             "es": "¿Cuáles de nuestros productos ha comprado? (Seleccione todas las opciones que correspondan)",
@@ -409,7 +409,7 @@ def render_no_data_page(platform_name: str) -> CommandUIRender:
     body = props.PropsUIPromptConfirm(
         text=props.Translatable({
             "en": f"Unfortunately, no relevant data was found in your {platform_name} file.",
-            "nl": f"Helaas zijn er geen relevante gegevens gevonden in uw {platform_name} bestand.",
+            "nl": f"Helaas zijn er geen relevante gegevens gevonden in je {platform_name} bestand.",
             "de": f"Leider wurden in Ihrer {platform_name}-Datei keine relevanten Daten gefunden.",
             "it": f"Purtroppo non sono stati trovati dati rilevanti nel suo file di {platform_name}.",
             "es": f"Lamentablemente, no se han encontrado datos relevantes en su archivo de {platform_name}.",
@@ -445,7 +445,7 @@ def render_safety_error_page(platform_name: str, error: Exception) -> CommandUIR
     body = props.PropsUIPromptConfirm(
         text=props.Translatable({
             "en": f"Your {platform_name} file could not be processed: {error}",
-            "nl": f"Uw {platform_name} bestand kon niet worden verwerkt: {error}",
+            "nl": f"Je {platform_name} bestand kon niet worden verwerkt: {error}",
             "de": f"Ihre {platform_name}-Datei konnte nicht verarbeitet werden: {error}",
             "it": f"Non è stato possibile elaborare il suo file di {platform_name}: {error}",
             "es": f"No se ha podido procesar su archivo de {platform_name}: {error}",
@@ -477,7 +477,7 @@ def render_task_incomplete_page(platform_name: str) -> CommandUIRender:
     body = props.PropsUIPromptConfirm(
         text=props.Translatable({
             "en": "This task could not be completed. You can try again by refreshing this page. If the problem persists, please contact the researcher.",
-            "nl": "Deze taak kon niet worden voltooid. U kunt het opnieuw proberen door deze pagina te vernieuwen. Als het probleem aanhoudt, neem dan contact op met de onderzoeker.",
+            "nl": "Deze taak kon niet worden voltooid. Je kunt het opnieuw proberen door deze pagina te vernieuwen. Als het probleem aanhoudt, neem dan contact op met de onderzoeker.",
             "de": "Diese Aufgabe konnte nicht abgeschlossen werden. Sie können es erneut versuchen, indem Sie diese Seite aktualisieren. Wenn das Problem weiterhin besteht, wenden Sie sich bitte an den Forscher.",
             "it": "Non è stato possibile completare questa attività. Può riprovare aggiornando questa pagina. Se il problema persiste, contatti il ricercatore.",
             "es": "Esta tarea no se pudo completar. Puede intentarlo de nuevo actualizando esta página. Si el problema persiste, póngase en contacto con el investigador.",
@@ -513,7 +513,7 @@ def render_donate_failure_page(platform_name: str) -> CommandUIRender:
     body = props.PropsUIPromptConfirm(
         text=props.Translatable({
             "en": f"Unfortunately, your {platform_name} data could not be submitted. Please try again later.",
-            "nl": f"Helaas konden uw {platform_name} gegevens niet worden ingediend. Probeer het later opnieuw.",
+            "nl": f"Helaas konden je {platform_name} gegevens niet worden ingediend. Probeer het later opnieuw.",
             "de": f"Leider konnten Ihre {platform_name}-Daten nicht übermittelt werden. Bitte versuchen Sie es später erneut.",
             "it": f"Purtroppo non è stato possibile inviare i suoi dati di {platform_name}. Riprovi più tardi.",
             "es": f"Lamentablemente, no se han podido enviar sus datos de {platform_name}. Inténtelo de nuevo más tarde.",
@@ -564,7 +564,7 @@ def render_instructions_page(platform_name: str, image_url: str) -> CommandUIRen
     """Instruction page shown before the file prompt (education mode)."""
     header = props.Translatable({
         "en": f"Instructions to request your {platform_name} data",
-        "nl": f"Instructies om uw {platform_name} gegevens op te vragen",
+        "nl": f"Instructies om je {platform_name} gegevens op te vragen",
     })
     description = props.Translatable({
         "en": ("Please follow the instructions below carefully!\n"
@@ -572,7 +572,7 @@ def render_instructions_page(platform_name: str, image_url: str) -> CommandUIRen
                "when you are ready to go to the next step."),
         "nl": ("Volg de onderstaande instructies zorgvuldig op!\n"
                "Klik op de knop \"Doorgaan\" onderaan deze pagina "
-               "als u klaar bent om naar de volgende stap te gaan."),
+               "als je klaar bent om naar de volgende stap te gaan."),
     })
     return render_page(header, d3i_props.PropsUIPromptInstructions(description, image_url))
 
@@ -638,14 +638,50 @@ def generate_platform_selection_menu(platform_names: list[str]) -> d3i_props.Pro
 
 
 def generate_platform_completion_prompt() -> props.PropsUIPromptConfirm:
-    """Confirmation shown after a platform flow completes in the education menu:
-    offers to explore another platform, or stop (dd-education)."""
-    again = props.Translatable({"en": "Explore another platform", "nl": "Verken een ander platform"})
+    """Confirmation shown after a platform flow completes in the education menu.
+
+    Both buttons go back to the platform menu — the education menu loop has no exit
+    (ADR-0041), so there is no "stop" for a button to mean. They are labelled for the two
+    reasons a participant arrives here, not for two different outcomes: picking the next
+    platform, or simply leaving this one.
+    """
+    again = props.Translatable({
+        "en": "Explore another platform",
+        "nl": "Verken nog een platform",
+    })
+    back = props.Translatable({
+        "en": "Back to the menu",
+        "nl": "Terug naar het menu",
+    })
     text = props.Translatable({
         "en": "We hope you enjoyed exploring your digital footprint!",
         "nl": "We hopen dat je hebt genoten van het verkennen van je digitale voetafdruk!",
     })
-    return props.PropsUIPromptConfirm(text=text, ok=again, cancel=again)
+    return props.PropsUIPromptConfirm(text=text, ok=again, cancel=back)
+
+
+def render_platform_error_page(platform_name: str) -> CommandUIRender:
+    """Shown when a platform flow raises in the education menu (dd-education).
+
+    The menu has no host to hand a failure to and no exit to take (ADR-0041), so an
+    unexpected exception in one platform's flow must not end the session. This page says
+    that this export could not be read and sends the participant back to the menu; the
+    traceback stays in the browser console on ``education``'s module logger (ADR-0023).
+    """
+    header = props.Translatable({
+        "en": "Something went wrong",
+        "nl": "Er ging iets mis",
+    })
+    body = props.PropsUIPromptConfirm(
+        text=props.Translatable({
+            "en": f"Something went wrong while reading this {platform_name} export. "
+                  "You can try another platform or another file.",
+            "nl": f"Er ging iets mis bij het lezen van deze {platform_name}-export. "
+                  "Je kunt een ander platform of een ander bestand proberen.",
+        }),
+        ok=props.Translatable({"en": "Continue", "nl": "Doorgaan"}),
+    )
+    return render_page(header, body)
 
 
 def render_issue_page(platform_name: str, archive: SeekableBinaryReader | ArchiveSet) -> CommandUIRender:
@@ -654,6 +690,15 @@ def render_issue_page(platform_name: str, archive: SeekableBinaryReader | Archiv
     such as Google)."""
     file_structures_df = eh.extract_file_structures_from_zip(archive, infer_types=True)
     file_info_df = eh.extract_zip_file_info(archive)
+
+    # This report leaves the browser, so no member path in it may name a person: folder
+    # and file names in an export are routinely contact names. Only the shape survives
+    # (see eh.redact_member_path). The General DDP Analyzer, whose tables never leave the
+    # browser, keeps full paths.
+    if not file_structures_df.empty:
+        file_structures_df["filepath"] = file_structures_df["filepath"].map(eh.redact_member_path)
+    if not file_info_df.empty:
+        file_info_df["file_path"] = file_info_df["file_path"].map(eh.redact_member_path)
 
     tables = []
     if not file_structures_df.empty:
@@ -664,9 +709,11 @@ def render_issue_page(platform_name: str, archive: SeekableBinaryReader | Archiv
                 data_frame=file_structures_df,
                 description=props.Translatable({
                     "en": "This table contains the field names and value types found in the data package. "
-                          "Actual values have been replaced with their data types for privacy.",
+                          "Actual values have been replaced with their data types, and file and folder "
+                          "names with placeholders, for privacy.",
                     "nl": "Deze tabel bevat de veldnamen en waardetypen die in het datapakket zijn gevonden. "
-                          "Werkelijke waarden zijn vervangen door hun datatypes voor privacy.",
+                          "Werkelijke waarden zijn vervangen door hun datatypes, en bestands- en mapnamen "
+                          "door plaatsaanduidingen, voor je privacy.",
                 }),
             )
         )
@@ -677,8 +724,10 @@ def render_issue_page(platform_name: str, archive: SeekableBinaryReader | Archiv
                 title=props.Translatable({"en": "Folder Structure Overview", "nl": "Overzicht Mapstructuur"}),
                 data_frame=file_info_df,
                 description=props.Translatable({
-                    "en": "This table contains an overview of all files in the data package.",
-                    "nl": "Deze tabel bevat een overzicht van alle bestanden in het datapakket.",
+                    "en": "This table contains an overview of all files in the data package. "
+                          "File and folder names have been replaced with placeholders.",
+                    "nl": "Deze tabel bevat een overzicht van alle bestanden in het datapakket. "
+                          "Bestands- en mapnamen zijn vervangen door plaatsaanduidingen.",
                 }),
             )
         )
@@ -696,9 +745,9 @@ def render_issue_page(platform_name: str, archive: SeekableBinaryReader | Archiv
             ),
             "nl": (
                 "Het spijt ons dat de extractie niet werkte zoals verwacht. "
-                "Om ons te helpen verbeteren, kunt u een anoniem probleemrapport sturen.\n\n"
-                "De tabellen hieronder tonen de structuur van uw datapakket. "
-                "Werkelijke waarden zijn vervangen door datatypes om uw privacy te beschermen.\n\n"
+                "Om ons te helpen verbeteren, kun je een anoniem probleemrapport sturen.\n\n"
+                "De tabellen hieronder tonen de structuur van je datapakket. "
+                "Werkelijke waarden zijn vervangen door datatypes om je privacy te beschermen.\n\n"
                 "Deze gegevens worden opgeslagen op SurfDrive in Nederland en worden alleen "
                 "gebruikt om de extractiescripts te verbeteren.\n\n"
                 "Contact: DataDonation@uu.nl"

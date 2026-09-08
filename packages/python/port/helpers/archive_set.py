@@ -101,6 +101,7 @@ class ArchiveSet:
         )
         self.duplicates: Counter = Counter()
         self._owner: dict[str, int] = {}
+        self._info_by_path: dict[str, zipfile.ZipInfo] | None = None
         members: list[str] = []
         for index, part in enumerate(self._parts):
             seen_in_part: set[str] = set()
@@ -122,14 +123,38 @@ class ArchiveSet:
     def part_index_of(self, path: str) -> int:
         return self._owner[path]
 
+    def _info_map(self) -> dict[str, zipfile.ZipInfo]:
+        """Central-directory metadata for every member, built once and kept.
+
+        One pass over the parts answers every `member_info` call. Building it per call
+        instead reopened and reparsed a part's central directory once per member, so a
+        table over the whole set — the issue report's file overview — reparsed the same
+        directory thousands of times.
+
+        Only the entries this set resolves to are kept, so a path owned by an earlier
+        part is not shadowed by a later part's entry at the same name. Within one part a
+        repeated name resolves to its last central-directory entry, matching what
+        `getinfo` and `read_member` already do.
+        """
+        if self._info_by_path is None:
+            info_by_path: dict[str, zipfile.ZipInfo] = {}
+            for index, part in enumerate(self._parts):
+                with zipfile.ZipFile(part, "r") as zf:
+                    for info in zf.infolist():
+                        if self._owner.get(info.filename) == index:
+                            info_by_path[info.filename] = info
+            self._info_by_path = info_by_path
+        return self._info_by_path
+
     def member_info(self, path: str) -> zipfile.ZipInfo:
         """Return the owning part's central-directory metadata for `path`
         (size, modified time, ...) without reading the member's content —
         `ZipFile(part, "r")` only parses the central directory index, never
-        decompresses member data (ADR-0026)."""
-        part = self._parts[self._owner[path]]
-        with zipfile.ZipFile(part, "r") as zf:
-            return zf.getinfo(path)
+        decompresses member data (ADR-0026).
+
+        Raises KeyError for a path this set does not hold.
+        """
+        return self._info_map()[path]
 
     def read_member(self, path: str) -> bytes:
         """Read `path` from its owning (first-in-canonical-order) part.
