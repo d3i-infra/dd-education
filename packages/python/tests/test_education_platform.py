@@ -8,6 +8,12 @@ from port.helpers.flow_builder import FlowBuilder, TaskIncompleteError
 import port.platforms.education as education
 
 
+#: Stands in for the kind of detail a real extractor exception carries — a member path
+#: or a value out of the participant's own export. It must reach the local logger and
+#: nothing else.
+RAISED_DETAIL = "no field 'sender' in messages/inbox/synthetic_contact/message_1.json"
+
+
 def _payload(type_name, value=None):
     p = MagicMock(); p.__type__ = type_name; p.value = value; return p
 
@@ -23,6 +29,8 @@ class FakeFlow(FlowBuilder):
         yield CommandUIRender(MagicMock())
         if self.ending == "incomplete":
             raise TaskIncompleteError("abandoned")
+        if self.ending == "raises":
+            raise ValueError(RAISED_DETAIL)
         return
 
 
@@ -72,6 +80,54 @@ def test_incomplete_flow_returns_to_menu(fake_menu):
         assert type(back.page.body).__name__ == "PropsUIPromptPlatformSelection"
     finally:
         FakeFlow.ending = "return"
+
+
+def test_a_raising_flow_apologises_and_returns_to_menu(fake_menu):
+    """One platform's bug is not the end of the session: the menu has no exit, so an
+    unhandled exception has to come back as a page rather than as a dead generator."""
+    FakeFlow.ending = "raises"
+    try:
+        gen = education.process("s")
+        _advance(gen)
+        _advance(gen, _payload("PayloadString", "Fake"))
+        apology = _advance(gen, _payload("PayloadTrue"))
+
+        assert type(apology.page.body).__name__ == "PropsUIPromptConfirm"
+        text = apology.page.body.text.translations
+        assert "Fake" in text["en"] and "Fake" in text["nl"]
+        assert set(text) >= {"en", "nl"}
+
+        back = _advance(gen, _payload("PayloadTrue"))
+        assert type(back.page.body).__name__ == "PropsUIPromptPlatformSelection"
+    finally:
+        FakeFlow.ending = "return"
+
+
+def test_the_traceback_is_logged_locally_and_never_emitted(fake_menu, caplog):
+    """ADR-0023: the detail goes to this module's logger for the browser console; the
+    host-visible log stream carries none of it."""
+    FakeFlow.ending = "raises"
+    emitted = []
+    try:
+        with caplog.at_level("ERROR", logger="port.platforms.education"):
+            gen = education.process("s")
+            cmd = gen.send(None)
+            while True:
+                if cmd.__class__.__name__ == "CommandSystemLog":
+                    emitted.append(cmd)
+                    cmd = gen.send(None)
+                    continue
+                if type(cmd.page.body).__name__ == "PropsUIPromptConfirm":
+                    break
+                cmd = gen.send(_payload("PayloadString", "Fake"))
+    finally:
+        FakeFlow.ending = "return"
+
+    errors = [r for r in caplog.records if r.levelname == "ERROR"]
+    assert len(errors) == 1 and errors[0].exc_info is not None, "the traceback is logged once, locally"
+    assert RAISED_DETAIL in str(errors[0].exc_info[1])
+    for log_cmd in emitted:
+        assert RAISED_DETAIL not in str(getattr(log_cmd, "message", ""))
 
 
 def test_unknown_selection_re_renders_menu(fake_menu):

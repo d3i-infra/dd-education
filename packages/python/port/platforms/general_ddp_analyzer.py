@@ -37,7 +37,7 @@ class GeneralDDPAnalyzerFlow(FlowBuilder):
         super().__init__(session_id, PLATFORM_NAME)
         self.UI_TEXT["review_data_description"] = props.Translatable({
             "en": "Below you will find the structure of the files in your data package. This shows what types of data the platform stores about you, organized by file and folder.",
-            "nl": "Hieronder vindt u de structuur van de bestanden in uw datapakket. Dit laat zien welke soorten gegevens het platform over u opslaat, georganiseerd per bestand en map.",
+            "nl": "Hieronder vind je de structuur van de bestanden in je datapakket. Dit laat zien welke soorten gegevens het platform over jou opslaat, georganiseerd per bestand en map.",
         })
 
     def validate_file(self, archive: SeekableBinaryReader) -> validate.ValidateInput:

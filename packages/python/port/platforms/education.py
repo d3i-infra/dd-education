@@ -82,28 +82,28 @@ class PlatformEntry:
 PLATFORMS: dict[str, PlatformEntry] = {
     "YouTube": PlatformEntry("port.platforms.education", "YouTubeOnlyGoogleFlow", "youtube_instructions.svg",
         props.Translatable({"en": "Below you will find your YouTube watch history, search history, subscriptions, and comments, from your Google Takeout export.",
-                            "nl": "Hieronder vindt u uw YouTube-kijkgeschiedenis, zoekgeschiedenis, abonnementen en reacties, uit uw Google Takeout-export."})),
+                            "nl": "Hieronder vind je je YouTube-kijkgeschiedenis, zoekgeschiedenis, abonnementen en reacties, uit je Google Takeout-export."})),
     "Google": PlatformEntry("port.platforms.google", "GoogleFlow", None,
         props.Translatable({"en": "Below you will find the tables Google's Takeout export contains about your account: your ads, Discover, and Chrome history, your YouTube activity, your Google search history, and your News activity.",
-                            "nl": "Hieronder vindt u de tabellen die de Takeout-export van Google over uw account bevat: uw advertentie-, Discover- en Chrome-geschiedenis, uw YouTube-activiteit, uw Google-zoekgeschiedenis en uw Nieuws-activiteit."})),
-    "Netflix": PlatformEntry("port.platforms.netflix", "NetflixFlow", "netflix_instructions.svg",
+                            "nl": "Hieronder vind je de tabellen die de Takeout-export van Google over je account bevat: je advertentie-, Discover- en Chrome-geschiedenis, je YouTube-activiteit, je Google-zoekgeschiedenis en je Nieuws-activiteit."})),
+    "Netflix": PlatformEntry("port.platforms.netflix", "NetflixFlow", "netflix_instructions.webp",
         props.Translatable({"en": "Below you will find a curated selection of your Netflix data, including your account, devices, viewing activity, ratings, and search history.",
-                            "nl": "Hieronder vindt u een samengestelde selectie van uw Netflix-gegevens, waaronder uw account, apparaten, kijkactiviteit, beoordelingen en zoekgeschiedenis."})),
+                            "nl": "Hieronder vind je een samengestelde selectie van je Netflix-gegevens, waaronder je account, apparaten, kijkactiviteit, beoordelingen en zoekgeschiedenis."})),
     "Instagram": PlatformEntry("port.platforms.instagram", "InstagramFlow", "instagram_instructions.svg",
         props.Translatable({"en": "Below you will find the tables Instagram's export contains about your account: your account information, inferred ad-targeting categories, your off-platform link and login history, the locations and device details Instagram has inferred or stored, and the posts, videos, ads, comments, and likes recorded from your activity on Instagram.",
-                            "nl": "Hieronder vindt u de tabellen die de export van Instagram over uw account bevat: uw accountgegevens, afgeleide advertentietargetingcategorieën, uw link- en logingeschiedenis buiten het platform, de locatie- en apparaatgegevens die Instagram heeft afgeleid of opgeslagen, en de berichten, video's, advertenties, reacties en likes die zijn geregistreerd van uw activiteit op Instagram."})),
+                            "nl": "Hieronder vind je de tabellen die de export van Instagram over je account bevat: je accountgegevens, afgeleide advertentietargetingcategorieën, je link- en logingeschiedenis buiten het platform, de locatie- en apparaatgegevens die Instagram heeft afgeleid of opgeslagen, en de berichten, video's, advertenties, reacties en likes die zijn geregistreerd van je activiteit op Instagram."})),
     "Facebook": PlatformEntry("port.platforms.facebook", "FacebookFlow", None,
         props.Translatable({"en": "Below you will find the tables Facebook's export contains about your account: the contact lists and friend suggestions Facebook has kept on file, your search history, the ad topics and advertisers linked to you, your activity off Facebook, your posts, comments, and reactions, and the groups, pages, and profiles you follow.",
-                            "nl": "Hieronder vindt u de tabellen die de export van Facebook over uw account bevat: de contactenlijsten en vriendschapssuggesties die Facebook heeft bewaard, uw zoekgeschiedenis, de advertentieonderwerpen en adverteerders die aan u zijn gekoppeld, uw activiteit buiten Facebook, uw berichten, opmerkingen en reacties, en de groepen, pagina's en profielen die u volgt."})),
-    "LinkedIn": PlatformEntry("port.platforms.linkedin", "LinkedInFlow", "linkedin_instructions.png",
+                            "nl": "Hieronder vind je de tabellen die de export van Facebook over je account bevat: de contactenlijsten en vriendschapssuggesties die Facebook heeft bewaard, je zoekgeschiedenis, de advertentieonderwerpen en adverteerders die aan jou zijn gekoppeld, je activiteit buiten Facebook, je berichten, opmerkingen en reacties, en de groepen, pagina's en profielen die je volgt."})),
+    "LinkedIn": PlatformEntry("port.platforms.linkedin", "LinkedInFlow", "linkedin_instructions.webp",
         props.Translatable({"en": "Below you will find the attributes LinkedIn has inferred about you for ad targeting, your contact and registration details on file, and the tables LinkedIn's export contains about your connections, reactions, search queries, and other activity.",
-                            "nl": "Hieronder vindt u de kenmerken die LinkedIn over u heeft afgeleid voor advertentiedoeleinden, uw contact- en registratiegegevens, en de tabellen die de export van LinkedIn bevat over uw connecties, reacties, zoekopdrachten en overige activiteit."})),
-    "WhatsApp": PlatformEntry("port.platforms.whatsapp", "WhatsAppFlow", "whatsapp_instructions.png",
+                            "nl": "Hieronder vind je de kenmerken die LinkedIn over jou heeft afgeleid voor advertentiedoeleinden, je contact- en registratiegegevens, en de tabellen die de export van LinkedIn bevat over je connecties, reacties, zoekopdrachten en overige activiteit."})),
+    "WhatsApp": PlatformEntry("port.platforms.whatsapp", "WhatsAppFlow", "whatsapp_instructions.webp",
         props.Translatable({"en": "Below you will find your group chat's messages, emoji usage, and per-participant statistics.",
-                            "nl": "Hieronder vindt u de berichten van uw groepschat, het emoji-gebruik en statistieken per deelnemer."})),
+                            "nl": "Hieronder vind je de berichten van je groepschat, het emoji-gebruik en statistieken per deelnemer."})),
     "ChatGPT": PlatformEntry("port.platforms.chatgpt", "ChatGPTFlow", "chatgpt_instructions.svg",
         props.Translatable({"en": "Below you will find the account details OpenAI has on file and your conversations with ChatGPT.",
-                            "nl": "Hieronder vindt u de accountgegevens die OpenAI heeft vastgelegd en uw gesprekken met ChatGPT."})),
+                            "nl": "Hieronder vind je de accountgegevens die OpenAI heeft vastgelegd en je gesprekken met ChatGPT."})),
     "General DDP Analyzer": PlatformEntry("port.platforms.general_ddp_analyzer", "GeneralDDPAnalyzerFlow", None, None),
 }
 
@@ -133,6 +133,14 @@ def process(session_id: str):
             yield from _build_flow(session_id, entry).start_flow()
         except TaskIncompleteError as e:
             logger.info("Flow ended without completion (%s); back to menu", e.reason)
+            continue
+        except Exception:
+            # One platform's bug must not end the session: this menu has no host to hand
+            # a failure to and no exit to take (ADR-0041), so an unhandled exception is
+            # apologised for and the menu comes back. The traceback stays on this module's
+            # logger — local diagnostics only, never emit_log (ADR-0023).
+            logger.exception("Flow for %s raised; back to menu", selection.value)
+            _ = yield ph.render_platform_error_page(selection.value)
             continue
         _ = yield ph.render_page(
             props.Translatable({"en": "Exploration Complete", "nl": "Verkenning Voltooid"}),
