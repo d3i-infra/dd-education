@@ -16,8 +16,8 @@ defaults to `True` and the flow does donate.
 
 Run the tool at `/#/port`; a landing page, an about page, and a privacy-policy page
 live at `/`, `/#/about`, and `/#/privacy-policy`. The platform menu offers YouTube,
-Google, Netflix, Instagram, LinkedIn, WhatsApp, ChatGPT, and a General DDP Analyzer
-for exports that don't fit those categories.
+Google, Netflix, Instagram, Facebook, LinkedIn, WhatsApp, ChatGPT, and a General DDP
+Analyzer for exports that don't fit those categories.
 
 For detailed tutorials and API reference on the upstream architecture this fork
 builds on, see the [documentation site](https://d3i-infra.github.io/data-donation-task/).
@@ -86,6 +86,13 @@ sink; each one stubs `/data-submission` itself before driving the flow.
 | `pnpm generate-config <platform>` | Generate `configs/<platform>_config.json` from extractor docstrings |
 | `pnpm run build` | Full production build (Python wheel + feldspar + data-collector) |
 | `pnpm doctor` | Check environment setup (13 checks) |
+
+Build-time variables the data-collector reads:
+
+| Variable | Description |
+|---|---|
+| `VITE_PLATFORM` | Which study flow the build ships (`education` for the education tool) |
+| `VITE_ISSUE_REPORT_URL` | Where the education tool PUTs a submitted issue report. Overrides a working default — the Cloudflare worker this study's reports already go to, whose reports are stored on SurfDrive in the Netherlands — so a build that sets nothing keeps working. Set it if your fork collects its own reports. |
 
 The Python suite (`pnpm test:py`) includes canaries that run each menu
 platform's extractors against real DDP exports, skipping cleanly when a
@@ -226,7 +233,8 @@ per-platform flows above into the menu below.
 LinkedIn, Instagram, Facebook, YouTube, TikTok, Netflix, ChatGPT, WhatsApp, X, Chrome
 are the platforms this codebase's extractors support. This fork's menu wires up a
 subset of them plus a Google Takeout flow and a General DDP Analyzer: YouTube,
-Google, Netflix, Instagram, LinkedIn, WhatsApp, ChatGPT, General DDP Analyzer.
+Google, Netflix, Instagram, Facebook, LinkedIn, WhatsApp, ChatGPT, General DDP
+Analyzer.
 
 ## Citation
 
@@ -247,4 +255,4 @@ If you use this repository in your research, please cite it as follows:
 }
 ```
 
-You can find the full citation details in the [`CITATION.cff`](CITATION.cff) file.
+See [CHANGELOG.md](CHANGELOG.md) for what this fork changed on top of that work.

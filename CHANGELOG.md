@@ -45,6 +45,21 @@ work landed as these stories:
 * **Consent review-only mode** — the consent prompt gained a review-only
   mode: a participant inspects their extracted tables and can report an
   issue, but the flow never donates.
+* **Facebook menu entry** — the Facebook extractors and config come from the
+  algosoc-2026 fork, ported unchanged, and Facebook joins the menu.
+* **New figure types** — the visualization plugin gained top-N bars (a long
+  tail collapsed into a "top 15" chart), stat tiles (a row of "big number,
+  small label" summaries) and heatmaps (calendar and weekday-by-hour), all
+  configured from a table's `visualizations` block. The Python side passes
+  those blocks through untouched, so no extractor changed.
+* **Review-page layout** — the review-only consent page got its own layout:
+  per-table cards, figures above the table, and platform chips for
+  navigation. Study mode keeps upstream's layout unchanged.
+* **Table curation** — the menu platforms' tables were chosen, ordered and
+  described for a learner rather than a researcher: plain one- or two-sentence
+  descriptions, new extractors where a table was worth showing and missing,
+  and per-table figures. Netflix, Instagram, ChatGPT, LinkedIn, WhatsApp,
+  YouTube/Google and Facebook each went through this pass.
 
 ## [Unreleased]
 
