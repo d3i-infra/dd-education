@@ -91,3 +91,24 @@ def test_every_menu_entry_imports():
 def test_config_validates():
     from port.helpers.port_config_validator import validate_or_raise
     validate_or_raise("education")
+
+
+def test_youtube_and_google_entries():
+    yt = education.PLATFORMS["YouTube"]
+    assert (yt.module, yt.cls) == ("port.platforms.education", "YouTubeOnlyGoogleFlow")
+    g = education.PLATFORMS["Google"]
+    assert (g.module, g.cls) == ("port.platforms.google", "GoogleFlow")
+    flow = education._build_flow("s", yt)
+    assert "YouTube" in flow.UI_TEXT["submit_file_header"].translations["en"]
+    assert "Google" not in flow.UI_TEXT["submit_file_header"].translations["en"]
+
+
+def test_youtube_only_flow_filters_tables():
+    from collections import Counter
+    from unittest.mock import MagicMock, patch
+    from port.api.d3i_props import ExtractionResult
+    tables = [MagicMock(id=i) for i in ("youtube_watch_history", "search_history", "youtube_comments")]
+    with patch("port.platforms.google.GoogleFlow.extract_data",
+               return_value=ExtractionResult(tables=tables, errors=Counter())):
+        out = education.YouTubeOnlyGoogleFlow("s").extract_data(MagicMock(), MagicMock())
+    assert [t.id for t in out.tables] == ["youtube_watch_history", "youtube_comments"]

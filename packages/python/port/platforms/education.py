@@ -22,12 +22,32 @@ import logging
 
 import port.api.props as props
 import port.helpers.port_helpers as ph
+from port.api.d3i_props import ExtractionResult
 from port.helpers.flow_builder import FlowBuilder, TaskIncompleteError
+from port.platforms.google import GoogleFlow
 
 logger = logging.getLogger(__name__)
 
 #: No extractors of its own; the validator requires the attribute (ADR-0029).
 EXTRACTOR_REGISTRY: dict = {}
+
+#: Table id prefix shared by the four YouTube tables extracted from a Google Takeout.
+YOUTUBE_TABLE_PREFIX = "youtube_"
+
+
+class YouTubeOnlyGoogleFlow(GoogleFlow):
+    """The Google Takeout flow, showing only its YouTube tables (education menu entry).
+
+    The YouTube exports on hand for this study are HTML Takeout, which
+    ``platforms.youtube`` cannot read (JSON/CSV only). Google's flow reads YouTube
+    history from either format, in seven locales, so this entry reuses it wholesale
+    and filters the result down to the YouTube tables for a focused menu item.
+    """
+
+    def extract_data(self, archive_set, validation) -> ExtractionResult:
+        result = super().extract_data(archive_set, validation)
+        kept = [t for t in result.tables if t.id.startswith(YOUTUBE_TABLE_PREFIX)]
+        return ExtractionResult(tables=kept, errors=result.errors)
 
 
 @dataclass(frozen=True)
@@ -36,12 +56,17 @@ class PlatformEntry:
     cls: str
     instruction_image: str | None
     review_description: props.Translatable | None
+    display_name: str | None = None
 
 
 PLATFORMS: dict[str, PlatformEntry] = {
-    "YouTube": PlatformEntry("port.platforms.youtube", "YouTubeFlow", "youtube_instructions.svg",
+    "YouTube": PlatformEntry("port.platforms.education", "YouTubeOnlyGoogleFlow", "youtube_instructions.svg",
         props.Translatable({"en": "Below you will find a curated selection of your YouTube data.",
-                            "nl": "Hieronder vindt u een samengestelde selectie van uw YouTube-gegevens."})),
+                            "nl": "Hieronder vindt u een samengestelde selectie van uw YouTube-gegevens."}),
+        display_name="YouTube"),
+    "Google": PlatformEntry("port.platforms.google", "GoogleFlow", None,
+        props.Translatable({"en": "Below you will find a selection of what Google keeps about you: your YouTube history, searches, Chrome history, ads and more.",
+                            "nl": "Hieronder vindt u een selectie van wat Google over u bewaart: uw YouTube-geschiedenis, zoekopdrachten, Chrome-geschiedenis, advertenties en meer."})),
     "Netflix": PlatformEntry("port.platforms.netflix", "NetflixFlow", "netflix_instructions.svg",
         props.Translatable({"en": "Below you will find a curated selection of your Netflix data. This includes your viewing history, ratings, and search activity. Try searching through the tables to explore what Netflix knows about your watching habits.",
                             "nl": "Hieronder vindt u een samengestelde selectie van uw Netflix-gegevens. Dit omvat uw kijkgeschiedenis, beoordelingen en zoekactiviteit. Probeer door de tabellen te zoeken om te ontdekken wat Netflix weet over uw kijkgedrag."})),
@@ -70,6 +95,11 @@ def _build_flow(session_id: str, entry: PlatformEntry) -> FlowBuilder:
     flow.instruction_image = entry.instruction_image
     if entry.review_description is not None:
         flow.UI_TEXT["review_data_description"] = entry.review_description
+    if entry.display_name and entry.display_name != flow.platform_name:
+        flow.UI_TEXT["submit_file_header"] = props.Translatable({
+            "en": f"Select your {entry.display_name} files", "nl": f"Selecteer uw {entry.display_name} bestanden"})
+        flow.UI_TEXT["review_data_header"] = props.Translatable({
+            "en": f"Your {entry.display_name} data", "nl": f"Uw {entry.display_name} gegevens"})
     return flow
 
 
