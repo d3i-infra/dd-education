@@ -19,10 +19,13 @@ from port.platforms.linkedin import ad_targeting_to_df, contact_info_to_df
 # the IDENTICAL value ("Job Titles" at two positions) — mirrors a real finding
 # on the LinkedIn basic-archive fixture, where Ad_Targeting.csv genuinely
 # repeats some header names with duplicate content. The reshape must not
-# double-count that column.
+# double-count that column. Also covers one column per Kind (Job Titles:
+# profile, Company Connections: network, Member Age: derived) plus one column
+# absent from AD_TARGETING_CATEGORY_KIND (Unmapped Category) to exercise the
+# "unclassified" fallback.
 AD_TARGETING_CSV = (
-    "Member Age,Job Titles,Company Names,Buyer Groups,Job Titles\n"
-    "25-34,Test Engineer;Test Manager,Test Corp,,Test Engineer;Test Manager\n"
+    "Member Age,Job Titles,Company Names,Company Connections,Buyer Groups,Job Titles,Unmapped Category\n"
+    "25-34,Test Engineer;Test Manager,Test Corp,Other Corp,,Test Engineer;Test Manager,Mystery Value\n"
 )
 
 PHONE_NUMBERS_CSV = (
@@ -61,13 +64,26 @@ class TestAdTargeting:
     def test_reshapes_wide_row_to_long(self):
         reader = _reader_for({"Ad_Targeting.csv": AD_TARGETING_CSV})
         out = ad_targeting_to_df(reader, Counter())
-        assert list(out.columns) == ["Category", "Value"]
+        assert list(out.columns) == ["Category", "Kind", "Value"]
         # Member Age (1) + Job Titles (2, deduplicated across its repeat) +
-        # Company Names (1) = 4 rows. Buyer Groups is empty and contributes
-        # nothing.
-        assert len(out) == 4
+        # Company Names (1) + Company Connections (1) + Unmapped Category (1)
+        # = 6 rows. Buyer Groups is empty and contributes nothing.
+        assert len(out) == 6
         assert set(out.loc[out["Category"] == "Job Titles", "Value"]) == {"Test Engineer", "Test Manager"}
         assert (out["Category"] == "Buyer Groups").sum() == 0
+
+    def test_classifies_kind_by_category(self):
+        reader = _reader_for({"Ad_Targeting.csv": AD_TARGETING_CSV})
+        out = ad_targeting_to_df(reader, Counter())
+
+        def kind_for(category):
+            return set(out.loc[out["Category"] == category, "Kind"])
+
+        assert kind_for("Job Titles") == {"profile"}
+        assert kind_for("Company Names") == {"profile"}
+        assert kind_for("Company Connections") == {"network"}
+        assert kind_for("Member Age") == {"derived"}
+        assert kind_for("Unmapped Category") == {"unclassified"}
 
     def test_deduplicates_identical_repeated_columns(self):
         """The real fixture repeats some Ad_Targeting.csv column names with

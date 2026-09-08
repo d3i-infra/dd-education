@@ -15,17 +15,21 @@
     {
       "id": "linkedin_ad_targeting",
       "title": {
-        "en": "Everything LinkedIn has inferred about you",
-        "nl": "Alles wat LinkedIn over jou heeft afgeleid"
+        "en": "What LinkedIn uses to target you with ads",
+        "nl": "Waarmee LinkedIn je advertenties richt"
       },
       "description": {
-        "en": "The inferred attributes LinkedIn uses to target you with ads, reshaped from Ad_Targeting.csv.",
-        "nl": "De afgeleide kenmerken die LinkedIn gebruikt om je te targeten met advertenties, uit Ad_Targeting.csv."
+        "en": "The attributes LinkedIn uses to target you with ads, from Ad_Targeting.csv: some are from your profile, some from your network, and some LinkedIn derived itself.",
+        "nl": "De kenmerken die LinkedIn gebruikt om je advertenties te richten, uit Ad_Targeting.csv: sommige komen van je profiel, sommige van je netwerk, en sommige heeft LinkedIn zelf afgeleid."
       },
       "headers": {
         "Category": {
           "en": "Category",
           "nl": "Categorie"
+        },
+        "Kind": {
+          "en": "Kind",
+          "nl": "Soort"
         },
         "Value": {
           "en": "Value",
@@ -64,15 +68,39 @@
               }
             }
           ]
+        },
+        {
+          "title": {
+            "en": "Where these attributes come from",
+            "nl": "Waar deze kenmerken vandaan komen"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Kind",
+            "label": {
+              "en": "Kind",
+              "nl": "Soort"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Number of values",
+                "nl": "Aantal waarden"
+              }
+            }
+          ]
         }
       ],
       "extractor": "ad_targeting_to_df",
       "documentation": {
-        "summary": "Each row is one inferred attribute value from LinkedIn's ad-targeting profile of the participant, reshaped from a single wide row into one row per value.",
+        "summary": "Each row is one attribute value from LinkedIn's ad-targeting profile of the participant, reshaped from a single wide row into one row per value, with the kind of attribute it is.",
         "source_file": "Ad_Targeting.csv",
         "columns": {
           "Category": "The source column this value came from (e.g. Job Titles, Member Interests).",
-          "Value": "One inferred value LinkedIn has attached to the participant under that category."
+          "Kind": "Whether the attribute came from the participant's profile, from their network, or was derived by LinkedIn.",
+          "Value": "One value LinkedIn has attached to the participant under that category."
         }
       }
     },

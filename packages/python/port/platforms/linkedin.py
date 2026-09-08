@@ -89,6 +89,51 @@ DDP_CATEGORIES = [
     ),
 ]
 
+#: ``Ad_Targeting.csv`` column (``Category``) to the kind of attribute it
+#: holds, for ``ad_targeting_to_df``. LinkedIn mixes attributes the
+#: participant declared on their profile, attributes derived from their
+#: network, and segments LinkedIn itself infers — this says which is which.
+#: A column not listed here maps to "unclassified" rather than a guess.
+AD_TARGETING_CATEGORY_KIND: dict[str, str] = {
+    # profile: declared by the participant on their LinkedIn profile.
+    "Company Names": "profile",
+    "Degrees": "profile",
+    "degreeClass": "profile",
+    "Member Schools": "profile",
+    "Fields of Study": "profile",
+    "Graduation Year": "profile",
+    "Member Groups": "profile",
+    "Job Titles": "profile",
+    "Profile Locations": "profile",
+    "Interface Locales": "profile",
+    "interfaceLocale": "profile",
+    # network: derived from the participant's LinkedIn connections/follows.
+    "Company Connections": "network",
+    "Company Follower of": "network",
+    # derived: inferred or built by LinkedIn, not declared or connection-based.
+    # Member Skills includes skills LinkedIn infers, not only the ones listed
+    # on the profile.
+    "Member Age": "derived",
+    "Member Gender": "derived",
+    "Buyer Groups": "derived",
+    "Company Category": "derived",
+    "Company Size": "derived",
+    "Company Growth Rate": "derived",
+    "Company Industries": "derived",
+    "Company Revenue": "derived",
+    "Devices": "derived",
+    "Function By Size": "derived",
+    "Job Functions": "derived",
+    "Job Seniorities": "derived",
+    "Years of Experience": "derived",
+    "Member Interests": "derived",
+    "Member Traits": "derived",
+    "High Value Audience Segments": "derived",
+    "Standard Audience Segments": "derived",
+    "Member Skills": "derived",
+}
+
+
 def strip_notes(b: io.BytesIO) -> io.BytesIO:
     """
     Strip notes LinkedIn puts at the start of CSV files
@@ -104,14 +149,18 @@ def strip_notes(b: io.BytesIO) -> io.BytesIO:
 
 
 def ad_targeting_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
-    """Extract LinkedIn's complete inferred-attribute profile of the participant.
+    """Extract what LinkedIn uses to target the participant with ads.
 
     ``Ad_Targeting.csv`` is a single wide row of roughly 35 columns, each a
     semicolon-separated list (inferred age bracket, employers, schools, job
     titles, skills, audience segments, and more). This reshapes that one row
-    into a long ``Category``/``Value`` table — one row per non-empty
+    into a long ``Category``/``Kind``/``Value`` table — one row per non-empty
     semicolon-separated entry — so it can be read as a table and fed a
-    wordcloud or bar chart at all.
+    wordcloud or bar chart at all. ``Kind`` classifies each ``Category`` via
+    ``AD_TARGETING_CATEGORY_KIND`` as "profile" (declared by the participant),
+    "network" (derived from connections/follows), or "derived" (inferred or
+    built by LinkedIn); a column not in that mapping gets "unclassified"
+    rather than a guess.
 
     Read via ``reader.raw`` and a positional ``csv.reader`` rather than
     ``reader.csv`` (which uses ``csv.DictReader``): the real export repeats
@@ -133,7 +182,7 @@ def ad_targeting_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFram
     Returns
     -------
     pd.DataFrame
-        Columns: ``Category``, ``Value``. One row per non-empty
+        Columns: ``Category``, ``Kind``, ``Value``. One row per non-empty
         semicolon-separated entry across every source column.
         Empty DataFrame when the file is absent, holds no data row, or
         parsing fails.
@@ -141,11 +190,12 @@ def ad_targeting_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFram
     Table documentation::
 
         {
-          "summary": "Each row is one inferred attribute value from LinkedIn's ad-targeting profile of the participant, reshaped from a single wide row into one row per value.",
+          "summary": "Each row is one attribute value from LinkedIn's ad-targeting profile of the participant, reshaped from a single wide row into one row per value, with the kind of attribute it is.",
           "source_file": "Ad_Targeting.csv",
           "columns": {
             "Category": "The source column this value came from (e.g. Job Titles, Member Interests).",
-            "Value": "One inferred value LinkedIn has attached to the participant under that category."
+            "Kind": "Whether the attribute came from the participant's profile, from their network, or was derived by LinkedIn.",
+            "Value": "One value LinkedIn has attached to the participant under that category."
           }
         }
 
@@ -154,15 +204,16 @@ def ad_targeting_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFram
         {
           "id": "linkedin_ad_targeting",
           "title": {
-            "en": "Everything LinkedIn has inferred about you",
-            "nl": "Alles wat LinkedIn over jou heeft afgeleid"
+            "en": "What LinkedIn uses to target you with ads",
+            "nl": "Waarmee LinkedIn je advertenties richt"
           },
           "description": {
-            "en": "The inferred attributes LinkedIn uses to target you with ads, reshaped from Ad_Targeting.csv.",
-            "nl": "De afgeleide kenmerken die LinkedIn gebruikt om u te targeten met advertenties, uit Ad_Targeting.csv."
+            "en": "The attributes LinkedIn uses to target you with ads, from Ad_Targeting.csv: some are from your profile, some from your network, and some LinkedIn derived itself.",
+            "nl": "De kenmerken die LinkedIn gebruikt om je advertenties te richten, uit Ad_Targeting.csv: sommige komen van je profiel, sommige van je netwerk, en sommige heeft LinkedIn zelf afgeleid."
           },
           "headers": {
             "Category": {"en": "Category", "nl": "Categorie"},
+            "Kind": {"en": "Kind", "nl": "Soort"},
             "Value": {"en": "Value", "nl": "Waarde"}
           },
           "visualizations": [
@@ -183,6 +234,15 @@ def ad_targeting_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFram
               "type": "bar",
               "group": {"column": "Category", "label": {"en": "Category", "nl": "Categorie"}},
               "values": [{"aggregate": "count", "label": {"en": "Number of inferred values", "nl": "Aantal afgeleide waarden"}}]
+            },
+            {
+              "title": {
+                "en": "Where these attributes come from",
+                "nl": "Waar deze kenmerken vandaan komen"
+              },
+              "type": "bar",
+              "group": {"column": "Kind", "label": {"en": "Kind", "nl": "Soort"}},
+              "values": [{"aggregate": "count", "label": {"en": "Number of values", "nl": "Aantal waarden"}}]
             }
           ]
         }
@@ -212,10 +272,11 @@ def ad_targeting_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFram
                 if key in seen:
                     continue
                 seen.add(key)
+                kind = AD_TARGETING_CATEGORY_KIND.get(column, "unclassified")
                 for token in value.split(";"):
                     token = token.strip()
                     if token:
-                        records.append({"Category": column, "Value": token})
+                        records.append({"Category": column, "Kind": kind, "Value": token})
         out = pd.DataFrame(records)
     except Exception as e:
         logger.error("Data extraction error: %s", e)
