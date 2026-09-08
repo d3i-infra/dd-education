@@ -20,8 +20,8 @@
         "nl": "Je groepsgesprek"
       },
       "description": {
-        "en": "The messages in your WhatsApp group chat, with sender, timestamp, and message text.",
-        "nl": "De berichten in uw WhatsApp-groepschat, met afzender, tijdstempel en berichttekst."
+        "en": "The messages in your WhatsApp group chat, with sender, timestamp, and message text, from the chat export text file WhatsApp names after the chat.",
+        "nl": "De berichten in uw WhatsApp-groepschat, met afzender, tijdstempel en berichttekst, uit het chatexportbestand dat WhatsApp naar de chat vernoemt."
       },
       "headers": {
         "Timestamp": {
@@ -166,8 +166,8 @@
         "nl": "De 100 meest gebruikte emojis in de groep"
       },
       "description": {
-        "en": "The 100 most used emojis in the group chat, ranked by how often each was used.",
-        "nl": "De 100 meest gebruikte emojis in de groepschat, gerangschikt naar hoe vaak elke emoji is gebruikt."
+        "en": "The 100 most used emojis in the group chat, ranked by how often each was used, from the chat export text file WhatsApp names after the chat.",
+        "nl": "De 100 meest gebruikte emojis in de groepschat, gerangschikt naar hoe vaak elke emoji is gebruikt, uit het chatexportbestand dat WhatsApp naar de chat vernoemt."
       },
       "headers": {
         "Emoji": {
@@ -223,8 +223,8 @@
         "nl": "Chatstatistieken per gebruiker"
       },
       "description": {
-        "en": "Messaging statistics for each participant in the group chat, such as who they interact with most.",
-        "nl": "Berichtenstatistieken voor elke deelnemer aan de groepschat, zoals met wie ze het meest interactie hebben."
+        "en": "Messaging statistics for each participant in the group chat, such as who they interact with most, from the chat export text file WhatsApp names after the chat.",
+        "nl": "Berichtenstatistieken voor elke deelnemer aan de groepschat, zoals met wie ze het meest interactie hebben, uit het chatexportbestand dat WhatsApp naar de chat vernoemt."
       },
       "headers": {
         "User": {

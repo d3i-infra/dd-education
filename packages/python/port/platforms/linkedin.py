@@ -351,13 +351,21 @@ def company_follows_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataF
           "id": "linked_in_company_follows",
           "title": {"en": "Companies you follow", "nl": "Bedrijven die je volgt"},
           "description": {
-            "en": "List of companies you are following on LinkedIn",
-            "nl": "Lijst van bedrijven die je volgt op LinkedIn"
+            "en": "The companies you follow on LinkedIn, from Company Follows.csv.",
+            "nl": "De bedrijven die u op LinkedIn volgt, uit Company Follows.csv."
           },
           "headers": {
             "Organization": {"en": "Organization", "nl": "Organisatie"},
             "Followed On": {"en": "Followed On", "nl": "Gevolgd op"}
-          }
+          },
+          "visualizations": [
+            {
+              "title": {"en": "When you started following companies", "nl": "Wanneer je bedrijven begon te volgen"},
+              "type": "area",
+              "group": {"column": "Followed On", "dateFormat": "auto", "label": {"en": "Date", "nl": "Datum"}},
+              "values": [{"aggregate": "count", "label": {"en": "Companies followed", "nl": "Gevolgde bedrijven"}}]
+            }
+          ]
         }
     """
     result = reader.csv("Company Follows.csv")
@@ -402,8 +410,8 @@ def member_follows_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFr
           "id": "linkedin_member_follows",
           "title": {"en": "Members you follow", "nl": "Leden die je volgt"},
           "description": {
-            "en": "List of LinkedIn members you are following",
-            "nl": "Lijst van LinkedIn-leden die je volgt"
+            "en": "The LinkedIn members you follow, from Member_Follows.csv.",
+            "nl": "De LinkedIn-leden die u volgt, uit Member_Follows.csv."
           },
           "headers": {
             "To": {"en": "To", "nl": "Aan"},
@@ -460,8 +468,8 @@ def connections_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame
           "id": "linkedin_connections",
           "title": {"en": "Your LinkedIn connections", "nl": "Je LinkedIn-connecties"},
           "description": {
-            "en": "List of people you are connected with on LinkedIn",
-            "nl": "Lijst van mensen met wie je verbonden bent op LinkedIn"
+            "en": "Your first-degree LinkedIn connections, from Connections.csv.",
+            "nl": "Uw eerstegraads LinkedIn-connecties, uit Connections.csv."
           },
           "headers": {
             "First Name": {"en": "First Name", "nl": "Voornaam"},
@@ -470,7 +478,27 @@ def connections_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame
             "Company": {"en": "Company", "nl": "Bedrijf"},
             "Position": {"en": "Position", "nl": "Functie"},
             "Connected On": {"en": "Connected On", "nl": "Verbonden op"}
-          }
+          },
+          "visualizations": [
+            {
+              "title": {"en": "When you connected with people", "nl": "Wanneer je met mensen verbonden raakte"},
+              "type": "area",
+              "group": {"column": "Connected On", "dateFormat": "auto", "label": {"en": "Date", "nl": "Datum"}},
+              "values": [{"aggregate": "count", "label": {"en": "New connections", "nl": "Nieuwe connecties"}}]
+            },
+            {
+              "title": {"en": "Companies your connections work at", "nl": "Bedrijven waar je connecties werken"},
+              "type": "wordcloud",
+              "textColumn": "Company",
+              "tokenize": false
+            },
+            {
+              "title": {"en": "Job titles among your connections", "nl": "Functietitels onder je connecties"},
+              "type": "wordcloud",
+              "textColumn": "Position",
+              "tokenize": true
+            }
+          ]
         }
     """
     result = reader.raw("Connections.csv")
@@ -515,8 +543,8 @@ def reactions_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
           "id": "linkedin_reactions",
           "title": {"en": "Your reactions on LinkedIn", "nl": "Je reacties op LinkedIn"},
           "description": {
-            "en": "Record of your reactions to posts and content on LinkedIn",
-            "nl": "Overzicht van je reacties op berichten en content op LinkedIn"
+            "en": "Your reactions to posts on LinkedIn, from Reactions.csv.",
+            "nl": "Uw reacties op berichten op LinkedIn, uit Reactions.csv."
           },
           "headers": {
             "Date": {"en": "Date", "nl": "Datum"},
@@ -525,12 +553,12 @@ def reactions_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
           "visualizations": [
             {
               "title": {
-                "en": "The type of reactions you put under posts on LinkedIn",
-                "nl": "De soorten reacties die je plaatst onder berichten op LinkedIn"
+                "en": "The type of reactions you give most",
+                "nl": "Het soort reacties dat je het meest geeft"
               },
-              "type": "wordcloud",
-              "textColumn": "Type",
-              "tokenize": true
+              "type": "bar",
+              "group": {"column": "Type", "label": {"en": "Reaction type", "nl": "Type reactie"}},
+              "values": [{"aggregate": "count", "label": {"en": "Times given", "nl": "Aantal keer gegeven"}}]
             }
           ]
         }
@@ -576,13 +604,21 @@ def ads_clicked_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame
           "id": "linkedin_ads_clicked",
           "title": {"en": "Ads you clicked on", "nl": "Advertenties waarop je hebt geklikt"},
           "description": {
-            "en": "Record of advertisements you have clicked on while using LinkedIn. Note: LinkedIn only provides numeric ad IDs, not ad titles or descriptions.",
-            "nl": "Overzicht van advertenties waarop je hebt geklikt tijdens het gebruik van LinkedIn. Let op: LinkedIn geeft alleen numerieke advertentie-ID's, geen titels of beschrijvingen."
+            "en": "The ads you clicked on LinkedIn, from Ads Clicked.csv. Note: LinkedIn only provides numeric ad IDs, not ad titles or descriptions.",
+            "nl": "De advertenties waarop u op LinkedIn heeft geklikt, uit Ads Clicked.csv. Let op: LinkedIn geeft alleen numerieke advertentie-ID's, geen titels of beschrijvingen."
           },
           "headers": {
             "Ad clicked Date": {"en": "Ad clicked Date", "nl": "Advertentiedatum"},
             "Ad Title/Id": {"en": "Ad Title/Id", "nl": "Advertentietitel/id"}
-          }
+          },
+          "visualizations": [
+            {
+              "title": {"en": "Ads you clicked on", "nl": "Advertenties waarop je hebt geklikt"},
+              "type": "wordcloud",
+              "textColumn": "Ad Title/Id",
+              "tokenize": false
+            }
+          ]
         }
     """
     result = reader.csv("Ads Clicked.csv")
@@ -626,8 +662,8 @@ def search_queries_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFr
           "id": "linkedin_search_queries",
           "title": {"en": "Your search queries on LinkedIn", "nl": "Je zoekopdrachten op LinkedIn"},
           "description": {
-            "en": "Terms and phrases you've searched for on LinkedIn",
-            "nl": "Termen en zinnen waarnaar je hebt gezocht op LinkedIn"
+            "en": "Your search queries on LinkedIn, from SearchQueries.csv.",
+            "nl": "Uw zoekopdrachten op LinkedIn, uit SearchQueries.csv."
           },
           "headers": {
             "Time": {"en": "Time", "nl": "Tijd"},
@@ -642,6 +678,12 @@ def search_queries_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFr
               "type": "wordcloud",
               "textColumn": "Search Query",
               "tokenize": true
+            },
+            {
+              "title": {"en": "Your LinkedIn searches over time", "nl": "Je LinkedIn-zoekopdrachten in de loop van de tijd"},
+              "type": "area",
+              "group": {"column": "Time", "dateFormat": "auto", "label": {"en": "Date", "nl": "Datum"}},
+              "values": [{"aggregate": "count", "label": {"en": "Searches", "nl": "Zoekopdrachten"}}]
             }
           ]
         }
@@ -692,8 +734,8 @@ def shares_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
           "id": "linkedin_shares",
           "title": {"en": "Posts you shared on LinkedIn", "nl": "Berichten die je hebt gedeeld op LinkedIn"},
           "description": {
-            "en": "Content you've shared with your network on LinkedIn",
-            "nl": "Content die je hebt gedeeld met je netwerk op LinkedIn"
+            "en": "The posts you shared on LinkedIn, from Shares.csv.",
+            "nl": "De berichten die u op LinkedIn heeft gedeeld, uit Shares.csv."
           },
           "headers": {
             "Date": {"en": "Date", "nl": "Datum"},
@@ -702,7 +744,15 @@ def shares_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
             "SharedUrl": {"en": "SharedUrl", "nl": "Gedeelde URL"},
             "MediaUrl": {"en": "MediaUrl", "nl": "Media-URL"},
             "Visibility": {"en": "Visibility", "nl": "Zichtbaarheid"}
-          }
+          },
+          "visualizations": [
+            {
+              "title": {"en": "Words in what you shared", "nl": "Woorden in wat je hebt gedeeld"},
+              "type": "wordcloud",
+              "textColumn": "ShareCommentary",
+              "tokenize": true
+            }
+          ]
         }
     """
     result = reader.csv("Shares.csv")
@@ -746,8 +796,8 @@ def comments_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
           "id": "linkedin_comments",
           "title": {"en": "Your comments on LinkedIn", "nl": "Je reacties op LinkedIn"},
           "description": {
-            "en": "Comments you've posted on LinkedIn content",
-            "nl": "Reacties die je hebt geplaatst op LinkedIn-content"
+            "en": "The comments you posted on LinkedIn content, from Comments.csv.",
+            "nl": "De reacties die u op LinkedIn-content heeft geplaatst, uit Comments.csv."
           },
           "headers": {
             "Date": {"en": "Date", "nl": "Datum"},
@@ -762,6 +812,12 @@ def comments_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
               "type": "wordcloud",
               "textColumn": "Message",
               "tokenize": true
+            },
+            {
+              "title": {"en": "When you commented on LinkedIn", "nl": "Wanneer je op LinkedIn hebt gereageerd"},
+              "type": "area",
+              "group": {"column": "Date", "dateFormat": "auto", "label": {"en": "Date", "nl": "Datum"}},
+              "values": [{"aggregate": "count", "label": {"en": "Comments", "nl": "Reacties"}}]
             }
           ]
         }

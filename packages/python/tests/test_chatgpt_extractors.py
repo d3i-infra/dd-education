@@ -13,7 +13,7 @@ import zipfile
 from collections import Counter
 
 from port.helpers.extraction_helpers import ZipArchiveReader
-from port.platforms.chatgpt import account_info_to_df
+from port.platforms.chatgpt import account_info_to_df, conversations_to_df, models_used_to_df
 
 USER_JSON = json.dumps({
     "chatgpt_plus_user": True,
@@ -30,6 +30,52 @@ def _reader_for(files: dict[str, str]) -> ZipArchiveReader:
             zf.writestr(name, content)
     buf.seek(0)
     return ZipArchiveReader(buf, list(files), Counter())
+
+
+def _turn_node(role: str, model: str | None, text: str, create_time: int, *, hidden: bool = False) -> dict:
+    """Build one synthetic ``mapping`` node in the shape a real ChatGPT
+    conversations export uses — no real conversation text anywhere here."""
+    metadata: dict = {}
+    if model:
+        metadata["model_slug"] = model
+    if hidden:
+        metadata["is_visually_hidden_from_conversation"] = True
+    return {
+        "id": f"node-{role}-{create_time}",
+        "message": {
+            "id": f"msg-{role}-{create_time}",
+            "author": {"role": role},
+            "content": {"content_type": "text", "parts": [text]},
+            "create_time": create_time,
+            "metadata": metadata,
+        },
+        "parent": None,
+        "children": [],
+    }
+
+
+#: A synthetic two-conversation export: conversation A has one user turn and
+#: one assistant turn; conversation B has one user turn and two assistant
+#: turns answered by a different model, plus one hidden assistant turn that
+#: must be excluded entirely from both extractors' output.
+CONVERSATIONS_JSON = json.dumps([
+    {
+        "title": "Test conversation A",
+        "mapping": {
+            "n1": _turn_node("user", None, "Test question one", 1700000000),
+            "n2": _turn_node("assistant", "gpt-test-large", "Test answer one", 1700000010),
+        },
+    },
+    {
+        "title": "Test conversation B",
+        "mapping": {
+            "n3": _turn_node("user", None, "Test question two", 1700000100),
+            "n4": _turn_node("assistant", "gpt-test-large", "Test answer two", 1700000110),
+            "n5": _turn_node("assistant", "gpt-test-mini", "Test answer three", 1700000120),
+            "n6": _turn_node("assistant", "gpt-test-hidden", "Hidden answer", 1700000130, hidden=True),
+        },
+    },
+])
 
 
 class TestAccountInfo:
@@ -74,8 +120,49 @@ class TestAccountInfo:
         assert sum(errors.values()) == 0
 
 
+class TestConversations:
+    def test_still_includes_blank_model_user_turns(self):
+        """Unchanged behaviour: conversations_to_df keeps every turn,
+        user included, with a blank model on user turns."""
+        reader = _reader_for({"conversations-000.json": CONVERSATIONS_JSON})
+        out = conversations_to_df(reader, Counter())
+        assert len(out) == 5  # 2 user + 3 assistant (hidden node excluded)
+        user_rows = out[out["role"] == "user"]
+        assert len(user_rows) == 2
+        assert set(user_rows["model"]) == {""}
+
+
+class TestModelsUsed:
+    def test_one_row_per_assistant_turn(self):
+        reader = _reader_for({"conversations-000.json": CONVERSATIONS_JSON})
+        out = models_used_to_df(reader, Counter())
+        assert list(out.columns) == ["model", "timestamp", "conversation title"]
+        assert len(out) == 3  # 3 non-hidden assistant turns; user turns excluded
+        assert set(out["model"]) == {"gpt-test-large", "gpt-test-mini"}
+
+    def test_hidden_turns_excluded(self):
+        reader = _reader_for({"conversations-000.json": CONVERSATIONS_JSON})
+        out = models_used_to_df(reader, Counter())
+        assert "gpt-test-hidden" not in set(out["model"])
+
+    def test_no_blank_models(self):
+        """The bug this table exists to fix: no row's model is ever blank,
+        unlike conversations_to_df's user turns."""
+        reader = _reader_for({"conversations-000.json": CONVERSATIONS_JSON})
+        out = models_used_to_df(reader, Counter())
+        assert (out["model"] == "").sum() == 0
+
+    def test_absent_file_yields_empty_no_error(self):
+        reader = _reader_for({})
+        errors: Counter = Counter()
+        out = models_used_to_df(reader, errors)
+        assert out.empty
+        assert sum(errors.values()) == 0
+
+
 def test_no_real_names_or_pii_in_synthetic_fixtures():
     """Guard against accidentally pasting real-looking data into this file's
-    module-level JSON constant."""
+    module-level JSON constants."""
     assert "@example.test" in USER_JSON
     assert "uu.nl" not in USER_JSON
+    assert "@" not in CONVERSATIONS_JSON

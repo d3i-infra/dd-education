@@ -140,6 +140,65 @@ def account_info_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFram
     return out
 
 
+def _conversation_turns(reader: ZipArchiveReader, errors: Counter) -> list[dict]:
+    """Shared traversal: one dict per visible message turn across every
+    ``conversations-*.json`` file, feeding both ``conversations_to_df`` and
+    ``models_used_to_df`` from the same parse.
+
+    Every user turn's ``model`` is blank — ChatGPT only records the model
+    slug on the assistant reply that used it (confirmed against the real
+    export: 1508 of 3057 turns are user turns, all blank on ``model``; the
+    remaining 1549 assistant turns are never blank). ``models_used_to_df``
+    relies on this to select assistant turns only, rather than trying to
+    read a model off a user turn.
+
+    On any parse exception the whole result is thrown away (an empty list),
+    matching the original ``conversations_to_df`` behaviour: no partial rows
+    from a conversation half-read.
+
+    Returns
+    -------
+    list[dict]
+        Each dict has keys ``conversation title``, ``role``, ``message``,
+        ``model``, ``time``. Empty list when no conversations file is found
+        or parsing fails.
+    """
+    results = reader.json_all(r"conversations-.*\.json")
+    if not results:
+        return []
+    conversations = [conv for result in results for conv in result.data]
+
+    datapoints: list[dict] = []
+    try:
+        for conversation in conversations:
+            title = conversation["title"]
+            for _, turn in conversation["mapping"].items():
+
+                denested_d = eh.dict_denester(turn)
+                is_hidden = eh.find_item(denested_d, "is_visually_hidden_from_conversation")
+                if is_hidden != "True":
+                    role = eh.find_item(denested_d, "role")
+                    message = "".join(eh.find_items(denested_d, "part"))
+                    model = eh.find_item(denested_d, "-model_slug")
+                    time = eh.epoch_to_iso(eh.find_item(denested_d, "create_time"), errors=errors)
+
+                    datapoint = {
+                        "conversation title": title,
+                        "role": role,
+                        "message": message,
+                        "model": model,
+                        "time": time,
+                    }
+                    if role != "":
+                        datapoints.append(datapoint)
+    except Exception as e:
+        logger.error("Data extraction error: %s", e)
+        errors[type(e).__name__] += 1
+        return []
+
+    return datapoints
+
+
 def conversations_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
     """Extract all ChatGPT conversations into a DataFrame.
 
@@ -166,7 +225,7 @@ def conversations_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFra
             "conversation title": "Title of the conversation as stored in the export.",
             "role": "Role of the message author: 'user' or 'assistant'.",
             "message": "Full text of the message.",
-            "model": "ChatGPT model slug used to generate the assistant reply.",
+            "model": "ChatGPT model slug used to generate the assistant reply. Blank on user turns — only an assistant reply records which model produced it.",
             "time": "ISO 8601 timestamp of when the message was created."
           }
         }
@@ -211,53 +270,87 @@ def conversations_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFra
               "type": "bar",
               "group": {"column": "time", "dateFormat": "weekday_cycle", "label": {"en": "Day of the week", "nl": "Dag van de week"}},
               "values": [{"aggregate": "count", "label": {"en": "Number of messages", "nl": "Aantal berichten"}}]
-            },
+            }
+          ]
+        }
+    """
+    return pd.DataFrame(_conversation_turns(reader, errors))
+
+
+def models_used_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
+    """Extract which AI model produced each ChatGPT reply.
+
+    One row per assistant turn — the ``model`` field a user turn carries is
+    always blank (see ``_conversation_turns``), so filtering to
+    ``role == "assistant"`` is what makes a model-grouped chart meaningful:
+    ``chatgpt_conversations`` used to group its own model bar over every
+    turn, including the 1508 (of 3057, on the real export) blank-model user
+    turns, making the tallest bar an empty category. This table exists so
+    that chart has a column worth grouping on.
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load JSON files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``model``, ``timestamp``, ``conversation title``. One row
+        per assistant turn.
+        Empty DataFrame when no conversations file is found or parsing fails.
+
+    Table documentation::
+
+        {
+          "summary": "Each row represents one ChatGPT reply, naming the AI model that produced it.",
+          "source_file": "conversations files (conversations-000.json, conversations-001.json, ...)",
+          "columns": {
+            "model": "ChatGPT model slug that produced this reply.",
+            "timestamp": "ISO 8601 timestamp of when the reply was created.",
+            "conversation title": "Title of the conversation this reply belongs to."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "chatgpt_models_used",
+          "title": {
+            "en": "Which AI models answered you",
+            "nl": "Welke AI-modellen je antwoordden"
+          },
+          "description": {
+            "en": "The AI model behind each of your ChatGPT replies, from the conversations export files.",
+            "nl": "Het AI-model achter elk van uw ChatGPT-antwoorden, uit de conversations-exportbestanden."
+          },
+          "headers": {
+            "model": {"en": "Model", "nl": "Model"},
+            "timestamp": {"en": "Time", "nl": "Tijd"},
+            "conversation title": {"en": "Conversation title", "nl": "Gesprektitel"}
+          },
+          "visualizations": [
             {
               "title": {"en": "Which AI models answered you", "nl": "Welke AI-modellen je antwoordden"},
               "type": "bar",
-              "group": {"column": "model", "label": {"en": "Model", "nl": "Model"}},
+              "group": {"column": "model", "top": 10, "label": {"en": "Model", "nl": "Model"}},
               "values": [{"aggregate": "count", "label": {"en": "Number of replies", "nl": "Aantal antwoorden"}}]
             }
           ]
         }
     """
-    results = reader.json_all(r"conversations-.*\.json")
-    if not results:
-        return pd.DataFrame()
-    conversations = [conv for result in results for conv in result.data]
-
-    datapoints = []
     out = pd.DataFrame()
-
     try:
-        for conversation in conversations:
-            title = conversation["title"]
-            for _, turn in conversation["mapping"].items():
-
-                denested_d = eh.dict_denester(turn)
-                is_hidden = eh.find_item(denested_d, "is_visually_hidden_from_conversation")
-                if is_hidden != "True":
-                    role = eh.find_item(denested_d, "role")
-                    message = "".join(eh.find_items(denested_d, "part"))
-                    model = eh.find_item(denested_d, "-model_slug")
-                    time = eh.epoch_to_iso(eh.find_item(denested_d, "create_time"), errors=errors)
-
-                    datapoint = {
-                        "conversation title": title,
-                        "role": role,
-                        "message": message,
-                        "model": model,
-                        "time": time,
-                    }
-                    if role != "":
-                        datapoints.append(datapoint)
-
-        out = pd.DataFrame(datapoints)
-
+        assistant_turns = [t for t in _conversation_turns(reader, errors) if t.get("role") == "assistant"]
+        if assistant_turns:
+            df = pd.DataFrame(assistant_turns).rename(columns={"time": "timestamp"})
+            out = pd.DataFrame(df[["model", "timestamp", "conversation title"]])
     except Exception as e:
         logger.error("Data extraction error: %s", e)
         errors[type(e).__name__] += 1
-
     return out
 
 
@@ -269,6 +362,7 @@ def conversations_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFra
 EXTRACTOR_REGISTRY: dict[str, Callable[..., pd.DataFrame]] = {
     "account_info_to_df": account_info_to_df,
     "conversations_to_df": conversations_to_df,
+    "models_used_to_df": models_used_to_df,
 }
 
 
