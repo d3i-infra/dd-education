@@ -11,6 +11,14 @@ interface Props {
 // list first. Both panes page their own list independently (threads /
 // turns), each with its own Previous/Next and an arrow-key shortcut for the
 // same action -- see handlePageKey.
+//
+// The mobile-only classes are written as `max-md:` variants on purpose.
+// index.tsx imports @eyra/feldspar's compiled stylesheet after this
+// package's own, and both are Tailwind 4 with the same `utilities` layer, so
+// a bare utility feldspar also emits (`flex-col`, for one) lands later in
+// the cascade than our `md:` override of it and wins at every width -- the
+// panes stacked on desktop in Danielle's live run. `max-md:` variants only
+// ever apply below md, so there is nothing for a later plain rule to undo.
 export default function ThreadView ({ visualizationData, locale }: Props): ReactElement | null {
   const { threads, truncated, totalThreads, pageSize, selfRole } = visualizationData
   const text = useMemo(() => prepareTexts(locale), [locale])
@@ -57,7 +65,7 @@ export default function ThreadView ({ visualizationData, locale }: Props): React
   }
 
   return (
-    <div className='w-full flex flex-col md:flex-row gap-4 p-2'>
+    <div className='w-full flex max-md:flex-col gap-4 p-2'>
       <div
         data-pane='list'
         className='flex flex-col gap-2 md:w-1/3 min-w-0 min-h-[32rem]'
@@ -116,7 +124,7 @@ export default function ThreadView ({ visualizationData, locale }: Props): React
 
       <div
         data-pane='transcript'
-        className='flex flex-col flex-1 min-w-0 min-h-[32rem] gap-2 border-t md:border-t-0 md:border-l border-grey4 pt-3 md:pt-0 md:pl-3'
+        className='flex flex-col flex-1 min-w-0 min-h-[32rem] gap-2 max-md:border-t md:border-l border-grey4 max-md:pt-3 md:pl-3'
         onKeyDown={(e) => handlePageKey(e, pageTurnsBy)}
       >
         {selected === undefined
