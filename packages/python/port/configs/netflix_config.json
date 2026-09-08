@@ -13,48 +13,470 @@
   },
   "tables": [
     {
-      "id": "netflix_ratings",
+      "id": "netflix_clickstream",
       "title": {
-        "en": "Your ratings on Netflix",
-        "nl": "Uw beoordelingen op Netflix"
+        "en": "Your Netflix click history",
+        "nl": "Uw Netflix-klikgeschiedenis"
       },
       "description": {
-        "en": "Your ratings on Netflix. These preferences help Netflix learn what you like and influence the recommendations you receive.",
-        "nl": "Uw beoordelingen op Netflix. Deze voorkeuren helpen Netflix te leren wat u leuk vindt en beïnvloeden de aanbevelingen die u ontvangt."
+        "en": "Every page click Netflix logged for your account, from Clickstream.csv.",
+        "nl": "Elke pagina-klik die Netflix voor uw account heeft geregistreerd, uit Clickstream.csv."
       },
       "headers": {
-        "Title Name": {
-          "en": "Title",
-          "nl": "Titel"
+        "Navigation Level": {
+          "en": "Navigation level",
+          "nl": "Navigatieniveau"
         },
-        "Thumbs Value": {
-          "en": "Thumbs value",
-          "nl": "Aantal duimpjes omhoog"
+        "Webpage Url": {
+          "en": "Page URL",
+          "nl": "Pagina-URL"
         },
-        "Event Utc Ts": {
-          "en": "Date",
+        "Source": {
+          "en": "Source",
+          "nl": "Bron"
+        },
+        "Click Utc Ts": {
+          "en": "Date and time",
           "nl": "Datum en tijd"
+        },
+        "Referrer Url": {
+          "en": "Referring page",
+          "nl": "Verwijzende pagina"
         }
       },
       "visualizations": [
         {
           "title": {
-            "en": "Titles rated by thumbs value",
-            "nl": "Beoordeelde titels op basis van duimpjes"
+            "en": "How Netflix tracked your clicks",
+            "nl": "Hoe Netflix je klikken volgde"
           },
-          "type": "wordcloud",
-          "textColumn": "Title Name",
-          "valueColumn": "Thumbs Value"
+          "type": "area",
+          "group": {
+            "column": "Click Utc Ts",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Clicks logged",
+                "nl": "Geregistreerde klikken"
+              }
+            }
+          ]
         }
       ],
-      "extractor": "ratings_to_df",
+      "extractor": "clickstream_to_df",
       "documentation": {
-        "summary": "Each row represents one title the participant rated on Netflix, including the rating value and timestamp.",
-        "source_file": "Ratings.csv",
+        "summary": "Each row represents one page-navigation event Netflix logged for the selected profile.",
+        "source_file": "Clickstream.csv",
         "columns": {
-          "Title Name": "Name of the rated Netflix title.",
-          "Thumbs Value": "Thumbs up or thumbs down value given by the participant.",
-          "Event Utc Ts": "ISO 8601 timestamp of when the rating was given."
+          "Navigation Level": "The navigation action or page category recorded.",
+          "Webpage Url": "The internal Netflix page URL visited.",
+          "Source": "Where the navigation event originated (e.g. www).",
+          "Click Utc Ts": "ISO 8601 timestamp of the click.",
+          "Referrer Url": "The page that referred the participant to this one."
+        }
+      }
+    },
+    {
+      "id": "netflix_indicated_preferences",
+      "title": {
+        "en": "Titles Netflix asked about",
+        "nl": "Titels waarover Netflix vroeg"
+      },
+      "description": {
+        "en": "Titles Netflix asked whether you were interested in, from IndicatedPreferences.csv.",
+        "nl": "Titels waarvan Netflix vroeg of u interesse had, uit IndicatedPreferences.csv."
+      },
+      "headers": {
+        "Show": {
+          "en": "Title",
+          "nl": "Titel"
+        },
+        "Is Interested": {
+          "en": "Interested?",
+          "nl": "Interesse?"
+        },
+        "Has Watched": {
+          "en": "Already watched?",
+          "nl": "Al bekeken?"
+        },
+        "Event Date": {
+          "en": "Date",
+          "nl": "Datum"
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Titles Netflix asked if you're interested in",
+            "nl": "Titels waarvan Netflix vroeg of je interesse had"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Is Interested",
+            "label": {
+              "en": "Your answer",
+              "nl": "Je antwoord"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Titles",
+                "nl": "Titels"
+              }
+            }
+          ]
+        }
+      ],
+      "extractor": "indicated_preferences_to_df",
+      "documentation": {
+        "summary": "Each row represents one title Netflix explicitly asked the participant whether they were interested in.",
+        "source_file": "IndicatedPreferences.csv",
+        "columns": {
+          "Show": "Name of the title Netflix asked about.",
+          "Is Interested": "Whether the participant indicated interest (true/false).",
+          "Has Watched": "Whether the participant had already watched the title (true/false).",
+          "Event Date": "Date the preference was recorded."
+        }
+      }
+    },
+    {
+      "id": "netflix_ip_addresses",
+      "title": {
+        "en": "IP addresses linked to your Netflix account",
+        "nl": "IP-adressen gekoppeld aan uw Netflix-account"
+      },
+      "description": {
+        "en": "Every login and streaming IP address Netflix recorded, from IpAddressesLogin.csv and IpAddressesStreaming.csv. An IP address can indicate a rough location and network operator.",
+        "nl": "Elk login- en streaming-IP-adres dat Netflix heeft geregistreerd, uit IpAddressesLogin.csv en IpAddressesStreaming.csv. Een IP-adres kan een globale locatie en netwerkaanbieder aangeven."
+      },
+      "headers": {
+        "Country": {
+          "en": "Country",
+          "nl": "Land"
+        },
+        "Ip": {
+          "en": "IP address",
+          "nl": "IP-adres"
+        },
+        "Device Description": {
+          "en": "Device",
+          "nl": "Apparaat"
+        },
+        "Ts": {
+          "en": "Date and time",
+          "nl": "Datum en tijd"
+        },
+        "Event Type": {
+          "en": "Event type",
+          "nl": "Type gebeurtenis"
+        }
+      },
+      "extractor": "ip_addresses_to_df",
+      "documentation": {
+        "summary": "Each row represents one login or streaming session Netflix tied to an IP address.",
+        "source_file": "IpAddressesLogin.csv, IpAddressesStreaming.csv",
+        "columns": {
+          "Country": "Country Netflix associated with the IP address.",
+          "Ip": "The raw IP address recorded for the session.",
+          "Device Description": "Description of the device used for the session.",
+          "Ts": "ISO 8601 timestamp of the login or streaming session.",
+          "Event Type": "Whether the row came from a login event or a streaming event."
+        }
+      }
+    },
+    {
+      "id": "netflix_devices",
+      "title": {
+        "en": "Devices linked to your Netflix account",
+        "nl": "Apparaten gekoppeld aan uw Netflix-account"
+      },
+      "description": {
+        "en": "Every device Netflix has recorded for your account, from Devices.csv and AccessAndDevices.csv.",
+        "nl": "Elk apparaat dat Netflix voor uw account heeft geregistreerd, uit Devices.csv en AccessAndDevices.csv."
+      },
+      "headers": {
+        "Esn": {
+          "en": "Device ID",
+          "nl": "Apparaat-ID"
+        },
+        "Device Type": {
+          "en": "Device type",
+          "nl": "Apparaattype"
+        },
+        "First Playback Date": {
+          "en": "First used",
+          "nl": "Voor het eerst gebruikt"
+        },
+        "Last Playback Date": {
+          "en": "Last used",
+          "nl": "Laatst gebruikt"
+        },
+        "Source": {
+          "en": "Source file",
+          "nl": "Bronbestand"
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Every device Netflix has seen",
+            "nl": "Elk apparaat dat Netflix heeft gezien"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Device Type",
+            "label": {
+              "en": "Device type",
+              "nl": "Apparaattype"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Times seen",
+                "nl": "Aantal keer gezien"
+              }
+            }
+          ]
+        }
+      ],
+      "extractor": "devices_to_df",
+      "documentation": {
+        "summary": "Each row represents one device Netflix has recognized on the account, from either the per-profile device list or the account-wide access log.",
+        "source_file": "Devices.csv, AccessAndDevices.csv",
+        "columns": {
+          "Esn": "Device fingerprint (Electronic Serial Number) Netflix assigned to the device.",
+          "Device Type": "Type or model of the device.",
+          "First Playback Date": "Earliest playback date recorded for the device.",
+          "Last Playback Date": "Most recent playback date recorded for the device.",
+          "Source": "Which export file the row came from."
+        }
+      }
+    },
+    {
+      "id": "netflix_account_and_billing",
+      "title": {
+        "en": "Your Netflix account and billing details",
+        "nl": "Uw Netflix-account- en factuurgegevens"
+      },
+      "description": {
+        "en": "Your membership status, marketing preferences, and payment history, from AccountDetails.csv, SubscriptionHistory.csv, and BillingHistory.csv.",
+        "nl": "Uw lidmaatschapsstatus, marketingvoorkeuren en betalingsgeschiedenis, uit AccountDetails.csv, SubscriptionHistory.csv en BillingHistory.csv."
+      },
+      "headers": {
+        "Membership Status": {
+          "en": "Membership status",
+          "nl": "Lidmaatschapsstatus"
+        },
+        "Country Of Registration": {
+          "en": "Country of registration",
+          "nl": "Land van registratie"
+        },
+        "Plan": {
+          "en": "Plan",
+          "nl": "Abonnement"
+        },
+        "Membership Offers (Push Notification)": {
+          "en": "Membership offers (push)",
+          "nl": "Lidmaatschapsaanbiedingen (push)"
+        },
+        "Watch Recommendations And More (Email)": {
+          "en": "Watch recommendations (email)",
+          "nl": "Kijkaanbevelingen (e-mail)"
+        },
+        "Using The Netflix App (Email)": {
+          "en": "Using the Netflix app (email)",
+          "nl": "Gebruik van de Netflix-app (e-mail)"
+        },
+        "Using The Netflix App (Push Notification)": {
+          "en": "Using the Netflix app (push)",
+          "nl": "Gebruik van de Netflix-app (push)"
+        },
+        "Membership Offers (Email)": {
+          "en": "Membership offers (email)",
+          "nl": "Lidmaatschapsaanbiedingen (e-mail)"
+        },
+        "Netflix Games (Email)": {
+          "en": "Netflix Games (email)",
+          "nl": "Netflix Games (e-mail)"
+        },
+        "Surveys And Research Invites (Email)": {
+          "en": "Survey invitations (email)",
+          "nl": "Uitnodigingen voor onderzoek (e-mail)"
+        },
+        "What You Watch (Email)": {
+          "en": "What you watch (email)",
+          "nl": "Wat u kijkt (e-mail)"
+        },
+        "Netflix Games (Push Notification)": {
+          "en": "Netflix Games (push)",
+          "nl": "Netflix Games (push)"
+        },
+        "Netflix Shop And Experiences (Push Notification)": {
+          "en": "Netflix Shop and experiences (push)",
+          "nl": "Netflix Shop en experiences (push)"
+        },
+        "Kid's Activity Report (Email)": {
+          "en": "Kid's activity report (email)",
+          "nl": "Activiteitenrapport kinderen (e-mail)"
+        },
+        "Surveys And Research Invites (Push Notification)": {
+          "en": "Survey invitations (push)",
+          "nl": "Uitnodigingen voor onderzoek (push)"
+        },
+        "Watch Recommendations And More (Push Notification)": {
+          "en": "Watch recommendations (push)",
+          "nl": "Kijkaanbevelingen (push)"
+        },
+        "What You Watch (Push Notification)": {
+          "en": "What you watch (push)",
+          "nl": "Wat u kijkt (push)"
+        },
+        "Netflix Shop And Experiences (Email)": {
+          "en": "Netflix Shop and experiences (email)",
+          "nl": "Netflix Shop en experiences (e-mail)"
+        },
+        "Transaction Date": {
+          "en": "Transaction date",
+          "nl": "Transactiedatum"
+        },
+        "Gross Sale Amt": {
+          "en": "Amount",
+          "nl": "Bedrag"
+        },
+        "Currency": {
+          "en": "Currency",
+          "nl": "Valuta"
+        },
+        "Payment Type": {
+          "en": "Payment method",
+          "nl": "Betaalmethode"
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Your Netflix payments over time",
+            "nl": "Je Netflix-betalingen in de loop van de tijd"
+          },
+          "type": "area",
+          "group": {
+            "column": "Transaction Date",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "column": "Gross Sale Amt",
+              "aggregate": "sum",
+              "label": {
+                "en": "Amount",
+                "nl": "Bedrag"
+              }
+            }
+          ]
+        }
+      ],
+      "extractor": "account_and_billing_to_df",
+      "documentation": {
+        "summary": "Each row represents one Netflix payment transaction, alongside the account's membership status, marketing-consent flags, and current plan.",
+        "source_file": "AccountDetails.csv, SubscriptionHistory.csv, BillingHistory.csv",
+        "columns": {
+          "Membership Status": "Current membership status for the account.",
+          "Country Of Registration": "Country the account is registered in.",
+          "Plan": "Most recent subscription plan category.",
+          "Transaction Date": "Date of the payment transaction.",
+          "Gross Sale Amt": "Amount charged for the transaction.",
+          "Currency": "Currency of the transaction amount.",
+          "Payment Type": "Payment method category used (e.g. direct debit) — never card numbers or other card details."
+        }
+      }
+    },
+    {
+      "id": "netflix_profile_demographics",
+      "title": {
+        "en": "Your Netflix profile details",
+        "nl": "Uw Netflix-profielgegevens"
+      },
+      "description": {
+        "en": "The demographic fields Netflix stores for this profile, from Profiles.csv.",
+        "nl": "De demografische gegevens die Netflix voor dit profiel bewaart, uit Profiles.csv."
+      },
+      "headers": {
+        "Gender": {
+          "en": "Gender",
+          "nl": "Geslacht"
+        },
+        "Date Of Birth": {
+          "en": "Date of birth",
+          "nl": "Geboortedatum"
+        },
+        "Maturity Level": {
+          "en": "Maturity level",
+          "nl": "Volwassenheidsniveau"
+        },
+        "Primary Lang": {
+          "en": "Primary language",
+          "nl": "Voorkeurstaal"
+        }
+      },
+      "extractor": "profile_demographics_to_df",
+      "documentation": {
+        "summary": "One row describing the demographic fields Netflix stores for the selected profile.",
+        "source_file": "Profiles.csv",
+        "columns": {
+          "Gender": "Gender recorded for the profile, if any.",
+          "Date Of Birth": "Date of birth recorded for the profile, if any.",
+          "Maturity Level": "Content maturity level set for the profile.",
+          "Primary Lang": "Primary language/locale code set for the profile."
+        }
+      }
+    },
+    {
+      "id": "netflix_my_list",
+      "title": {
+        "en": "Your Netflix My List",
+        "nl": "Uw Netflix Mijn Lijst"
+      },
+      "description": {
+        "en": "Titles you added to My List on Netflix, from MyList.csv.",
+        "nl": "Titels die u aan Mijn Lijst op Netflix heeft toegevoegd, uit MyList.csv."
+      },
+      "headers": {
+        "Country": {
+          "en": "Country",
+          "nl": "Land"
+        },
+        "Utc Title Add Date": {
+          "en": "Date added",
+          "nl": "Datum toegevoegd"
+        },
+        "Title Name": {
+          "en": "Title",
+          "nl": "Titel"
+        }
+      },
+      "extractor": "my_list_to_df",
+      "documentation": {
+        "summary": "Each row represents one title the participant added to My List on Netflix.",
+        "source_file": "MyList.csv",
+        "columns": {
+          "Country": "Country recorded at the time the title was added.",
+          "Utc Title Add Date": "Date the title was added to My List.",
+          "Title Name": "Name of the Netflix title added."
         }
       }
     },
@@ -65,8 +487,8 @@
         "nl": "Wat u heeft gekeken"
       },
       "description": {
-        "en": "This table shows what you watched, when, for how long, and on what device. It paints a detailed picture of your Netflix viewing habits.",
-        "nl": "Deze tabel toont wat u heeft gekeken, wanneer, hoe lang en op welk apparaat. Het geeft een gedetailleerd beeld van uw Netflix-kijkgedrag."
+        "en": "What you watched on Netflix, when, and for how long, from ViewingActivity.csv.",
+        "nl": "Wat u op Netflix heeft gekeken, wanneer en hoe lang, uit ViewingActivity.csv."
       },
       "headers": {
         "Start Time": {
@@ -121,6 +543,41 @@
               "aggregate": "sum"
             }
           ]
+        },
+        {
+          "title": {
+            "en": "Titles you watched again and again",
+            "nl": "Titels die je steeds opnieuw hebt bekeken"
+          },
+          "type": "wordcloud",
+          "textColumn": "Title",
+          "valueColumn": "Duration",
+          "tokenize": false
+        },
+        {
+          "title": {
+            "en": "Total hours watched by day of the week",
+            "nl": "Totaal aantal uur gekeken per dag van de week"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Start Time",
+            "dateFormat": "weekday_cycle",
+            "label": {
+              "en": "Day of the week",
+              "nl": "Dag van de week"
+            }
+          },
+          "values": [
+            {
+              "column": "Duration",
+              "aggregate": "sum",
+              "label": {
+                "en": "Hours watched",
+                "nl": "Aantal uur"
+              }
+            }
+          ]
         }
       ],
       "extractor": "viewing_activity_to_df",
@@ -136,14 +593,60 @@
       }
     },
     {
+      "id": "netflix_ratings",
+      "title": {
+        "en": "Your ratings on Netflix",
+        "nl": "Uw beoordelingen op Netflix"
+      },
+      "description": {
+        "en": "Titles you rated on Netflix, from Ratings.csv.",
+        "nl": "Titels die u op Netflix heeft beoordeeld, uit Ratings.csv."
+      },
+      "headers": {
+        "Title Name": {
+          "en": "Title",
+          "nl": "Titel"
+        },
+        "Thumbs Value": {
+          "en": "Thumbs value",
+          "nl": "Aantal duimpjes omhoog"
+        },
+        "Event Utc Ts": {
+          "en": "Date",
+          "nl": "Datum en tijd"
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Titles rated by thumbs value",
+            "nl": "Beoordeelde titels op basis van duimpjes"
+          },
+          "type": "wordcloud",
+          "textColumn": "Title Name",
+          "valueColumn": "Thumbs Value"
+        }
+      ],
+      "extractor": "ratings_to_df",
+      "documentation": {
+        "summary": "Each row represents one title the participant rated on Netflix, including the rating value and timestamp.",
+        "source_file": "Ratings.csv",
+        "columns": {
+          "Title Name": "Name of the rated Netflix title.",
+          "Thumbs Value": "Thumbs up or thumbs down value given by the participant.",
+          "Event Utc Ts": "ISO 8601 timestamp of when the rating was given."
+        }
+      }
+    },
+    {
       "id": "netflix_search_history",
       "title": {
         "en": "Your search history on Netflix",
         "nl": "Uw zoekgeschiedenis op Netflix"
       },
       "description": {
-        "en": "Your search history on Netflix. This reveals what you were looking for, even titles you searched for but never watched.",
-        "nl": "Uw zoekgeschiedenis op Netflix. Dit onthult wat u zocht, zelfs titels die u heeft opgezocht maar nooit heeft gekeken."
+        "en": "Searches you performed on Netflix, from SearchHistory.csv.",
+        "nl": "Zoekopdrachten die u op Netflix heeft uitgevoerd, uit SearchHistory.csv."
       },
       "headers": {
         "Query Typed": {
@@ -168,6 +671,30 @@
           "type": "wordcloud",
           "textColumn": "Query Typed",
           "tokenize": false
+        },
+        {
+          "title": {
+            "en": "Your Netflix searches over time",
+            "nl": "Je Netflix-zoekopdrachten in de loop van de tijd"
+          },
+          "type": "area",
+          "group": {
+            "column": "Utc Timestamp",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Number of searches",
+                "nl": "Aantal zoekopdrachten"
+              }
+            }
+          ]
         }
       ],
       "extractor": "search_history_to_df",
