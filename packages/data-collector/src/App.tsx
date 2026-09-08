@@ -37,7 +37,9 @@ function App() {
     <div className="App">
       <ScriptHostComponent
         workerUrl="./py_worker.js"
-        standalone={import.meta.env.DEV}
+        // The Pages deployment (VITE_PLATFORM=education) has no host to hand
+        // off to (ADR-0041), so it must run standalone even in a production build.
+        standalone={import.meta.env.DEV || import.meta.env.VITE_PLATFORM === "education"}
         logLevel={import.meta.env.DEV ? "debug" : "info"}
         platform={import.meta.env.VITE_PLATFORM}
         defaultLocale={DEFAULT_UI_LOCALE}
