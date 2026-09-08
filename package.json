@@ -35,7 +35,7 @@
     "doctor": "bash scripts/doctor.sh"
   },
   "devDependencies": {
-    "@playwright/test": "1.61.1",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "^4.2.4",
     "@types/node": "26.0.1",
     "archiver": "^7.0.1",
