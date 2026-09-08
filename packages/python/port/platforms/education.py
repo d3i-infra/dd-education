@@ -16,6 +16,7 @@ Platform info::
       "time_last_tested": "2026-09"
     }
 """
+from collections import Counter
 from dataclasses import dataclass
 from importlib import import_module
 import logging
@@ -42,11 +43,31 @@ class YouTubeOnlyGoogleFlow(GoogleFlow):
     ``platforms.youtube`` cannot read (JSON/CSV only). Google's flow reads YouTube
     history from either format, in seven locales, so this entry reuses it wholesale
     and filters the result down to the YouTube tables for a focused menu item.
+
+    Owns its own ``platform_name`` rather than leaving ``GoogleFlow``'s hardcoded
+    "Google" in place: ``FlowBuilder`` uses ``self.platform_name`` throughout
+    ``start_flow`` (instructions page, no-data page, protocol-error page, issue page,
+    every ``emit_log`` call), so a bolted-on header override would have left every one
+    of those still reading "Google". Re-running the inherited ``_initialize_ui_text``
+    after resetting the name re-derives every UI_TEXT entry from "YouTube" instead of
+    duplicating that derivation here.
     """
+
+    def __init__(self, session_id: str):
+        super().__init__(session_id)
+        self.platform_name = "YouTube"
+        self._initialize_ui_text()
 
     def extract_data(self, archive_set, validation) -> ExtractionResult:
         result = super().extract_data(archive_set, validation)
         kept = [t for t in result.tables if t.id.startswith(YOUTUBE_TABLE_PREFIX)]
+        if not kept:
+            # No YouTube activity in this Takeout: the no-data page is the right
+            # outcome, even if the wider Google extraction hit an unrelated error on
+            # some other source — that error is not this entry's concern, and
+            # forwarding it would route a YouTube-activity-free participant into the
+            # extraction-failure path instead.
+            return ExtractionResult(tables=[], errors=Counter())
         return ExtractionResult(tables=kept, errors=result.errors)
 
 
@@ -56,14 +77,12 @@ class PlatformEntry:
     cls: str
     instruction_image: str | None
     review_description: props.Translatable | None
-    display_name: str | None = None
 
 
 PLATFORMS: dict[str, PlatformEntry] = {
     "YouTube": PlatformEntry("port.platforms.education", "YouTubeOnlyGoogleFlow", "youtube_instructions.svg",
         props.Translatable({"en": "Below you will find a curated selection of your YouTube data.",
-                            "nl": "Hieronder vindt u een samengestelde selectie van uw YouTube-gegevens."}),
-        display_name="YouTube"),
+                            "nl": "Hieronder vindt u een samengestelde selectie van uw YouTube-gegevens."})),
     "Google": PlatformEntry("port.platforms.google", "GoogleFlow", None,
         props.Translatable({"en": "Below you will find a selection of what Google keeps about you: your YouTube history, searches, Chrome history, ads and more.",
                             "nl": "Hieronder vindt u een selectie van wat Google over u bewaart: uw YouTube-geschiedenis, zoekopdrachten, Chrome-geschiedenis, advertenties en meer."})),
@@ -95,11 +114,6 @@ def _build_flow(session_id: str, entry: PlatformEntry) -> FlowBuilder:
     flow.instruction_image = entry.instruction_image
     if entry.review_description is not None:
         flow.UI_TEXT["review_data_description"] = entry.review_description
-    if entry.display_name and entry.display_name != flow.platform_name:
-        flow.UI_TEXT["submit_file_header"] = props.Translatable({
-            "en": f"Select your {entry.display_name} files", "nl": f"Selecteer uw {entry.display_name} bestanden"})
-        flow.UI_TEXT["review_data_header"] = props.Translatable({
-            "en": f"Your {entry.display_name} data", "nl": f"Uw {entry.display_name} gegevens"})
     return flow
 
 

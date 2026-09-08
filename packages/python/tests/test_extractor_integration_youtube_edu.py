@@ -2,7 +2,6 @@
 import pytest
 from extractor_integration_helpers import DiskPart, find_fixture
 from port.helpers.archive_set import ArchiveSet
-from port.platforms import google as G
 from port.platforms.education import YouTubeOnlyGoogleFlow
 
 

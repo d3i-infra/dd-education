@@ -99,8 +99,13 @@ def test_youtube_and_google_entries():
     g = education.PLATFORMS["Google"]
     assert (g.module, g.cls) == ("port.platforms.google", "GoogleFlow")
     flow = education._build_flow("s", yt)
+    assert flow.platform_name == "YouTube"
     assert "YouTube" in flow.UI_TEXT["submit_file_header"].translations["en"]
     assert "Google" not in flow.UI_TEXT["submit_file_header"].translations["en"]
+    gen = flow.start_flow()
+    cmd = _advance(gen)
+    assert type(cmd.page.body).__name__ == "PropsUIPromptInstructions"
+    assert "YouTube" in cmd.page.header.title.translations["en"]
 
 
 def test_youtube_only_flow_filters_tables():
@@ -112,3 +117,15 @@ def test_youtube_only_flow_filters_tables():
                return_value=ExtractionResult(tables=tables, errors=Counter())):
         out = education.YouTubeOnlyGoogleFlow("s").extract_data(MagicMock(), MagicMock())
     assert [t.id for t in out.tables] == ["youtube_watch_history", "youtube_comments"]
+
+
+def test_youtube_only_flow_empty_result_drops_unrelated_errors():
+    from collections import Counter
+    from unittest.mock import MagicMock, patch
+    from port.api.d3i_props import ExtractionResult
+    tables = [MagicMock(id=i) for i in ("search_history", "chrome_history")]
+    with patch("port.platforms.google.GoogleFlow.extract_data",
+               return_value=ExtractionResult(tables=tables, errors=Counter({"SomeError": 1}))):
+        out = education.YouTubeOnlyGoogleFlow("s").extract_data(MagicMock(), MagicMock())
+    assert out.tables == []
+    assert out.errors == Counter()
