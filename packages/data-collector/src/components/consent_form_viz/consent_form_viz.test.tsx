@@ -214,9 +214,15 @@ describe("ConsentFormViz", () => {
       expect(cards.map((c) => c.dataset.cardId)).toEqual(["a", "c", "b"])
     })
 
-    test("the table is collapsed by default and expands on click", () => {
+    // Tables above the auto-expand threshold (see REVIEW_AUTO_EXPAND_THRESHOLD
+    // in table_container.tsx) start collapsed — a dedicated large table here,
+    // not `multiTableProps`' 2/0/3-row set, all of which now start expanded.
+    test("a large table is collapsed by default and expands on click", () => {
       const resolve = jest.fn()
-      root = renderConsentFormViz(container, multiTableProps(resolve))
+      root = renderConsentFormViz(container, {
+        ...multiTableProps(resolve),
+        tables: [tableWithRows("a", "Alpha table", 998)],
+      })
 
       const cardA = container.querySelector<HTMLElement>('[data-card-id="a"]')
       if (cardA === null) throw new Error("card 'a' not found")
@@ -237,6 +243,53 @@ describe("ConsentFormViz", () => {
       expect(tableRegion.style.gridTemplateRows).not.toBe("0rem")
     })
 
+    // A small table (<=25 rows) has nothing to gain from collapsing — hiding
+    // a 3-row table hides everything for no benefit — so review mode starts
+    // it expanded instead of behind the toggle.
+    test("a small table (3 rows) starts expanded", () => {
+      const resolve = jest.fn()
+      root = renderConsentFormViz(container, {
+        ...multiTableProps(resolve),
+        tables: [tableWithRows("c", "Gamma table", 3)],
+      })
+
+      const cardC = container.querySelector<HTMLElement>('[data-card-id="c"]')
+      if (cardC === null) throw new Error("card 'c' not found")
+
+      const tableRegion = cardC.querySelector<HTMLElement>(".grid.grid-cols-1.overflow-hidden")
+      if (tableRegion === null) throw new Error("table region not found")
+      const toggle = cardC.querySelector<HTMLButtonElement>("button[aria-expanded]")
+      if (toggle === null) throw new Error("show/hide toggle not found")
+
+      expect(toggle.getAttribute("aria-expanded")).toBe("true")
+      expect(tableRegion.style.gridTemplateRows).not.toBe("0rem")
+    })
+
+    // Regression: an unlabelled icon-only toggle at common window widths read
+    // as a second search button (Danielle: "I don't actually see any
+    // tables"). The accessible name must carry the row count at every width,
+    // so its label element can never fall back to a `hidden` class.
+    test("the toggle button's accessible name includes the row count and its label is never hidden", () => {
+      const resolve = jest.fn()
+      root = renderConsentFormViz(container, {
+        ...multiTableProps(resolve),
+        tables: [tableWithRows("a", "Alpha table", 998)],
+      })
+
+      const cardA = container.querySelector<HTMLElement>('[data-card-id="a"]')
+      if (cardA === null) throw new Error("card 'a' not found")
+      const toggle = cardA.querySelector<HTMLButtonElement>("button[aria-expanded]")
+      if (toggle === null) throw new Error("show/hide toggle not found")
+
+      expect(toggle.textContent).toContain("998")
+
+      const label = Array.from(toggle.querySelectorAll<HTMLElement>("span")).find((el) =>
+        el.textContent?.includes("998")
+      )
+      if (label === undefined) throw new Error("toggle label element not found")
+      expect(label.className.split(/\s+/)).not.toContain("hidden")
+    })
+
     // Regression: a table emptied by the participant's own deletions must
     // keep Undo reachable — the compact "no entries" card is only for tables
     // that were empty from the start (deletedRowCount === 0).
@@ -247,7 +300,9 @@ describe("ConsentFormViz", () => {
       let cardA = container.querySelector<HTMLElement>('[data-card-id="a"]')
       if (cardA === null) throw new Error("card 'a' not found")
 
-      // Expand the table so its row checkboxes and delete control are present.
+      // Row checkboxes and the delete control are in the DOM regardless of
+      // show/hide state (only the CSS grid height collapses) — toggling here
+      // just exercises the control, it isn't a precondition for what follows.
       const toggle = cardA.querySelector<HTMLButtonElement>("button[aria-expanded]")
       if (toggle === null) throw new Error("show/hide toggle not found")
       act(() => {

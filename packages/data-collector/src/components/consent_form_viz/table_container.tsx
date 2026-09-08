@@ -12,6 +12,11 @@ import { Table } from "./table"
 import { SearchBar } from "./search_bar"
 import { zTable, Table as ValidatedTable } from "./visualization_plugin/types"
 
+// Review cards this small (<=25 rows) have nothing to gain from collapsing —
+// hiding a 1-row table hides everything for no benefit — so they start
+// expanded instead of behind the "Show N rows" toggle.
+const REVIEW_AUTO_EXPAND_THRESHOLD = 25
+
 interface TableContainerProps {
   id: string
   table: TableWithContext
@@ -31,9 +36,13 @@ export const TableContainer = ({ id, table, updateTable, locale, variant = "stud
   const [search, setSearch] = useState<string>("")
   const lastSearch = useRef<string>("")
   const text = useMemo(() => getTranslations(locale), [locale])
-  // Review cards start collapsed regardless of the researcher's `folded`
-  // setting — the card's figures are the point; the table is supporting detail.
-  const [show, setShow] = useState<boolean>(isReview ? false : !table.folded)
+  const unfilteredRows = table.body.rows.length
+  const nLabel = unfilteredRows.toLocaleString(locale, { useGrouping: true })
+  // Review cards default to collapsed regardless of the researcher's `folded`
+  // setting — the card's figures are the point, the table is supporting
+  // detail — except small tables (see REVIEW_AUTO_EXPAND_THRESHOLD above),
+  // which start expanded.
+  const [show, setShow] = useState<boolean>(isReview ? unfilteredRows <= REVIEW_AUTO_EXPAND_THRESHOLD : !table.folded)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -92,9 +101,6 @@ export const TableContainer = ({ id, table, updateTable, locale, variant = "stud
     updateTable(id, newTable)
   }, [id, table, updateTable])
 
-  const unfilteredRows = table.body.rows.length
-  const nLabel = unfilteredRows.toLocaleString(locale, { useGrouping: true })
-
   if (isReview) {
     if (unfilteredRows === 0) {
       // Born empty (the export never had rows here) reads differently from
@@ -151,21 +157,29 @@ export const TableContainer = ({ id, table, updateTable, locale, variant = "stud
 
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <TableItems table={table} searchedTable={searchedTable} handleUndo={handleUndo} locale={locale} />
-            <div className="flex items-center gap-3">
-              <SearchBar placeholder={text.searchPlaceholder} search={search} onSearch={setSearch} />
+            <div className="flex flex-wrap items-center gap-3">
+              <TableItems table={table} searchedTable={searchedTable} handleUndo={handleUndo} locale={locale} />
+              {/* Grey outline "secondary" treatment (border-grey3/text-grey1,
+                  echoing SearchBar's own border-grey3 rounded-lg) so this sits
+                  beside the row count as a clearly-a-button control without
+                  competing with the page's green Continue button. Label is
+                  always visible — a narrow-width icon-only button read as an
+                  unlabelled second search button (Danielle: "I don't
+                  actually see any tables"), so unlike study mode's
+                  show/hideTable control below, nothing here is `hidden`. */}
               <button
                 type="button"
                 aria-expanded={show}
-                className="flex items-center gap-2 shrink-0 text-primary"
+                className="flex items-center gap-2 shrink-0 h-44px rounded-lg border-2 border-grey3 text-grey1 px-3 font-button text-buttonsmall hover:bg-grey5 active:shadow-top2px"
                 onClick={() => setShow(!show)}
               >
-                <div className="text-primary">{show ? zoomOutIcon : zoomInIcon}</div>
-                <div className="text-right hidden md:block whitespace-nowrap">
+                <span className="text-grey1">{show ? zoomOutIcon : zoomInIcon}</span>
+                <span className="whitespace-nowrap">
                   {show ? text.hideRows : text.showRowsTemplate.replace("{n}", nLabel)}
-                </div>
+                </span>
               </button>
             </div>
+            <SearchBar placeholder={text.searchPlaceholder} search={search} onSearch={setSearch} />
           </div>
           <Table
             show={show}
