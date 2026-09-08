@@ -13,6 +13,9 @@ export default {
     // feldspar's button.tsx imports icon SVGs at module scope; jest has no
     // loader for raw SVG XML, so stub it (see src/test_support/svg_mock.js).
     '\\.svg$': '<rootDir>/src/test_support/svg_mock.js',
+    // jest runs these modules as CommonJS and cannot parse `import.meta`, which
+    // src/build_env.ts exists to contain. See src/test_support/build_env_mock.ts.
+    '^.*/build_env$': '<rootDir>/src/test_support/build_env_mock.ts',
   },
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
