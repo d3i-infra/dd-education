@@ -27,6 +27,7 @@ Platform info::
     }
 """
 
+import csv
 import logging
 from collections import Counter
 import io
@@ -83,6 +84,7 @@ DDP_CATEGORIES = [
             "Learning.csv",
             "Reactions.csv",
             "LAN Ads Engagement.csv",
+            "Whatsapp Phone Numbers.csv",
         ]
     ),
 ]
@@ -98,6 +100,219 @@ def strip_notes(b: io.BytesIO) -> io.BytesIO:
     except Exception:
         out = b
 
+    return out
+
+
+def ad_targeting_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
+    """Extract LinkedIn's complete inferred-attribute profile of the participant.
+
+    ``Ad_Targeting.csv`` is a single wide row of roughly 35 columns, each a
+    semicolon-separated list (inferred age bracket, employers, schools, job
+    titles, skills, audience segments, and more). This reshapes that one row
+    into a long ``Category``/``Value`` table — one row per non-empty
+    semicolon-separated entry — so it can be read as a table and fed a
+    wordcloud or bar chart at all.
+
+    Read via ``reader.raw`` and a positional ``csv.reader`` rather than
+    ``reader.csv`` (which uses ``csv.DictReader``): the real export repeats
+    some column names verbatim (e.g. "Job Titles" three times) with
+    identical content, and ``DictReader`` collapses same-named columns,
+    silently dropping all but the last. A positional read keeps every
+    column, and an exact ``(header, value)`` dedup below then removes the
+    genuine content-duplicates the export itself repeats — so a repeated
+    column contributes its values once, not once per repeat.
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load CSV files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Category``, ``Value``. One row per non-empty
+        semicolon-separated entry across every source column.
+        Empty DataFrame when the file is absent, holds no data row, or
+        parsing fails.
+
+    Table documentation::
+
+        {
+          "summary": "Each row is one inferred attribute value from LinkedIn's ad-targeting profile of the participant, reshaped from a single wide row into one row per value.",
+          "source_file": "Ad_Targeting.csv",
+          "columns": {
+            "Category": "The source column this value came from (e.g. Job Titles, Member Interests).",
+            "Value": "One inferred value LinkedIn has attached to the participant under that category."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "linkedin_ad_targeting",
+          "title": {
+            "en": "Everything LinkedIn has inferred about you",
+            "nl": "Alles wat LinkedIn over jou heeft afgeleid"
+          },
+          "description": {
+            "en": "The inferred attributes LinkedIn uses to target you with ads, reshaped from Ad_Targeting.csv.",
+            "nl": "De afgeleide kenmerken die LinkedIn gebruikt om u te targeten met advertenties, uit Ad_Targeting.csv."
+          },
+          "headers": {
+            "Category": {"en": "Category", "nl": "Categorie"},
+            "Value": {"en": "Value", "nl": "Waarde"}
+          },
+          "visualizations": [
+            {
+              "title": {
+                "en": "Everything LinkedIn has inferred about you",
+                "nl": "Alles wat LinkedIn over jou heeft afgeleid"
+              },
+              "type": "wordcloud",
+              "textColumn": "Value",
+              "tokenize": false
+            },
+            {
+              "title": {
+                "en": "Which kind of profile LinkedIn built the most",
+                "nl": "Op welk soort profiel LinkedIn het meest heeft ingezet"
+              },
+              "type": "bar",
+              "group": {"column": "Category", "label": {"en": "Category", "nl": "Categorie"}},
+              "values": [{"aggregate": "count", "label": {"en": "Number of inferred values", "nl": "Aantal afgeleide waarden"}}]
+            }
+          ]
+        }
+    """
+    result = reader.raw("Ad_Targeting.csv")
+    out = pd.DataFrame()
+    if not result.found:
+        return out
+    try:
+        raw = result.data.read()
+        if not raw:
+            return out
+        text = raw.decode("utf-8-sig", errors="replace")
+        rows = list(csv.reader(io.StringIO(text)))
+        if len(rows) < 2:
+            return out
+        header = rows[0]
+
+        seen: set[tuple[str, str]] = set()
+        records = []
+        for data_row in rows[1:]:
+            for column, value in zip(header, data_row):
+                value = (value or "").strip()
+                if not value:
+                    continue
+                key = (column, value)
+                if key in seen:
+                    continue
+                seen.add(key)
+                for token in value.split(";"):
+                    token = token.strip()
+                    if token:
+                        records.append({"Category": column, "Value": token})
+        out = pd.DataFrame(records)
+    except Exception as e:
+        logger.error("Data extraction error: %s", e)
+        errors[type(e).__name__] += 1
+    return out
+
+
+def contact_info_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
+    """Extract the phone numbers, email addresses, and registration details
+    LinkedIn has on file, merging four small source files into one
+    Field/Value table.
+
+    Each source file is independently optional: an absent file simply
+    contributes no rows for that field, never an error (ADR-0024).
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load CSV files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Field``, ``Value``. Up to five rows: phone number(s),
+        WhatsApp number(s), email address(es), registration date,
+        registration IP address.
+        Empty DataFrame when all four source files are absent, empty, or
+        parsing fails.
+
+    Table documentation::
+
+        {
+          "summary": "One row per contact or registration field LinkedIn has on file, merged from four source files.",
+          "source_file": "PhoneNumbers.csv, Whatsapp Phone Numbers.csv, Email Addresses.csv, Registration.csv",
+          "columns": {
+            "Field": "Name of the contact or registration field.",
+            "Value": "Value(s) LinkedIn has on file for that field, joined with '; ' when there is more than one."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "linkedin_contact_info",
+          "title": {
+            "en": "Your contact and registration details on file",
+            "nl": "Uw contact- en registratiegegevens"
+          },
+          "description": {
+            "en": "The phone numbers, email addresses, and registration details LinkedIn has on file, from PhoneNumbers.csv, Whatsapp Phone Numbers.csv, Email Addresses.csv and Registration.csv.",
+            "nl": "De telefoonnummers, e-mailadressen en registratiegegevens die LinkedIn heeft geregistreerd, uit PhoneNumbers.csv, Whatsapp Phone Numbers.csv, Email Addresses.csv en Registration.csv."
+          },
+          "headers": {
+            "Field": {"en": "Field", "nl": "Veld"},
+            "Value": {"en": "Value", "nl": "Waarde"}
+          }
+        }
+    """
+    out = pd.DataFrame()
+    rows = []
+    try:
+        phones = reader.csv("PhoneNumbers.csv")
+        if phones.found and not phones.data.empty and "Number" in phones.data.columns:
+            values = [str(v).strip() for v in phones.data["Number"] if str(v).strip()]
+            if values:
+                rows.append({"Field": "Phone number(s)", "Value": "; ".join(values)})
+
+        whatsapp = reader.csv("Whatsapp Phone Numbers.csv")
+        if whatsapp.found and not whatsapp.data.empty and "Number" in whatsapp.data.columns:
+            values = [str(v).strip() for v in whatsapp.data["Number"] if str(v).strip()]
+            if values:
+                rows.append({"Field": "WhatsApp number(s)", "Value": "; ".join(values)})
+
+        emails = reader.csv("Email Addresses.csv")
+        if emails.found and not emails.data.empty and "Email Address" in emails.data.columns:
+            values = [str(v).strip() for v in emails.data["Email Address"] if str(v).strip()]
+            if values:
+                rows.append({"Field": "Email address(es)", "Value": "; ".join(values)})
+
+        registration = reader.csv("Registration.csv")
+        if registration.found and not registration.data.empty:
+            reg_row = registration.data.iloc[0]
+            registered_at = str(reg_row.get("Registered At", "") or "").strip()
+            if registered_at:
+                rows.append({"Field": "Registration date", "Value": registered_at})
+            registration_ip = str(reg_row.get("Registration Ip", "") or "").strip()
+            if registration_ip:
+                rows.append({"Field": "Registration IP address", "Value": registration_ip})
+
+        if rows:
+            out = pd.DataFrame(rows)
+    except Exception as e:
+        logger.error("Data extraction error: %s", e)
+        errors[type(e).__name__] += 1
     return out
 
 
@@ -563,6 +778,8 @@ def comments_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
 
 #: Mapping from the string names used in port_config.json to actual extractor functions.
 EXTRACTOR_REGISTRY: dict[str, Callable[..., pd.DataFrame]] = {
+    "ad_targeting_to_df": ad_targeting_to_df,
+    "contact_info_to_df": contact_info_to_df,
     "ads_clicked_to_df": ads_clicked_to_df,
     "comments_to_df": comments_to_df,
     "company_follows_to_df": company_follows_to_df,

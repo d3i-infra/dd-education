@@ -13,14 +13,44 @@
   },
   "tables": [
     {
+      "id": "chatgpt_account_info",
+      "title": {
+        "en": "What OpenAI has on file for your account",
+        "nl": "Wat OpenAI over uw account heeft vastgelegd"
+      },
+      "description": {
+        "en": "The account fields OpenAI keeps for your ChatGPT account, from user.json.",
+        "nl": "De accountgegevens die OpenAI voor uw ChatGPT-account bewaart, uit user.json."
+      },
+      "headers": {
+        "Field": {
+          "en": "Field",
+          "nl": "Veld"
+        },
+        "Value": {
+          "en": "Value",
+          "nl": "Waarde"
+        }
+      },
+      "extractor": "account_info_to_df",
+      "documentation": {
+        "summary": "One row per account-identifying field OpenAI keeps on file for the account.",
+        "source_file": "user.json",
+        "columns": {
+          "Field": "Name of the account field.",
+          "Value": "Value OpenAI has on file for that field."
+        }
+      }
+    },
+    {
       "id": "chatgpt_conversations",
       "title": {
         "en": "Your conversations with ChatGPT",
         "nl": "Uw gesprekken met ChatGPT"
       },
       "description": {
-        "en": "Your conversations with ChatGPT, sorted over time. You can read back what you discussed and see how you've used AI assistance.",
-        "nl": "Uw gesprekken met ChatGPT, gesorteerd op tijd. U kunt teruglezen wat u heeft besproken en zien hoe u AI-assistentie heeft gebruikt."
+        "en": "Your ChatGPT conversations, from the conversations export files.",
+        "nl": "Uw ChatGPT-gesprekken, uit de conversations-exportbestanden."
       },
       "headers": {
         "conversation title": {
@@ -53,6 +83,77 @@
           "type": "wordcloud",
           "textColumn": "message",
           "tokenize": true
+        },
+        {
+          "title": {
+            "en": "What time of day you talk to ChatGPT",
+            "nl": "Op welk moment van de dag je met ChatGPT praat"
+          },
+          "type": "bar",
+          "group": {
+            "column": "time",
+            "dateFormat": "hour_cycle",
+            "label": {
+              "en": "Hour of the day",
+              "nl": "Uur van de dag"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Number of messages",
+                "nl": "Aantal berichten"
+              }
+            }
+          ]
+        },
+        {
+          "title": {
+            "en": "Which days you chat with ChatGPT most",
+            "nl": "Op welke dagen je het meest met ChatGPT chat"
+          },
+          "type": "bar",
+          "group": {
+            "column": "time",
+            "dateFormat": "weekday_cycle",
+            "label": {
+              "en": "Day of the week",
+              "nl": "Dag van de week"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Number of messages",
+                "nl": "Aantal berichten"
+              }
+            }
+          ]
+        },
+        {
+          "title": {
+            "en": "Which AI models answered you",
+            "nl": "Welke AI-modellen je antwoordden"
+          },
+          "type": "bar",
+          "group": {
+            "column": "model",
+            "label": {
+              "en": "Model",
+              "nl": "Model"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Number of replies",
+                "nl": "Aantal antwoorden"
+              }
+            }
+          ]
         }
       ],
       "extractor": "conversations_to_df",

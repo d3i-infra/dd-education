@@ -2,8 +2,15 @@
 
 ``test_all_timestamps_are_iso`` asserts the timestamp defect tracked for
 Task 9 and is expected to FAIL until that parser fix lands.
+
+WhatsApp extractors take ``(df, errors)`` rather than ``(reader, errors)``
+(the chat file is pre-parsed once, see ``whatsapp.py``'s module docstring),
+so ``test_extractor_not_empty`` runs each ``EXTRACTOR_REGISTRY`` entry
+directly over the filtered chat DataFrame the real flow builds, rather than
+going through ``ExtractorSpec``.
 """
 import io
+from collections import Counter
 
 import pytest
 
@@ -21,6 +28,15 @@ def chat_df():
     return df
 
 
+@pytest.fixture(scope="module")
+def filtered_chat_df(chat_df):
+    """The chat DataFrame the way ``WhatsAppFlow.extract_data`` hands it to
+    ``extraction()``: empty rows dropped, then filtered to detected users."""
+    df = W.remove_empty_chats(chat_df)
+    users = W.extract_users(df)
+    return W.keep_users(df, users)
+
+
 def test_messages_parsed(chat_df):
     assert len(chat_df) > 100
 
@@ -28,3 +44,10 @@ def test_messages_parsed(chat_df):
 def test_all_timestamps_are_iso(chat_df):
     bad = chat_df["date"].astype(str).str.contains("avonds|ochtends|middags|nachts|--")
     assert bad.sum() == 0, f"{bad.sum()} unparsed timestamps"
+
+
+@pytest.mark.parametrize("name", list(W.EXTRACTOR_REGISTRY), ids=lambda n: n)
+def test_extractor_not_empty(name, filtered_chat_df):
+    errors: Counter = Counter()
+    df = W.EXTRACTOR_REGISTRY[name](filtered_chat_df, errors)
+    assert not df.empty

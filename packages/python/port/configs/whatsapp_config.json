@@ -20,8 +20,8 @@
         "nl": "Je groepsgesprek"
       },
       "description": {
-        "en": "The messages in your group chat, sorted by time. Try searching to filter the messages and see what your group was talking about at different moments.",
-        "nl": "De berichten in uw groepschat, gesorteerd op tijd. Probeer te zoeken om de berichten te filteren en te zien waar uw groep op verschillende momenten over sprak."
+        "en": "The messages in your WhatsApp group chat, with sender, timestamp, and message text.",
+        "nl": "De berichten in uw WhatsApp-groepschat, met afzender, tijdstempel en berichttekst."
       },
       "headers": {
         "Timestamp": {
@@ -74,6 +74,78 @@
           "values": [
             {}
           ]
+        },
+        {
+          "title": {
+            "en": "Who talks the most in the group",
+            "nl": "Wie praat het meest in de groep"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Name",
+            "label": {
+              "en": "Name",
+              "nl": "Naam"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Messages",
+                "nl": "Berichten"
+              }
+            }
+          ]
+        },
+        {
+          "title": {
+            "en": "Each person's activity over time",
+            "nl": "Ieders activiteit in de loop van de tijd"
+          },
+          "type": "line",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "month",
+            "label": {
+              "en": "Month",
+              "nl": "Maand"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "group_by": "Name",
+              "label": {
+                "en": "Messages",
+                "nl": "Berichten"
+              }
+            }
+          ]
+        },
+        {
+          "title": {
+            "en": "Which days the group chats most",
+            "nl": "Op welke dagen de groep het meest chat"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "weekday_cycle",
+            "label": {
+              "en": "Day of the week",
+              "nl": "Dag van de week"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Messages",
+                "nl": "Berichten"
+              }
+            }
+          ]
         }
       ],
       "extractor": "chat_messages_to_df",
@@ -94,8 +166,8 @@
         "nl": "De 100 meest gebruikte emojis in de groep"
       },
       "description": {
-        "en": "Analysis of emoji frequency used by all members in the chat.",
-        "nl": "Analyse van emoji-frequentie gebruikt door alle leden in de chat."
+        "en": "The 100 most used emojis in the group chat, ranked by how often each was used.",
+        "nl": "De 100 meest gebruikte emojis in de groepschat, gerangschikt naar hoe vaak elke emoji is gebruikt."
       },
       "headers": {
         "Emoji": {
@@ -115,7 +187,34 @@
           "Emoji": "The emoji character.",
           "Count": "Total number of times this emoji was used."
         }
-      }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Most used emojis",
+            "nl": "Meest gebruikte emojis"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Emoji",
+            "top": 15,
+            "label": {
+              "en": "Emoji",
+              "nl": "Emoji"
+            }
+          },
+          "values": [
+            {
+              "column": "Count",
+              "aggregate": "sum",
+              "label": {
+                "en": "Times used",
+                "nl": "Aantal keer gebruikt"
+              }
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "whatsapp_user_statistics",
@@ -124,8 +223,8 @@
         "nl": "Chatstatistieken per gebruiker"
       },
       "description": {
-        "en": "Detailed messaging patterns and activity metrics for each participant in the group chat.",
-        "nl": "Gedetailleerde berichtpatronen en activiteitsgegevens voor elke deelnemer in het groepsgesprek."
+        "en": "Messaging statistics for each participant in the group chat, such as who they interact with most.",
+        "nl": "Berichtenstatistieken voor elke deelnemer aan de groepschat, zoals met wie ze het meest interactie hebben."
       },
       "headers": {
         "User": {

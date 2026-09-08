@@ -16,10 +16,269 @@
       "tr",
       "zh"
     ],
-    "description": "Handles the Google Takeout archive, uploaded as one or more zip parts (a multi-zip archive-set, so the export never needs to fit in a single upload). Extracts 12 tables: four from YouTube (watch history, search history, subscriptions, comments), one each from Search, Chrome, Video Search, Ads, Discover and Google News, and two from News — the News product's My Activity stream and its own export (followed sources, topics and locations, saved articles and magazines). Each source is read as JSON, HTML, CSV or TXT, whichever format it was exported in, which may differ per source within one archive. Handles DDPs in English, Dutch, German, Spanish, Arabic, Turkish and Chinese (Simplified only); the seven locales' path tables for the core sources were verified against real Google Takeout exports in August 2026. A handful of lower-traffic sources still carry older, unverified path guesses: the News My-Activity folder in every locale, Discover outside English (its English path is real-export-verified), and subscriptions/comments outside English and Dutch. Tested against the project's synthetic/canary test suite as of the date below; a live browser run against real exports updates this note when performed. If you find anything wrong with this script, report to datadonation@uu.nl and it will be fixed!",
+    "description": "Handles the Google Takeout archive, uploaded as one or more zip parts (a multi-zip archive-set, so the export never needs to fit in a single upload). Extracts 11 tables: four from YouTube (watch history, search history, subscriptions, comments), one each from Search, Chrome, Ads, Discover and Google News, and two from News — the News product's My Activity stream and its own export (followed sources, topics and locations, saved articles and magazines). Each source is read as JSON, HTML, CSV or TXT, whichever format it was exported in, which may differ per source within one archive. Handles DDPs in English, Dutch, German, Spanish, Arabic, Turkish and Chinese (Simplified only); the seven locales' path tables for the core sources were verified against real Google Takeout exports in August 2026. A handful of lower-traffic sources still carry older, unverified path guesses: the News My-Activity folder in every locale, Discover outside English (its English path is real-export-verified), and subscriptions/comments outside English and Dutch. Tested against the project's synthetic/canary test suite as of the date below; a live browser run against real exports updates this note when performed. If you find anything wrong with this script, report to datadonation@uu.nl and it will be fixed!",
     "time_last_tested": "30-08-2026"
   },
   "tables": [
+    {
+      "id": "ads_history",
+      "title": {
+        "en": "Your Google ads history",
+        "nl": "Je Google-advertentiegeschiedenis"
+      },
+      "description": {
+        "en": "Your ad events on Google with timestamps.",
+        "nl": "Je advertentiegebeurtenissen op Google met tijdstippen."
+      },
+      "headers": {
+        "Title": {
+          "en": "Action",
+          "nl": "Actie"
+        },
+        "URL": {
+          "en": "URL",
+          "nl": "URL"
+        },
+        "Details": {
+          "en": "Details",
+          "nl": "Details"
+        },
+        "Timestamp": {
+          "en": "Timestamp",
+          "nl": "Datum en tijd"
+        }
+      },
+      "extractor": "ads_history_to_df",
+      "documentation": {
+        "summary": "Each row represents one event in Google ads history, including what the archive records about where the ad was shown.",
+        "source_file": "the Google ads history, e.g. Ads/MyActivity.json",
+        "columns": {
+          "Title": "The ad event.",
+          "URL": "URL of the ad event.",
+          "Details": "What the archive records about the ad event, such as where the ad was shown. Empty for most events.",
+          "Timestamp": "ISO 8601 timestamp of when the ad event occurred."
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Your Google ads history over time",
+            "nl": "Je Google-advertentiegeschiedenis in de loop van de tijd"
+          },
+          "type": "area",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Ad events",
+                "nl": "Advertentiegebeurtenissen"
+              }
+            }
+          ]
+        },
+        {
+          "title": {
+            "en": "What time of day Google logs ad events for you",
+            "nl": "Op welk moment van de dag Google advertentiegebeurtenissen voor je registreert"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "hour_cycle",
+            "label": {
+              "en": "Hour of the day",
+              "nl": "Uur van de dag"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Ad events",
+                "nl": "Advertentiegebeurtenissen"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "discover_history",
+      "title": {
+        "en": "Your Google Discover history",
+        "nl": "Je Google Discover-geschiedenis"
+      },
+      "description": {
+        "en": "Your Discover events on Google with timestamps.",
+        "nl": "Je Discover-gebeurtenissen op Google met tijdstippen."
+      },
+      "headers": {
+        "Title": {
+          "en": "Action",
+          "nl": "Actie"
+        },
+        "Locations": {
+          "en": "Locations",
+          "nl": "Locaties"
+        },
+        "Details": {
+          "en": "Details",
+          "nl": "Details"
+        },
+        "Timestamp": {
+          "en": "Timestamp",
+          "nl": "Datum en tijd"
+        }
+      },
+      "extractor": "discover_history_to_df",
+      "documentation": {
+        "summary": "Each row represents one event in Google Discover history.",
+        "source_file": "the Google Discover history, e.g. Discover/MyActivity.json",
+        "columns": {
+          "Title": "The title of the Discover event.",
+          "Locations": "The locations associated with the Discover event.",
+          "Details": "Additional details about the Discover event.",
+          "Timestamp": "ISO 8601 timestamp of when the Discover event occurred."
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Words in what Google Discover showed you",
+            "nl": "Woorden in wat Google Discover je liet zien"
+          },
+          "type": "wordcloud",
+          "textColumn": "Title",
+          "tokenize": true
+        },
+        {
+          "title": {
+            "en": "Your Google Discover activity over time",
+            "nl": "Je Google Discover-activiteit in de loop van de tijd"
+          },
+          "type": "area",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Discover events",
+                "nl": "Discover-gebeurtenissen"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chrome_history",
+      "title": {
+        "en": "Your Chrome browsing history",
+        "nl": "Je Chrome-surfgeschiedenis"
+      },
+      "description": {
+        "en": "Websites you visited in Chrome, including timestamps.",
+        "nl": "Websites die je in Chrome hebt bezocht, inclusief tijdstippen."
+      },
+      "headers": {
+        "Title": {
+          "en": "Action",
+          "nl": "Actie"
+        },
+        "URL": {
+          "en": "URL",
+          "nl": "URL"
+        },
+        "Timestamp": {
+          "en": "Timestamp",
+          "nl": "Datum en tijd"
+        }
+      },
+      "extractor": "chrome_history_to_df",
+      "documentation": {
+        "summary": "Each row represents one website the participant visited in Chrome, including the page title, URL, and timestamp.",
+        "source_file": "the Chrome history, e.g. Chrome/MyActivity.json or Chrome/Verlauf.html",
+        "columns": {
+          "Title": "Title of the visited page.",
+          "URL": "URL of the visited page.",
+          "Timestamp": "ISO 8601 timestamp of when the page was visited."
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Words in the pages you visited in Chrome",
+            "nl": "Woorden in de pagina's die je in Chrome hebt bezocht"
+          },
+          "type": "wordcloud",
+          "textColumn": "Title",
+          "tokenize": true
+        },
+        {
+          "title": {
+            "en": "Your Chrome browsing over time",
+            "nl": "Je Chrome-surfgedrag in de loop van de tijd"
+          },
+          "type": "area",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Pages visited",
+                "nl": "Bezochte pagina's"
+              }
+            }
+          ]
+        },
+        {
+          "title": {
+            "en": "What time of day you browse in Chrome",
+            "nl": "Op welk moment van de dag je in Chrome surft"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "hour_cycle",
+            "label": {
+              "en": "Hour of the day",
+              "nl": "Uur van de dag"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Pages visited",
+                "nl": "Bezochte pagina's"
+              }
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "youtube_watch_history",
       "title": {
@@ -27,8 +286,8 @@
         "nl": "Je YouTube kijkgeschiedenis"
       },
       "description": {
-        "en": "This table shows the videos you watched on YouTube, sorted over time. Explore it to discover patterns in your viewing habits — what you watch most, and when.",
-        "nl": "Deze tabel toont de video's die u op YouTube heeft bekeken, gesorteerd op tijd. Verken ze om patronen in uw kijkgedrag te ontdekken — wat u het meest kijkt en wanneer."
+        "en": "Videos you watched on YouTube, from your Google Takeout watch history.",
+        "nl": "Video's die u op YouTube heeft bekeken, uit uw Google Takeout-kijkgeschiedenis."
       },
       "headers": {
         "Title": {
@@ -59,13 +318,13 @@
       "visualizations": [
         {
           "title": {
-            "en": "Videos watched over time",
-            "nl": "Bekeken video's in de loop van de tijd"
+            "en": "Videos watched per month",
+            "nl": "Bekeken video's per maand"
           },
           "type": "area",
           "group": {
             "column": "Timestamp",
-            "dateFormat": "auto",
+            "dateFormat": "month",
             "label": {
               "en": "Date",
               "nl": "Datum"
@@ -112,6 +371,39 @@
           "type": "wordcloud",
           "textColumn": "Title",
           "tokenize": true
+        },
+        {
+          "title": {
+            "en": "Channels you watched most",
+            "nl": "Kanalen die je het meest hebt bekeken"
+          },
+          "type": "wordcloud",
+          "textColumn": "Channel name",
+          "tokenize": false
+        },
+        {
+          "title": {
+            "en": "Which days you watch YouTube most",
+            "nl": "Op welke dagen je het meest YouTube kijkt"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "weekday_cycle",
+            "label": {
+              "en": "Day of the week",
+              "nl": "Dag van de week"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Number of videos",
+                "nl": "Aantal video's"
+              }
+            }
+          ]
         }
       ],
       "extractor": "youtube_watch_history_to_df",
@@ -135,8 +427,8 @@
         "nl": "Je YouTube zoekgeschiedenis"
       },
       "description": {
-        "en": "This table shows what you searched for on YouTube. Your search terms reveal your interests, curiosities, and how you use the platform to find content.",
-        "nl": "Deze tabel toont wat u op YouTube heeft gezocht. Uw zoektermen onthullen uw interesses, nieuwsgierigheid en hoe u het platform gebruikt om content te vinden."
+        "en": "Videos and searches recorded in your YouTube search history, from your Google Takeout export.",
+        "nl": "Video's en zoekopdrachten uit uw YouTube-zoekgeschiedenis, uit uw Google Takeout-export."
       },
       "headers": {
         "Title": {
@@ -165,6 +457,30 @@
           "type": "wordcloud",
           "textColumn": "Title",
           "tokenize": true
+        },
+        {
+          "title": {
+            "en": "Your YouTube searches over time",
+            "nl": "Je YouTube-zoekopdrachten in de loop van de tijd"
+          },
+          "type": "area",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Number of searches",
+                "nl": "Aantal zoekopdrachten"
+              }
+            }
+          ]
         }
       ],
       "extractor": "youtube_search_history_to_df",
@@ -186,8 +502,8 @@
         "nl": "Je YouTube abonnementen"
       },
       "description": {
-        "en": "The YouTube channels you are subscribed to. This reflects the content creators you've chosen to follow over time.",
-        "nl": "De YouTube-kanalen waarop u geabonneerd bent. Dit weerspiegelt de contentmakers die u in de loop van de tijd heeft gevolgd."
+        "en": "The YouTube channels you are subscribed to, from your Google Takeout subscriptions export.",
+        "nl": "De YouTube-kanalen waarop u geabonneerd bent, uit uw Google Takeout-abonnementenexport."
       },
       "headers": {
         "Channel Id": {
@@ -221,8 +537,8 @@
         "nl": "Je YouTube reacties"
       },
       "description": {
-        "en": "Comments you posted on YouTube videos. These are the conversations you participated in across the platform.",
-        "nl": "Reacties die u op YouTube-video's heeft geplaatst. Dit zijn de gesprekken waaraan u heeft deelgenomen op het platform."
+        "en": "Comments you posted on YouTube, from your Google Takeout comments export.",
+        "nl": "Reacties die u op YouTube heeft geplaatst, uit uw Google Takeout-reactiesexport."
       },
       "headers": {
         "Comment ID": {
@@ -259,6 +575,30 @@
           "type": "wordcloud",
           "textColumn": "Comment text",
           "tokenize": true
+        },
+        {
+          "title": {
+            "en": "Your YouTube comments over time",
+            "nl": "Je YouTube-reacties in de loop van de tijd"
+          },
+          "type": "area",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Comments",
+                "nl": "Reacties"
+              }
+            }
+          ]
         }
       ],
       "extractor": "youtube_comments_to_df",
@@ -318,157 +658,66 @@
           "Details": "How the search came about, such as a search that came from an ad. Empty for most searches.",
           "Timestamp": "ISO 8601 timestamp of when the search was performed."
         }
-      }
-    },
-    {
-      "id": "chrome_history",
-      "title": {
-        "en": "Your Chrome browsing history",
-        "nl": "Je Chrome-surfgeschiedenis"
       },
-      "description": {
-        "en": "Websites you visited in Chrome, including timestamps.",
-        "nl": "Websites die je in Chrome hebt bezocht, inclusief tijdstippen."
-      },
-      "headers": {
-        "Title": {
-          "en": "Action",
-          "nl": "Actie"
+      "visualizations": [
+        {
+          "title": {
+            "en": "What you searched for on Google",
+            "nl": "Waar je op Google naar hebt gezocht"
+          },
+          "type": "wordcloud",
+          "textColumn": "Title",
+          "tokenize": true
         },
-        "URL": {
-          "en": "URL",
-          "nl": "URL"
+        {
+          "title": {
+            "en": "Your Google searches over time",
+            "nl": "Je Google-zoekopdrachten in de loop van de tijd"
+          },
+          "type": "area",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Searches",
+                "nl": "Zoekopdrachten"
+              }
+            }
+          ]
         },
-        "Timestamp": {
-          "en": "Timestamp",
-          "nl": "Datum en tijd"
+        {
+          "title": {
+            "en": "What time of day you search on Google",
+            "nl": "Op welk moment van de dag je op Google zoekt"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "hour_cycle",
+            "label": {
+              "en": "Hour of the day",
+              "nl": "Uur van de dag"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Searches",
+                "nl": "Zoekopdrachten"
+              }
+            }
+          ]
         }
-      },
-      "extractor": "chrome_history_to_df",
-      "documentation": {
-        "summary": "Each row represents one website the participant visited in Chrome, including the page title, URL, and timestamp.",
-        "source_file": "the Chrome history, e.g. Chrome/MyActivity.json or Chrome/Verlauf.html",
-        "columns": {
-          "Title": "Title of the visited page.",
-          "URL": "URL of the visited page.",
-          "Timestamp": "ISO 8601 timestamp of when the page was visited."
-        }
-      }
-    },
-    {
-      "id": "video_search_history",
-      "title": {
-        "en": "Your Google video search history",
-        "nl": "Je Google-videozoekgeschiedenis"
-      },
-      "description": {
-        "en": "Your search queries on Google video with timestamps.",
-        "nl": "Je zoekopdrachten op Google video met tijdstippen."
-      },
-      "headers": {
-        "Title": {
-          "en": "Action",
-          "nl": "Actie"
-        },
-        "URL": {
-          "en": "URL",
-          "nl": "URL"
-        },
-        "Timestamp": {
-          "en": "Timestamp",
-          "nl": "Datum en tijd"
-        }
-      },
-      "extractor": "video_search_history_to_df",
-      "documentation": {
-        "summary": "Each row represents one search event in Google video search history.",
-        "source_file": "the Google video search history, e.g. Video Search/MyActivity.json",
-        "columns": {
-          "Title": "Description of the video search action.",
-          "URL": "URL of the video search event.",
-          "Timestamp": "ISO 8601 timestamp of when the search was performed."
-        }
-      }
-    },
-    {
-      "id": "ads_history",
-      "title": {
-        "en": "Your Google ads history",
-        "nl": "Je Google-advertentiegeschiedenis"
-      },
-      "description": {
-        "en": "Your ad events on Google with timestamps.",
-        "nl": "Je advertentiegebeurtenissen op Google met tijdstippen."
-      },
-      "headers": {
-        "Title": {
-          "en": "Action",
-          "nl": "Actie"
-        },
-        "URL": {
-          "en": "URL",
-          "nl": "URL"
-        },
-        "Details": {
-          "en": "Details",
-          "nl": "Details"
-        },
-        "Timestamp": {
-          "en": "Timestamp",
-          "nl": "Datum en tijd"
-        }
-      },
-      "extractor": "ads_history_to_df",
-      "documentation": {
-        "summary": "Each row represents one event in Google ads history, including what the archive records about where the ad was shown.",
-        "source_file": "the Google ads history, e.g. Ads/MyActivity.json",
-        "columns": {
-          "Title": "The ad event.",
-          "URL": "URL of the ad event.",
-          "Details": "What the archive records about the ad event, such as where the ad was shown. Empty for most events.",
-          "Timestamp": "ISO 8601 timestamp of when the ad event occurred."
-        }
-      }
-    },
-    {
-      "id": "discover_history",
-      "title": {
-        "en": "Your Google Discover history",
-        "nl": "Je Google Discover-geschiedenis"
-      },
-      "description": {
-        "en": "Your Discover events on Google with timestamps.",
-        "nl": "Je Discover-gebeurtenissen op Google met tijdstippen."
-      },
-      "headers": {
-        "Title": {
-          "en": "Action",
-          "nl": "Actie"
-        },
-        "Locations": {
-          "en": "Locations",
-          "nl": "Locaties"
-        },
-        "Details": {
-          "en": "Details",
-          "nl": "Details"
-        },
-        "Timestamp": {
-          "en": "Timestamp",
-          "nl": "Datum en tijd"
-        }
-      },
-      "extractor": "discover_history_to_df",
-      "documentation": {
-        "summary": "Each row represents one event in Google Discover history.",
-        "source_file": "the Google Discover history, e.g. Discover/MyActivity.json",
-        "columns": {
-          "Title": "The title of the Discover event.",
-          "Locations": "The locations associated with the Discover event.",
-          "Details": "Additional details about the Discover event.",
-          "Timestamp": "ISO 8601 timestamp of when the Discover event occurred."
-        }
-      }
+      ]
     },
     {
       "id": "google_news_history",
@@ -503,7 +752,42 @@
           "URL": "URL of the Google News event.",
           "Timestamp": "ISO 8601 timestamp of when the Google News event occured."
         }
-      }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Words in your Google News activity",
+            "nl": "Woorden in je Google Nieuws-activiteit"
+          },
+          "type": "wordcloud",
+          "textColumn": "Title",
+          "tokenize": true
+        },
+        {
+          "title": {
+            "en": "Your Google News activity over time",
+            "nl": "Je Google Nieuws-activiteit in de loop van de tijd"
+          },
+          "type": "area",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Events",
+                "nl": "Gebeurtenissen"
+              }
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "news_history",
@@ -538,7 +822,42 @@
           "URL": "URL of the News event.",
           "Timestamp": "ISO 8601 timestamp of when the News event occured."
         }
-      }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Words in your News activity",
+            "nl": "Woorden in je Nieuws-activiteit"
+          },
+          "type": "wordcloud",
+          "textColumn": "Title",
+          "tokenize": true
+        },
+        {
+          "title": {
+            "en": "Your News activity over time",
+            "nl": "Je Nieuws-activiteit in de loop van de tijd"
+          },
+          "type": "area",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Events",
+                "nl": "Gebeurtenissen"
+              }
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "news_items",
@@ -568,7 +887,32 @@
           "Type": "The kind of News product item: Saved article, Followed location, Followed source, Followed topic, or Magazine.",
           "Name": "The name of the item, one line as Takeout wrote it."
         }
-      }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "What kind of News items you have",
+            "nl": "Wat voor soort Nieuws-items je hebt"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Type",
+            "label": {
+              "en": "Type",
+              "nl": "Soort"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Items",
+                "nl": "Items"
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

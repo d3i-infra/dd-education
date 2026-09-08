@@ -13,194 +13,96 @@
   },
   "tables": [
     {
-      "id": "linkedin_ads_clicked",
+      "id": "linkedin_ad_targeting",
       "title": {
-        "en": "Ads you clicked on",
-        "nl": "Advertenties waarop je hebt geklikt"
+        "en": "Everything LinkedIn has inferred about you",
+        "nl": "Alles wat LinkedIn over jou heeft afgeleid"
       },
       "description": {
-        "en": "Advertisements you clicked on while using LinkedIn. These show what professional opportunities and products caught your eye.",
-        "nl": "Advertenties waarop u heeft geklikt tijdens het gebruik van LinkedIn. Deze laten zien welke professionele kansen en producten uw aandacht trokken."
+        "en": "The inferred attributes LinkedIn uses to target you with ads, reshaped from Ad_Targeting.csv.",
+        "nl": "De afgeleide kenmerken die LinkedIn gebruikt om u te targeten met advertenties, uit Ad_Targeting.csv."
       },
       "headers": {
-        "Ad clicked Date": {
-          "en": "Ad clicked Date",
-          "nl": "Advertentiedatum"
+        "Category": {
+          "en": "Category",
+          "nl": "Categorie"
         },
-        "Ad Title/Id": {
-          "en": "Ad Title/Id",
-          "nl": "Advertentietitel/id"
-        }
-      },
-      "extractor": "ads_clicked_to_df",
-      "documentation": {
-        "summary": "Each row represents one advertisement the participant clicked on LinkedIn.",
-        "source_file": "Ads Clicked.csv",
-        "columns": {
-          "Ad clicked Date": "Date on which the ad was clicked.",
-          "Ad Title/Id": "Title or numeric ID of the clicked advertisement."
-        }
-      }
-    },
-    {
-      "id": "linkedin_comments",
-      "title": {
-        "en": "Your comments on LinkedIn",
-        "nl": "Je reacties op LinkedIn"
-      },
-      "description": {
-        "en": "Comments you posted on LinkedIn. These reflect how you engage in professional discussions.",
-        "nl": "Reacties die u op LinkedIn heeft geplaatst. Deze weerspiegelen hoe u deelneemt aan professionele discussies."
-      },
-      "headers": {
-        "Date": {
-          "en": "Date",
-          "nl": "Datum"
-        },
-        "Message": {
-          "en": "Message",
-          "nl": "Bericht"
+        "Value": {
+          "en": "Value",
+          "nl": "Waarde"
         }
       },
       "visualizations": [
         {
           "title": {
-            "en": "Words in your comments",
-            "nl": "Woorden in je reacties"
+            "en": "Everything LinkedIn has inferred about you",
+            "nl": "Alles wat LinkedIn over jou heeft afgeleid"
           },
           "type": "wordcloud",
-          "textColumn": "Message",
-          "tokenize": true
-        }
-      ],
-      "extractor": "comments_to_df",
-      "documentation": {
-        "summary": "Each row represents one comment the participant posted on LinkedIn content.",
-        "source_file": "Comments.csv",
-        "columns": {
-          "Date": "Date of the comment.",
-          "Message": "Text of the comment."
-        }
-      }
-    },
-    {
-      "id": "linked_in_company_follows",
-      "title": {
-        "en": "Companies you follow",
-        "nl": "Bedrijven die je volgt"
-      },
-      "description": {
-        "en": "Companies you follow on LinkedIn. This reflects the industries and organizations you're interested in.",
-        "nl": "Bedrijven die u volgt op LinkedIn. Dit weerspiegelt de sectoren en organisaties waarin u geïnteresseerd bent."
-      },
-      "headers": {
-        "Organization": {
-          "en": "Organization",
-          "nl": "Organisatie"
+          "textColumn": "Value",
+          "tokenize": false
         },
-        "Followed On": {
-          "en": "Followed On",
-          "nl": "Gevolgd op"
-        }
-      },
-      "extractor": "company_follows_to_df",
-      "documentation": {
-        "summary": "Each row represents one company the participant follows on LinkedIn.",
-        "source_file": "Company Follows.csv",
-        "columns": {
-          "Organization": "Name of the followed company.",
-          "Followed On": "Date on which the participant started following the company."
-        }
-      }
-    },
-    {
-      "id": "linkedin_shares",
-      "title": {
-        "en": "Posts you shared on LinkedIn",
-        "nl": "Berichten die je hebt gedeeld op LinkedIn"
-      },
-      "description": {
-        "en": "Content you shared with your professional network on LinkedIn.",
-        "nl": "Content die u heeft gedeeld met uw professionele netwerk op LinkedIn."
-      },
-      "headers": {
-        "Date": {
-          "en": "Date",
-          "nl": "Datum"
-        },
-        "ShareLink": {
-          "en": "ShareLink",
-          "nl": "Gedeelde link"
-        },
-        "ShareCommentary": {
-          "en": "ShareCommentary",
-          "nl": "Gedeelde tekst"
-        },
-        "SharedUrl": {
-          "en": "SharedUrl",
-          "nl": "Gedeelde URL"
-        },
-        "MediaUrl": {
-          "en": "MediaUrl",
-          "nl": "Media-URL"
-        },
-        "Visibility": {
-          "en": "Visibility",
-          "nl": "Zichtbaarheid"
-        }
-      },
-      "extractor": "shares_to_df",
-      "documentation": {
-        "summary": "Each row represents one post the participant shared on LinkedIn.",
-        "source_file": "Shares.csv",
-        "columns": {
-          "Date": "Date of the share.",
-          "ShareLink": "Link to the share.",
-          "ShareCommentary": "Text commentary added when sharing.",
-          "SharedUrl": "URL of the content that was shared.",
-          "MediaUrl": "URL of any media attached to the share.",
-          "Visibility": "Visibility setting of the share (e.g. PUBLIC, CONNECTIONS)."
-        }
-      }
-    },
-    {
-      "id": "linkedin_reactions",
-      "title": {
-        "en": "Your reactions on LinkedIn",
-        "nl": "Je reacties op LinkedIn"
-      },
-      "description": {
-        "en": "Your reactions to posts and content on LinkedIn. This reveals what professional content resonates with you.",
-        "nl": "Uw reacties op berichten en content op LinkedIn. Dit onthult welke professionele content bij u aanslaat."
-      },
-      "headers": {
-        "Date": {
-          "en": "Date",
-          "nl": "Datum"
-        },
-        "Type": {
-          "en": "Type",
-          "nl": "Type"
-        }
-      },
-      "visualizations": [
         {
           "title": {
-            "en": "The type of reactions you put under posts on LinkedIn",
-            "nl": "De soorten reacties die je plaatst onder berichten op LinkedIn"
+            "en": "Which kind of profile LinkedIn built the most",
+            "nl": "Op welk soort profiel LinkedIn het meest heeft ingezet"
           },
-          "type": "wordcloud",
-          "textColumn": "Type",
-          "tokenize": true
+          "type": "bar",
+          "group": {
+            "column": "Category",
+            "label": {
+              "en": "Category",
+              "nl": "Categorie"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Number of inferred values",
+                "nl": "Aantal afgeleide waarden"
+              }
+            }
+          ]
         }
       ],
-      "extractor": "reactions_to_df",
+      "extractor": "ad_targeting_to_df",
       "documentation": {
-        "summary": "Each row represents one reaction the participant gave to a post or content on LinkedIn.",
-        "source_file": "Reactions.csv",
+        "summary": "Each row is one inferred attribute value from LinkedIn's ad-targeting profile of the participant, reshaped from a single wide row into one row per value.",
+        "source_file": "Ad_Targeting.csv",
         "columns": {
-          "Date": "Date of the reaction.",
-          "Type": "Type of reaction (e.g. Like, Celebrate, Support)."
+          "Category": "The source column this value came from (e.g. Job Titles, Member Interests).",
+          "Value": "One inferred value LinkedIn has attached to the participant under that category."
+        }
+      }
+    },
+    {
+      "id": "linkedin_contact_info",
+      "title": {
+        "en": "Your contact and registration details on file",
+        "nl": "Uw contact- en registratiegegevens"
+      },
+      "description": {
+        "en": "The phone numbers, email addresses, and registration details LinkedIn has on file, from PhoneNumbers.csv, Whatsapp Phone Numbers.csv, Email Addresses.csv and Registration.csv.",
+        "nl": "De telefoonnummers, e-mailadressen en registratiegegevens die LinkedIn heeft geregistreerd, uit PhoneNumbers.csv, Whatsapp Phone Numbers.csv, Email Addresses.csv en Registration.csv."
+      },
+      "headers": {
+        "Field": {
+          "en": "Field",
+          "nl": "Veld"
+        },
+        "Value": {
+          "en": "Value",
+          "nl": "Waarde"
+        }
+      },
+      "extractor": "contact_info_to_df",
+      "documentation": {
+        "summary": "One row per contact or registration field LinkedIn has on file, merged from four source files.",
+        "source_file": "PhoneNumbers.csv, Whatsapp Phone Numbers.csv, Email Addresses.csv, Registration.csv",
+        "columns": {
+          "Field": "Name of the contact or registration field.",
+          "Value": "Value(s) LinkedIn has on file for that field, joined with '; ' when there is more than one."
         }
       }
     },
@@ -211,8 +113,8 @@
         "nl": "Je LinkedIn-connecties"
       },
       "description": {
-        "en": "Your professional connections on LinkedIn. This network represents your professional relationships over time.",
-        "nl": "Uw professionele connecties op LinkedIn. Dit netwerk vertegenwoordigt uw professionele relaties in de loop van de tijd."
+        "en": "Your first-degree LinkedIn connections, from Connections.csv.",
+        "nl": "Uw eerstegraads LinkedIn-connecties, uit Connections.csv."
       },
       "headers": {
         "First Name": {
@@ -252,7 +154,288 @@
           "Position": "Current job title of the connection.",
           "Connected On": "Date on which the connection was established."
         }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "When you connected with people",
+            "nl": "Wanneer je met mensen verbonden raakte"
+          },
+          "type": "area",
+          "group": {
+            "column": "Connected On",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "New connections",
+                "nl": "Nieuwe connecties"
+              }
+            }
+          ]
+        },
+        {
+          "title": {
+            "en": "Companies your connections work at",
+            "nl": "Bedrijven waar je connecties werken"
+          },
+          "type": "wordcloud",
+          "textColumn": "Company",
+          "tokenize": false
+        },
+        {
+          "title": {
+            "en": "Job titles among your connections",
+            "nl": "Functietitels onder je connecties"
+          },
+          "type": "wordcloud",
+          "textColumn": "Position",
+          "tokenize": true
+        }
+      ]
+    },
+    {
+      "id": "linked_in_company_follows",
+      "title": {
+        "en": "Companies you follow",
+        "nl": "Bedrijven die je volgt"
+      },
+      "description": {
+        "en": "The companies you follow on LinkedIn, from Company Follows.csv.",
+        "nl": "De bedrijven die u op LinkedIn volgt, uit Company Follows.csv."
+      },
+      "headers": {
+        "Organization": {
+          "en": "Organization",
+          "nl": "Organisatie"
+        },
+        "Followed On": {
+          "en": "Followed On",
+          "nl": "Gevolgd op"
+        }
+      },
+      "extractor": "company_follows_to_df",
+      "documentation": {
+        "summary": "Each row represents one company the participant follows on LinkedIn.",
+        "source_file": "Company Follows.csv",
+        "columns": {
+          "Organization": "Name of the followed company.",
+          "Followed On": "Date on which the participant started following the company."
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "When you started following companies",
+            "nl": "Wanneer je bedrijven begon te volgen"
+          },
+          "type": "area",
+          "group": {
+            "column": "Followed On",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Companies followed",
+                "nl": "Gevolgde bedrijven"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "linkedin_reactions",
+      "title": {
+        "en": "Your reactions on LinkedIn",
+        "nl": "Je reacties op LinkedIn"
+      },
+      "description": {
+        "en": "Your reactions to posts on LinkedIn, from Reactions.csv.",
+        "nl": "Uw reacties op berichten op LinkedIn, uit Reactions.csv."
+      },
+      "headers": {
+        "Date": {
+          "en": "Date",
+          "nl": "Datum"
+        },
+        "Type": {
+          "en": "Type",
+          "nl": "Type"
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "The type of reactions you give most",
+            "nl": "Het soort reacties dat je het meest geeft"
+          },
+          "type": "bar",
+          "group": {
+            "column": "Type",
+            "label": {
+              "en": "Reaction type",
+              "nl": "Type reactie"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Times given",
+                "nl": "Aantal keer gegeven"
+              }
+            }
+          ]
+        }
+      ],
+      "extractor": "reactions_to_df",
+      "documentation": {
+        "summary": "Each row represents one reaction the participant gave to a post or content on LinkedIn.",
+        "source_file": "Reactions.csv",
+        "columns": {
+          "Date": "Date of the reaction.",
+          "Type": "Type of reaction (e.g. Like, Celebrate, Support)."
+        }
       }
+    },
+    {
+      "id": "linkedin_comments",
+      "title": {
+        "en": "Your comments on LinkedIn",
+        "nl": "Je reacties op LinkedIn"
+      },
+      "description": {
+        "en": "The comments you posted on LinkedIn content, from Comments.csv.",
+        "nl": "De reacties die u op LinkedIn-content heeft geplaatst, uit Comments.csv."
+      },
+      "headers": {
+        "Date": {
+          "en": "Date",
+          "nl": "Datum"
+        },
+        "Message": {
+          "en": "Message",
+          "nl": "Bericht"
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Words in your comments",
+            "nl": "Woorden in je reacties"
+          },
+          "type": "wordcloud",
+          "textColumn": "Message",
+          "tokenize": true
+        },
+        {
+          "title": {
+            "en": "When you commented on LinkedIn",
+            "nl": "Wanneer je op LinkedIn hebt gereageerd"
+          },
+          "type": "area",
+          "group": {
+            "column": "Date",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Comments",
+                "nl": "Reacties"
+              }
+            }
+          ]
+        }
+      ],
+      "extractor": "comments_to_df",
+      "documentation": {
+        "summary": "Each row represents one comment the participant posted on LinkedIn content.",
+        "source_file": "Comments.csv",
+        "columns": {
+          "Date": "Date of the comment.",
+          "Message": "Text of the comment."
+        }
+      }
+    },
+    {
+      "id": "linkedin_shares",
+      "title": {
+        "en": "Posts you shared on LinkedIn",
+        "nl": "Berichten die je hebt gedeeld op LinkedIn"
+      },
+      "description": {
+        "en": "The posts you shared on LinkedIn, from Shares.csv.",
+        "nl": "De berichten die u op LinkedIn heeft gedeeld, uit Shares.csv."
+      },
+      "headers": {
+        "Date": {
+          "en": "Date",
+          "nl": "Datum"
+        },
+        "ShareLink": {
+          "en": "ShareLink",
+          "nl": "Gedeelde link"
+        },
+        "ShareCommentary": {
+          "en": "ShareCommentary",
+          "nl": "Gedeelde tekst"
+        },
+        "SharedUrl": {
+          "en": "SharedUrl",
+          "nl": "Gedeelde URL"
+        },
+        "MediaUrl": {
+          "en": "MediaUrl",
+          "nl": "Media-URL"
+        },
+        "Visibility": {
+          "en": "Visibility",
+          "nl": "Zichtbaarheid"
+        }
+      },
+      "extractor": "shares_to_df",
+      "documentation": {
+        "summary": "Each row represents one post the participant shared on LinkedIn.",
+        "source_file": "Shares.csv",
+        "columns": {
+          "Date": "Date of the share.",
+          "ShareLink": "Link to the share.",
+          "ShareCommentary": "Text commentary added when sharing.",
+          "SharedUrl": "URL of the content that was shared.",
+          "MediaUrl": "URL of any media attached to the share.",
+          "Visibility": "Visibility setting of the share (e.g. PUBLIC, CONNECTIONS)."
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Words in what you shared",
+            "nl": "Woorden in wat je hebt gedeeld"
+          },
+          "type": "wordcloud",
+          "textColumn": "ShareCommentary",
+          "tokenize": true
+        }
+      ]
     },
     {
       "id": "linkedin_search_queries",
@@ -261,8 +444,8 @@
         "nl": "Je zoekopdrachten op LinkedIn"
       },
       "description": {
-        "en": "What you searched for on LinkedIn. This reveals your professional interests, job searches, and networking patterns.",
-        "nl": "Wat u op LinkedIn heeft gezocht. Dit onthult uw professionele interesses, zoekgedrag naar banen en netwerkpatronen."
+        "en": "Your search queries on LinkedIn, from SearchQueries.csv.",
+        "nl": "Uw zoekopdrachten op LinkedIn, uit SearchQueries.csv."
       },
       "headers": {
         "Time": {
@@ -283,6 +466,30 @@
           "type": "wordcloud",
           "textColumn": "Search Query",
           "tokenize": true
+        },
+        {
+          "title": {
+            "en": "Your LinkedIn searches over time",
+            "nl": "Je LinkedIn-zoekopdrachten in de loop van de tijd"
+          },
+          "type": "area",
+          "group": {
+            "column": "Time",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Searches",
+                "nl": "Zoekopdrachten"
+              }
+            }
+          ]
         }
       ],
       "extractor": "search_queries_to_df",
@@ -296,14 +503,55 @@
       }
     },
     {
+      "id": "linkedin_ads_clicked",
+      "title": {
+        "en": "Ads you clicked on",
+        "nl": "Advertenties waarop je hebt geklikt"
+      },
+      "description": {
+        "en": "The ads you clicked on LinkedIn, from Ads Clicked.csv. Note: LinkedIn only provides numeric ad IDs, not ad titles or descriptions.",
+        "nl": "De advertenties waarop u op LinkedIn heeft geklikt, uit Ads Clicked.csv. Let op: LinkedIn geeft alleen numerieke advertentie-ID's, geen titels of beschrijvingen."
+      },
+      "headers": {
+        "Ad clicked Date": {
+          "en": "Ad clicked Date",
+          "nl": "Advertentiedatum"
+        },
+        "Ad Title/Id": {
+          "en": "Ad Title/Id",
+          "nl": "Advertentietitel/id"
+        }
+      },
+      "extractor": "ads_clicked_to_df",
+      "documentation": {
+        "summary": "Each row represents one advertisement the participant clicked on LinkedIn.",
+        "source_file": "Ads Clicked.csv",
+        "columns": {
+          "Ad clicked Date": "Date on which the ad was clicked.",
+          "Ad Title/Id": "Title or numeric ID of the clicked advertisement."
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Ads you clicked on",
+            "nl": "Advertenties waarop je hebt geklikt"
+          },
+          "type": "wordcloud",
+          "textColumn": "Ad Title/Id",
+          "tokenize": false
+        }
+      ]
+    },
+    {
       "id": "linkedin_member_follows",
       "title": {
         "en": "Members you follow",
         "nl": "Leden die je volgt"
       },
       "description": {
-        "en": "List of LinkedIn members you are following",
-        "nl": "Lijst van LinkedIn-leden die je volgt"
+        "en": "The LinkedIn members you follow, from Member_Follows.csv.",
+        "nl": "De LinkedIn-leden die u volgt, uit Member_Follows.csv."
       },
       "headers": {
         "To": {

@@ -67,6 +67,79 @@ DDP_CATEGORIES = [
 ]
 
 
+def account_info_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
+    """Extract the account-identifying fields OpenAI keeps in ``user.json``.
+
+    ``user.json`` is a flat, four-field object: whether the account is a
+    ChatGPT Plus subscriber, the account id, and the email and phone number
+    on file. Present but empty (0 bytes, or an empty JSON object) is treated
+    the same as absent (ADR-0024): a real file with nothing in it must not
+    surface as four blank-value rows.
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load JSON files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Field``, ``Value``. One row per account field.
+        Empty DataFrame when the file is absent, empty, or parsing fails.
+
+    Table documentation::
+
+        {
+          "summary": "One row per account-identifying field OpenAI keeps on file for the account.",
+          "source_file": "user.json",
+          "columns": {
+            "Field": "Name of the account field.",
+            "Value": "Value OpenAI has on file for that field."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "chatgpt_account_info",
+          "title": {
+            "en": "What OpenAI has on file for your account",
+            "nl": "Wat OpenAI over uw account heeft vastgelegd"
+          },
+          "description": {
+            "en": "The account fields OpenAI keeps for your ChatGPT account, from user.json.",
+            "nl": "De accountgegevens die OpenAI voor uw ChatGPT-account bewaart, uit user.json."
+          },
+          "headers": {
+            "Field": {"en": "Field", "nl": "Veld"},
+            "Value": {"en": "Value", "nl": "Waarde"}
+          }
+        }
+    """
+    result = reader.json("user.json")
+    out = pd.DataFrame()
+    if not result.found or not isinstance(result.data, dict) or not result.data:
+        return out
+    try:
+        data = result.data
+        plus = data.get("chatgpt_plus_user")
+        plus_value = "Yes" if plus is True else ("No" if plus is False else "")
+        rows = [
+            {"Field": "ChatGPT Plus subscriber", "Value": plus_value},
+            {"Field": "Account ID", "Value": str(data.get("id") or "")},
+            {"Field": "Email on file", "Value": str(data.get("email") or "")},
+            {"Field": "Phone on file", "Value": str(data.get("phone_number") or "")},
+        ]
+        out = pd.DataFrame(rows)
+    except Exception as e:
+        logger.error("Data extraction error: %s", e)
+        errors[type(e).__name__] += 1
+    return out
+
+
 def conversations_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
     """Extract all ChatGPT conversations into a DataFrame.
 
@@ -107,8 +180,8 @@ def conversations_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFra
             "nl": "Uw gesprekken met ChatGPT"
           },
           "description": {
-            "en": "In this table you find your conversations with ChatGPT sorted by time. Below, you find a wordcloud, where the size of the words represents how frequent these words have been used in the conversations.",
-            "nl": "In deze tabel vind je je gesprekken met ChatGPT gesorteerd op tijd. Hieronder vind je een woordwolk, waarbij de grootte van de woorden aangeeft hoe vaak ze zijn gebruikt in de gesprekken."
+            "en": "Your ChatGPT conversations, from the conversations export files.",
+            "nl": "Uw ChatGPT-gesprekken, uit de conversations-exportbestanden."
           },
           "headers": {
             "conversation title": {"en": "Conversation title", "nl": "Gesprektitel"},
@@ -126,6 +199,24 @@ def conversations_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFra
               "type": "wordcloud",
               "textColumn": "message",
               "tokenize": true
+            },
+            {
+              "title": {"en": "What time of day you talk to ChatGPT", "nl": "Op welk moment van de dag je met ChatGPT praat"},
+              "type": "bar",
+              "group": {"column": "time", "dateFormat": "hour_cycle", "label": {"en": "Hour of the day", "nl": "Uur van de dag"}},
+              "values": [{"aggregate": "count", "label": {"en": "Number of messages", "nl": "Aantal berichten"}}]
+            },
+            {
+              "title": {"en": "Which days you chat with ChatGPT most", "nl": "Op welke dagen je het meest met ChatGPT chat"},
+              "type": "bar",
+              "group": {"column": "time", "dateFormat": "weekday_cycle", "label": {"en": "Day of the week", "nl": "Dag van de week"}},
+              "values": [{"aggregate": "count", "label": {"en": "Number of messages", "nl": "Aantal berichten"}}]
+            },
+            {
+              "title": {"en": "Which AI models answered you", "nl": "Welke AI-modellen je antwoordden"},
+              "type": "bar",
+              "group": {"column": "model", "label": {"en": "Model", "nl": "Model"}},
+              "values": [{"aggregate": "count", "label": {"en": "Number of replies", "nl": "Aantal antwoorden"}}]
             }
           ]
         }
@@ -176,6 +267,7 @@ def conversations_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFra
 
 #: Mapping from the string names used in port_config.json to actual extractor functions.
 EXTRACTOR_REGISTRY: dict[str, Callable[..., pd.DataFrame]] = {
+    "account_info_to_df": account_info_to_df,
     "conversations_to_df": conversations_to_df,
 }
 
