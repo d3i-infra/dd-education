@@ -81,13 +81,13 @@ class TestResolveMember:
         assert reader.resolve_member("nonexistent.json") is None
 
     def test_ambiguous_match_returns_none_and_counts_error(self, sample_zip):
-        """Multiple path-boundary matches → None + AmbiguousMemberMatch."""
+        """Multiple path-boundary matches → None + AmbiguousMemberMatch(<filename>)."""
         archive, members = sample_zip
         errors = Counter()
         reader = ZipArchiveReader(archive, members, errors)
         result = reader.resolve_member("following.json")
         assert result is None
-        assert errors["AmbiguousMemberMatch"] == 1
+        assert errors["AmbiguousMemberMatch(following.json)"] == 1
 
     def test_exact_match_wins_over_suffix(self):
         """When a file exists at top level AND nested, exact match wins."""

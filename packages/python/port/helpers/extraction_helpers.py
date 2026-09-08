@@ -7,13 +7,15 @@ import logging
 from collections import Counter
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, IO, Iterator
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import zipfile
 
 from port.api.file_utils import SeekableBinaryReader
 from port.helpers.archive_set import ArchiveSet, ArchiveSource, SingleArchiveSource, is_macos_metadata
+from port.helpers.uploads import MAX_MEMBER_UNCOMPRESSED_BYTES
 import csv
 import io
 import json
@@ -239,9 +241,192 @@ def replace_months(input_string: str) -> str:
     return input_string
 
 
+#: The shape every extracted timestamp is written in: ``2026-06-15 20:30:41``. Numbers
+#: throughout, no month abbreviations, so the column reads the same whatever language the
+#: donated export was written in. ``as.POSIXct`` in R and ``pandas.to_datetime`` both read
+#: it without being told a format, and it sorts correctly as plain text.
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+#: The reference frame those timestamps are expressed in.
+#:
+#: Instagram's json export records an absolute instant and its html export names no
+#: timezone at all; expressing both in one named zone is what makes the column comparable
+#: across a participant's json and html donations of the same account.
+#:
+#: What this frame is *not* is the time the participant's own watch showed. An epoch
+#: timestamp carries no location, so that information is not in the data and no conversion
+#: can recover it.
+REFERENCE_TIMEZONE = "Europe/Amsterdam"
+_REFERENCE_ZONE = ZoneInfo(REFERENCE_TIMEZONE)
+
+#: A zone spelled out at the end of a timestamp rather than as an offset (``... 10:09:50
+#: UTC``). Only the zero-offset names are listed, so anything else falls through to the
+#: parser and is counted rather than guessed at.
+NAMED_UTC = re.compile(r"[\s_]+(?:UTC|GMT)$", re.IGNORECASE)
+
+
+def _to_reference(moment: datetime) -> str:
+    """Write *moment*, an aware datetime, in ``REFERENCE_TIMEZONE`` and ``DATETIME_FORMAT``.
+
+    The zone's rules come from ``zoneinfo``, the IANA database the standard library ships;
+    Pyodide's stdlib carries the tzdata it needs to resolve names such as
+    ``Europe/Amsterdam``, so this is the one timezone lookup used on both the browser and
+    desktop runtimes.
+    """
+    return moment.astimezone(_REFERENCE_ZONE).strftime(DATETIME_FORMAT)
+
+
+def resolve_timezone(name: str | None) -> ZoneInfo | None:
+    """The IANA zone *name* names (``Europe/London``), or ``None`` when it names nothing
+    the database knows — the caller decides whether that is worth counting."""
+    if not name:
+        return None
+    try:
+        return ZoneInfo(name.strip())
+    except (ZoneInfoNotFoundError, ValueError):
+        return None
+
+
+def zone_time_to_datetime_string(moment: datetime, zone: "str | ZoneInfo", errors: Counter | None = None) -> str:
+    """Convert a local wall-clock time in an IANA zone to ``DATETIME_FORMAT`` in
+    ``REFERENCE_TIMEZONE``.
+
+    Used where an export names the zone its clock stands in rather than an offset. The
+    zone's own daylight-saving rules apply for the record's date.
+
+    Args:
+        moment: A naive datetime holding the local wall-clock time.
+        zone: The zone's IANA name, or a zone already resolved by ``resolve_timezone``.
+        errors: Optional counter; a zone the database does not know is counted as
+            ``TimezoneUnknown`` and the wall time written as it stands.
+    """
+    tz = resolve_timezone(zone) if isinstance(zone, str) else zone
+    if tz is None:
+        if errors is not None:
+            errors["TimezoneUnknown"] += 1
+        return moment.strftime(DATETIME_FORMAT)
+    return _to_reference(moment.replace(tzinfo=tz))
+
+
+def epoch_to_datetime_string(epoch_timestamp: str | int | float, errors: Counter | None = None) -> str:
+    """Convert epoch seconds to ``DATETIME_FORMAT`` in ``REFERENCE_TIMEZONE``.
+
+    Epoch seconds name an absolute instant, so this conversion is exact — nothing about
+    the participant has to be assumed. Used for the Instagram json export.
+
+    Args:
+        epoch_timestamp: Seconds since the epoch, as a number or a string holding one.
+        errors: Optional counter that aggregates error types.
+
+    Returns:
+        str: The formatted timestamp, ``""`` for an absent one, or the input unchanged
+        when it cannot be read as a number.
+
+    Examples::
+
+        >>> epoch_to_datetime_string(1632139200)
+        "2021-09-20 14:00:00"
+    """
+    # Empty/falsy timestamps are expected absences, not errors
+    if not epoch_timestamp and epoch_timestamp != 0:
+        return ""
+
+    out = str(epoch_timestamp)
+    try:
+        moment = datetime.fromtimestamp(int(float(epoch_timestamp)), tz=timezone.utc)
+        out = _to_reference(moment)
+    except (OverflowError, OSError, ValueError, TypeError) as e:
+        logger.error("Could not convert epoch timestamp, %s", e)
+        if errors is not None:
+            errors["TimestampParseError"] += 1
+
+    return out
+
+
+def utc_timestamp_to_datetime_string(timestamp: str, errors: Counter | None = None) -> str:
+    """Convert a timestamp string to ``DATETIME_FORMAT`` in ``REFERENCE_TIMEZONE``.
+
+    Reads what the platform wrote about the zone and honours it: a trailing ``Z`` or an
+    offset names the instant exactly, and so does a zone spelled out in full (``...
+    10:09:50 UTC``).
+
+    A timestamp carrying no zone at all is taken for UTC.
+
+    Note that a naive timestamp is *always* read as UTC, so this must not be called on a
+    value it has already converted.
+
+    Args:
+        timestamp: An ISO 8601 timestamp, with or without a zone.
+        errors: Optional counter that aggregates error types.
+
+    Returns:
+        str: The formatted timestamp, ``""`` for an absent one, or the input unchanged
+        when it cannot be read.
+
+    Examples::
+
+        >>> utc_timestamp_to_datetime_string("2021-09-20T12:00:00.123Z")
+        "2021-09-20 14:00:00"
+        >>> utc_timestamp_to_datetime_string("2021-09-20 12:00:00 UTC")
+        "2021-09-20 14:00:00"
+        >>> utc_timestamp_to_datetime_string("2021-09-20 12:00:00")
+        "2021-09-20 14:00:00"
+    """
+    if not timestamp or not isinstance(timestamp, str):
+        return ""
+
+    # A zone written as a name carries no offset for the parser to read, so it is dropped
+    # here; the zero-offset names it matches mean the same as the UTC default below.
+    text = NAMED_UTC.sub("", timestamp.strip())
+
+    try:
+        # Python reads the trailing Z itself from 3.11 on, but the exports are not
+        # consistent about upper case and this keeps the parse independent of that.
+        moment = datetime.fromisoformat(text.replace("Z", "+00:00").replace("z", "+00:00"))
+    except (ValueError, TypeError) as e:
+        logger.error("Could not convert timestamp, %s", e)
+        if errors is not None:
+            errors["TimestampParseError"] += 1
+        return timestamp
+
+    if moment.tzinfo is None:
+        moment = moment.replace(tzinfo=timezone.utc)
+
+    return _to_reference(moment)
+
+
+def local_time_to_datetime_string(
+    moment: datetime, utc_offset: timedelta, errors: Counter | None = None
+) -> str:
+    """Convert a local wall-clock time to ``DATETIME_FORMAT`` in ``REFERENCE_TIMEZONE``.
+
+    Used for the Instagram html export, which names no timezone but is rendered at a fixed
+    offset from UTC. Knowing that offset is what makes the record comparable with the json
+    export, which writes an absolute instant.
+
+    Args:
+        moment: A naive datetime holding the local wall-clock time.
+        utc_offset: How far that local time stands ahead of UTC.
+        errors: Optional counter that aggregates error types.
+
+    Returns:
+        str: The formatted timestamp.
+    """
+    try:
+        return _to_reference(moment.replace(tzinfo=timezone(utc_offset)))
+    except (OverflowError, ValueError, TypeError) as e:
+        logger.error("Could not convert local timestamp, %s", e)
+        if errors is not None:
+            errors["TimestampParseError"] += 1
+        return moment.strftime(DATETIME_FORMAT)
+
+
 def epoch_to_iso(epoch_timestamp: str | int | float, errors: Counter | None = None) -> str:
     """
     Convert epoch timestamp to an ISO 8601 string, assuming UTC.
+
+    Used by callers that have not been moved onto ``DATETIME_FORMAT``; new code should
+    call ``epoch_to_datetime_string`` instead.
 
     Args:
         epoch_timestamp (str | int): The epoch timestamp to convert.
@@ -572,6 +757,17 @@ def read_csv_from_bytes_to_df(json_bytes: io.BytesIO) -> pd.DataFrame:
     return pd.DataFrame(read_csv_from_bytes(json_bytes))
 
 
+def xpath_nodes(node: Any, expression: str) -> list[Any]:
+    """Run an XPath query and return its node list.
+
+    lxml's ``xpath`` is typed as a union (a query can also yield a string, a
+    number or a boolean); every caller here iterates over element results, so a
+    non-list result is treated as "no matches" rather than raised.
+    """
+    result = node.xpath(expression)
+    return result if isinstance(result, list) else []
+
+
 # --- Result types for ZipArchiveReader ---
 
 @dataclass
@@ -643,14 +839,30 @@ class ZipArchiveReader:
            if exactly 1, use it.
         3. 0 matches → return None.
         4. Multiple matches → return None, log warning,
-           increment errors["AmbiguousMemberMatch"].
+           increment errors["AmbiguousMemberMatch(<filename>)"].
+
+        Both steps also try the requested name with every apostrophe replaced
+        by an underscore: Meta exports delivered through Google Drive write
+        ``who_you_ve_followed.json`` where device downloads write
+        ``who_you've_followed.json``. That is one substitution on the request,
+        never a fuzzy match — two members differing only in that spelling are
+        still ambiguous.
+
+        The counter key embeds the *requested* name (a code literal), never a
+        member path from the archive: it reaches the host log.
         """
+        candidates = [filename]
+        if "'" in filename:
+            candidates.append(filename.replace("'", "_"))
+
         # 1. Exact match
-        if filename in self.archive_members:
-            return filename
+        for candidate in candidates:
+            if candidate in self.archive_members:
+                return candidate
 
         # 2. Path-boundary suffix match
-        matches = [m for m in self.archive_members if m.endswith("/" + filename)]
+        suffixes = tuple("/" + candidate for candidate in candidates)
+        matches = [m for m in self.archive_members if m.endswith(suffixes)]
 
         if len(matches) == 1:
             return matches[0]
@@ -661,7 +873,7 @@ class ZipArchiveReader:
                 "Ambiguous member match: '%s' matched %d members in archive",
                 filename, len(matches),
             )
-            self.errors["AmbiguousMemberMatch"] += 1
+            self.errors[f"AmbiguousMemberMatch({filename})"] += 1
             return None
 
     @contextmanager
@@ -754,6 +966,67 @@ class ZipArchiveReader:
         b = self._read_member_bytes(member)
         return RawExtractionResult(found=True, data=b, member_path=member)
 
+    def raw_all(self, pattern: str) -> list[RawExtractionResult]:
+        """Extract raw bytes from all zip members matching a regex pattern.
+
+        Returns results sorted lexicographically by member path. Used for
+        paginated HTML exports (post_comments_1.html, _2.html, etc.). Every
+        member is read through ``_read_member_bytes`` so the member-size guard
+        and error counting apply exactly as for ``raw()``.
+        """
+        matches = sorted(m for m in self.archive_members if re.search(pattern, m))
+        results = []
+        for member in matches:
+            b = self._read_member_bytes(member)
+            results.append(RawExtractionResult(found=True, data=b, member_path=member))
+        return results
+
+
+# --- Study-side anonymization (algosoc-2026) ---
+#
+# Applied by a platform's ``extraction()`` after the tables are built. These
+# helpers operate on nullable string columns so a missing cell stays missing
+# instead of becoming the literal text "nan".
+
+EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
+
+
+def replace_email(text: str) -> str:
+    """Replace email addresses in *text* with ``[email]``."""
+    return EMAIL_PATTERN.sub("[email]", text)
+
+
+def _username_pattern(username: str) -> re.Pattern[str]:
+    """Whole-token, case-insensitive match for *username*.
+
+    Anchored on both sides so a short username (initials, a two-letter
+    nickname) never redacts the inside of an unrelated word.
+    """
+    return re.compile(rf"(?<!\w){re.escape(username)}(?!\w)", re.IGNORECASE)
+
+
+def replace_username(text: str, username: str) -> str:
+    """Replace whole-token, case-insensitive occurrences of *username* with ``[user]``."""
+    return _username_pattern(username).sub("[user]", text)
+
+
+def anonymize_dataframe(df: pd.DataFrame, columns: list[str], username: str | None = None) -> pd.DataFrame:
+    """Anonymize text columns in a DataFrame, in place.
+
+    Replaces email addresses and, when *username* is given, the user's name
+    with placeholder tokens. Only columns that exist in *df* are touched.
+    Missing values are preserved as missing. The frame is mutated and also
+    returned for convenience.
+    """
+    for col in columns:
+        if col not in df.columns:
+            continue
+        redacted = df[col].astype("string").str.replace(EMAIL_PATTERN, "[email]", regex=True)
+        if username:
+            redacted = redacted.str.replace(_username_pattern(username), "[user]", regex=True)
+        df[col] = redacted
+    return df
+
 
 # --- Education helpers: anonymized structure overviews for the issue report ---
 #
@@ -829,6 +1102,13 @@ def extract_file_structures_from_zip(
                     if is_macos_metadata(member) or not _is_structure_member(member):
                         continue
                     try:
+                        info = zf.getinfo(member)
+                        if info.file_size > MAX_MEMBER_UNCOMPRESSED_BYTES:
+                            logger.warning(
+                                "Skipping oversize member %s (%d bytes exceeds %d cap)",
+                                member, info.file_size, MAX_MEMBER_UNCOMPRESSED_BYTES,
+                            )
+                            continue
                         results.extend(_structure_rows_for_member(member, zf.read(member), infer_types))
                     except Exception:
                         logger.warning("Could not process %s in zip", member)

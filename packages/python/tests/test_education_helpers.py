@@ -10,6 +10,7 @@ import io
 import json
 import zipfile
 
+import port.helpers.extraction_helpers as eh
 from port.helpers.archive_set import ArchiveSet
 from port.helpers.extraction_helpers import (
     extract_file_structures_from_zip,
@@ -106,6 +107,33 @@ class TestExtractFileStructuresSkipsNonStructureMembers:
 
         assert read_calls == ["data.json"]
         assert "photo.bin" not in df["filepath"].values
+
+    def test_single_reader_skips_a_member_over_the_size_cap(self, monkeypatch):
+        """A member whose *uncompressed* size exceeds the cap is skipped before
+        ``zf.read`` is called at all — the cap guards against decompression-bomb
+        style members, not against a large file that merely reads slowly."""
+        files = {
+            "small.json": json.dumps({"a": 1}).encode(),
+            "huge.json": json.dumps({"b": "x" * 1000}).encode(),
+        }
+        buf = create_test_zip(files)
+
+        monkeypatch.setattr(eh, "MAX_MEMBER_UNCOMPRESSED_BYTES", 100)
+
+        original_read = zipfile.ZipFile.read
+        read_calls: list[str] = []
+
+        def spy_read(self, name, *args, **kwargs):
+            read_calls.append(name)
+            return original_read(self, name, *args, **kwargs)
+
+        monkeypatch.setattr(zipfile.ZipFile, "read", spy_read)
+
+        df = extract_file_structures_from_zip(buf)
+
+        assert read_calls == ["small.json"]
+        assert "huge.json" not in df["filepath"].values
+        assert "small.json" in df["filepath"].values
 
 
 class TestExtractZipFileInfo:
