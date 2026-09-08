@@ -2,7 +2,8 @@
   "platform_info": {
     "name": "Facebook",
     "filetypes": [
-      "json"
+      "json",
+      "html"
     ],
     "languages": [
       "en",
@@ -288,7 +289,7 @@
       "headers": {
         "Label": {
           "en": "How they reached you",
-          "nl": "Hoe zij u bereikten"
+          "nl": "Hoe zij je bereikten"
         },
         "Value": {
           "en": "Advertiser",

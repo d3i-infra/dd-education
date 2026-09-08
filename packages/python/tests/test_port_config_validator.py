@@ -10,6 +10,10 @@ a participant.
 All fixtures here are synthetic: table *metadata* only, never participant data.
 """
 
+import json
+import re
+from pathlib import Path
+
 import pytest
 
 from port.helpers.port_config_validator import (
@@ -22,6 +26,9 @@ from port.helpers.ui_locale import (
     PROVISIONAL_UI_LOCALES,
     SUPPORTED_UI_LOCALES,
 )
+
+#: The committed configs, the ones a release actually ships.
+CONFIG_DIR = Path(__file__).resolve().parent.parent / "port" / "configs"
 
 
 def _table(**overrides) -> dict:
@@ -277,3 +284,50 @@ def test_every_supported_locale_appears_in_the_coverage_matrix(locale):
 
     assert locale in coverage["present"]
     assert locale in coverage["empty"]
+
+
+class TestTheDutchConfigStringsStayInformal:
+    """The committed configs address a participant as ``je``, never ``u``.
+
+    This tool is aimed at students exploring their own data, and the whole flow — the
+    menu, the consent page, the framework's own chrome — speaks informally. One table
+    description that switches to ``u`` reads as though it were written for someone else,
+    and the mixture is more jarring than either register alone.
+
+    Committed configs are what ships (ADR-0030), so they are what is checked; the
+    extractor docstrings that seeded them are bootstrap metadata and are not.
+    """
+
+    #: A standalone formal pronoun. Bounded on both sides so it never fires inside a
+    #: word — ``uit``, ``duur``, ``menu`` are all ordinary Dutch.
+    FORMAL_PRONOUN = re.compile(r"(?<![\w'-])[Uu](?:w|zelf)?(?![\w'-])")
+
+    def _nl_strings(self, node, path=""):
+        """Every ``nl`` string in a config, with the path that leads to it."""
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key == "nl" and isinstance(value, str):
+                    yield f"{path}/nl", value
+                else:
+                    yield from self._nl_strings(value, f"{path}/{key}")
+        elif isinstance(node, list):
+            for index, value in enumerate(node):
+                yield from self._nl_strings(value, f"{path}[{index}]")
+
+    @pytest.mark.parametrize("config_path", sorted(CONFIG_DIR.glob("*_config.json")), ids=lambda p: p.name)
+    def test_no_config_addresses_the_participant_as_u(self, config_path):
+        offenders = [
+            f"{config_path.name}{path}: {text}"
+            for path, text in self._nl_strings(json.loads(config_path.read_text(encoding="utf-8")))
+            if self.FORMAL_PRONOUN.search(text)
+        ]
+        assert not offenders, "formal address in a Dutch config string:\n" + "\n".join(offenders)
+
+    def test_the_pattern_catches_what_it_is_meant_to(self):
+        assert self.FORMAL_PRONOUN.search("Wat u heeft gekeken")
+        assert self.FORMAL_PRONOUN.search("Uw Netflix-account")
+        assert self.FORMAL_PRONOUN.search("Bekijk het uzelf")
+
+    def test_the_pattern_leaves_ordinary_dutch_alone(self):
+        for ordinary in ("uit Ratings.csv", "de duur van je sessie", "het menu", "Jouw uren"):
+            assert not self.FORMAL_PRONOUN.search(ordinary), ordinary

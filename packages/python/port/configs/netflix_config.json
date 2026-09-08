@@ -16,11 +16,11 @@
       "id": "netflix_clickstream",
       "title": {
         "en": "Your Netflix click history",
-        "nl": "Uw Netflix-klikgeschiedenis"
+        "nl": "Je Netflix-klikgeschiedenis"
       },
       "description": {
         "en": "Every page click Netflix logged for your account, from Clickstream.csv.",
-        "nl": "Elke pagina-klik die Netflix voor uw account heeft geregistreerd, uit Clickstream.csv."
+        "nl": "Elke pagina-klik die Netflix voor je account heeft geregistreerd, uit Clickstream.csv."
       },
       "headers": {
         "Navigation Level": {
@@ -91,7 +91,7 @@
       },
       "description": {
         "en": "Titles Netflix asked whether you were interested in, from IndicatedPreferences.csv.",
-        "nl": "Titels waarvan Netflix vroeg of u interesse had, uit IndicatedPreferences.csv."
+        "nl": "Titels waarvan Netflix vroeg of je interesse had, uit IndicatedPreferences.csv."
       },
       "headers": {
         "Show": {
@@ -152,7 +152,7 @@
       "id": "netflix_ip_addresses",
       "title": {
         "en": "IP addresses linked to your Netflix account",
-        "nl": "IP-adressen gekoppeld aan uw Netflix-account"
+        "nl": "IP-adressen gekoppeld aan je Netflix-account"
       },
       "description": {
         "en": "Every login and streaming IP address Netflix recorded, from IpAddressesLogin.csv and IpAddressesStreaming.csv. An IP address can indicate a rough location and network operator.",
@@ -202,11 +202,11 @@
       "id": "netflix_devices",
       "title": {
         "en": "Devices linked to your Netflix account",
-        "nl": "Apparaten gekoppeld aan uw Netflix-account"
+        "nl": "Apparaten gekoppeld aan je Netflix-account"
       },
       "description": {
         "en": "Every device Netflix has recorded for your account, from Devices.csv and AccessAndDevices.csv.",
-        "nl": "Elk apparaat dat Netflix voor uw account heeft geregistreerd, uit Devices.csv en AccessAndDevices.csv."
+        "nl": "Elk apparaat dat Netflix voor je account heeft geregistreerd, uit Devices.csv en AccessAndDevices.csv."
       },
       "headers": {
         "Esn": {
@@ -277,11 +277,11 @@
       "id": "netflix_account_and_billing",
       "title": {
         "en": "Your Netflix account and billing details",
-        "nl": "Uw Netflix-account- en factuurgegevens"
+        "nl": "Je Netflix-account- en factuurgegevens"
       },
       "description": {
         "en": "Your membership status, marketing preferences, and payment history, from AccountDetails.csv, SubscriptionHistory.csv, and BillingHistory.csv.",
-        "nl": "Uw lidmaatschapsstatus, marketingvoorkeuren en betalingsgeschiedenis, uit AccountDetails.csv, SubscriptionHistory.csv en BillingHistory.csv."
+        "nl": "Je lidmaatschapsstatus, marketingvoorkeuren en betalingsgeschiedenis, uit AccountDetails.csv, SubscriptionHistory.csv en BillingHistory.csv."
       },
       "headers": {
         "Membership Status": {
@@ -326,7 +326,7 @@
         },
         "What You Watch (Email)": {
           "en": "What you watch (email)",
-          "nl": "Wat u kijkt (e-mail)"
+          "nl": "Wat je kijkt (e-mail)"
         },
         "Netflix Games (Push Notification)": {
           "en": "Netflix Games (push)",
@@ -350,7 +350,7 @@
         },
         "What You Watch (Push Notification)": {
           "en": "What you watch (push)",
-          "nl": "Wat u kijkt (push)"
+          "nl": "Wat je kijkt (push)"
         },
         "Netflix Shop And Experiences (Email)": {
           "en": "Netflix Shop and experiences (email)",
@@ -419,7 +419,7 @@
       "id": "netflix_profile_demographics",
       "title": {
         "en": "Your Netflix profile details",
-        "nl": "Uw Netflix-profielgegevens"
+        "nl": "Je Netflix-profielgegevens"
       },
       "description": {
         "en": "The demographic fields Netflix stores for this profile, from Profiles.csv.",
@@ -459,11 +459,11 @@
       "id": "netflix_my_list",
       "title": {
         "en": "Your Netflix My List",
-        "nl": "Uw Netflix Mijn Lijst"
+        "nl": "Je Netflix Mijn Lijst"
       },
       "description": {
         "en": "Titles you added to My List on Netflix, from MyList.csv.",
-        "nl": "Titels die u aan Mijn Lijst op Netflix heeft toegevoegd, uit MyList.csv."
+        "nl": "Titels die je aan Mijn Lijst op Netflix hebt toegevoegd, uit MyList.csv."
       },
       "headers": {
         "Country": {
@@ -494,11 +494,11 @@
       "id": "netflix_viewing_activity",
       "title": {
         "en": "What you watched",
-        "nl": "Wat u heeft gekeken"
+        "nl": "Wat je hebt gekeken"
       },
       "description": {
         "en": "What you watched on Netflix, when, and for how long, from ViewingActivity.csv.",
-        "nl": "Wat u op Netflix heeft gekeken, wanneer en hoe lang, uit ViewingActivity.csv."
+        "nl": "Wat je op Netflix hebt gekeken, wanneer en hoe lang, uit ViewingActivity.csv."
       },
       "headers": {
         "Start Time": {
@@ -519,6 +519,46 @@
         }
       },
       "visualizations": [
+        {
+          "title": {
+            "en": "Your viewing at a glance",
+            "nl": "Je kijkgedrag in het kort"
+          },
+          "type": "stats",
+          "tiles": [
+            {
+              "label": {
+                "en": "Viewing sessions",
+                "nl": "Kijksessies"
+              },
+              "aggregate": "count"
+            },
+            {
+              "label": {
+                "en": "First watched",
+                "nl": "Voor het eerst gekeken"
+              },
+              "aggregate": "first_date",
+              "column": "Start Time"
+            },
+            {
+              "label": {
+                "en": "Last watched",
+                "nl": "Voor het laatst gekeken"
+              },
+              "aggregate": "last_date",
+              "column": "Start Time"
+            },
+            {
+              "label": {
+                "en": "Busiest day",
+                "nl": "Drukste dag"
+              },
+              "aggregate": "busiest_day",
+              "column": "Start Time"
+            }
+          ]
+        },
         {
           "title": {
             "en": "Total hours watched per month",
@@ -606,11 +646,11 @@
       "id": "netflix_ratings",
       "title": {
         "en": "Your ratings on Netflix",
-        "nl": "Uw beoordelingen op Netflix"
+        "nl": "Je beoordelingen op Netflix"
       },
       "description": {
         "en": "Titles you rated on Netflix, from Ratings.csv.",
-        "nl": "Titels die u op Netflix heeft beoordeeld, uit Ratings.csv."
+        "nl": "Titels die je op Netflix hebt beoordeeld, uit Ratings.csv."
       },
       "headers": {
         "Title Name": {
@@ -652,11 +692,11 @@
       "id": "netflix_search_history",
       "title": {
         "en": "Your search history on Netflix",
-        "nl": "Uw zoekgeschiedenis op Netflix"
+        "nl": "Je zoekgeschiedenis op Netflix"
       },
       "description": {
         "en": "Searches you performed on Netflix, from SearchHistory.csv.",
-        "nl": "Zoekopdrachten die u op Netflix heeft uitgevoerd, uit SearchHistory.csv."
+        "nl": "Zoekopdrachten die je op Netflix hebt uitgevoerd, uit SearchHistory.csv."
       },
       "headers": {
         "Query Typed": {

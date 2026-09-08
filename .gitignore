@@ -99,7 +99,6 @@ pytests/scenarios/*PRIVATE.json
 !*example_config.json
 !*education_config.json
 !*chatgpt_config.json
-!*youtube_config.json
 !*netflix_config.json
 !*instagram_config.json
 !*linkedin_config.json
@@ -108,7 +107,6 @@ pytests/scenarios/*PRIVATE.json
 !*e2etest_config.json
 !*e2etest_multifile_config.json
 !*facebook_config.json
-!*tiktok_config.json
 
 # Claude Code: track shared settings.json only — local overrides and agent
 # worktrees stay personal

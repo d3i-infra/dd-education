@@ -287,7 +287,7 @@
       },
       "description": {
         "en": "Videos you watched on YouTube, from your Google Takeout watch history.",
-        "nl": "Video's die u op YouTube heeft bekeken, uit uw Google Takeout-kijkgeschiedenis."
+        "nl": "Video's die je op YouTube hebt bekeken, uit je Google Takeout-kijkgeschiedenis."
       },
       "headers": {
         "Title": {
@@ -316,6 +316,46 @@
         }
       },
       "visualizations": [
+        {
+          "title": {
+            "en": "Your watch history at a glance",
+            "nl": "Je kijkgeschiedenis in het kort"
+          },
+          "type": "stats",
+          "tiles": [
+            {
+              "label": {
+                "en": "Videos watched",
+                "nl": "Bekeken video's"
+              },
+              "aggregate": "count"
+            },
+            {
+              "label": {
+                "en": "First watched",
+                "nl": "Voor het eerst gekeken"
+              },
+              "aggregate": "first_date",
+              "column": "Timestamp"
+            },
+            {
+              "label": {
+                "en": "Last watched",
+                "nl": "Voor het laatst gekeken"
+              },
+              "aggregate": "last_date",
+              "column": "Timestamp"
+            },
+            {
+              "label": {
+                "en": "Busiest day",
+                "nl": "Drukste dag"
+              },
+              "aggregate": "busiest_day",
+              "column": "Timestamp"
+            }
+          ]
+        },
         {
           "title": {
             "en": "Videos watched per month",
@@ -428,7 +468,7 @@
       },
       "description": {
         "en": "Videos and searches recorded in your YouTube search history, from your Google Takeout export.",
-        "nl": "Video's en zoekopdrachten uit uw YouTube-zoekgeschiedenis, uit uw Google Takeout-export."
+        "nl": "Video's en zoekopdrachten uit je YouTube-zoekgeschiedenis, uit je Google Takeout-export."
       },
       "headers": {
         "Title": {
@@ -503,7 +543,7 @@
       },
       "description": {
         "en": "The YouTube channels you are subscribed to, from your Google Takeout subscriptions export.",
-        "nl": "De YouTube-kanalen waarop u geabonneerd bent, uit uw Google Takeout-abonnementenexport."
+        "nl": "De YouTube-kanalen waarop je geabonneerd bent, uit je Google Takeout-abonnementenexport."
       },
       "headers": {
         "Channel Id": {
@@ -538,7 +578,7 @@
       },
       "description": {
         "en": "Comments you posted on YouTube, from your Google Takeout comments export.",
-        "nl": "Reacties die u op YouTube heeft geplaatst, uit uw Google Takeout-reactiesexport."
+        "nl": "Reacties die je op YouTube hebt geplaatst, uit je Google Takeout-reactiesexport."
       },
       "headers": {
         "Comment ID": {

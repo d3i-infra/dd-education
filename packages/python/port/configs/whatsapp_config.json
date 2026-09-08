@@ -21,7 +21,7 @@
       },
       "description": {
         "en": "The messages in your WhatsApp group chat, with sender, timestamp, and message text, from the chat export text file WhatsApp names after the chat.",
-        "nl": "De berichten in uw WhatsApp-groepschat, met afzender, tijdstempel en berichttekst, uit het chatexportbestand dat WhatsApp naar de chat vernoemt."
+        "nl": "De berichten in je WhatsApp-groepschat, met afzender, tijdstempel en berichttekst, uit het chatexportbestand dat WhatsApp naar de chat vernoemt."
       },
       "headers": {
         "Timestamp": {

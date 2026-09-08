@@ -20,7 +20,7 @@
       },
       "description": {
         "en": "The inferred attributes LinkedIn uses to target you with ads, reshaped from Ad_Targeting.csv.",
-        "nl": "De afgeleide kenmerken die LinkedIn gebruikt om u te targeten met advertenties, uit Ad_Targeting.csv."
+        "nl": "De afgeleide kenmerken die LinkedIn gebruikt om je te targeten met advertenties, uit Ad_Targeting.csv."
       },
       "headers": {
         "Category": {
@@ -80,7 +80,7 @@
       "id": "linkedin_contact_info",
       "title": {
         "en": "Your contact and registration details on file",
-        "nl": "Uw contact- en registratiegegevens"
+        "nl": "Je contact- en registratiegegevens"
       },
       "description": {
         "en": "The phone numbers, email addresses, and registration details LinkedIn has on file, from PhoneNumbers.csv, Whatsapp Phone Numbers.csv, Email Addresses.csv and Registration.csv.",
@@ -114,7 +114,7 @@
       },
       "description": {
         "en": "Your first-degree LinkedIn connections, from Connections.csv.",
-        "nl": "Uw eerstegraads LinkedIn-connecties, uit Connections.csv."
+        "nl": "Je eerstegraads LinkedIn-connecties, uit Connections.csv."
       },
       "headers": {
         "First Name": {
@@ -208,7 +208,7 @@
       },
       "description": {
         "en": "The companies you follow on LinkedIn, from Company Follows.csv.",
-        "nl": "De bedrijven die u op LinkedIn volgt, uit Company Follows.csv."
+        "nl": "De bedrijven die je op LinkedIn volgt, uit Company Follows.csv."
       },
       "headers": {
         "Organization": {
@@ -264,7 +264,7 @@
       },
       "description": {
         "en": "Your reactions to posts on LinkedIn, from Reactions.csv.",
-        "nl": "Uw reacties op berichten op LinkedIn, uit Reactions.csv."
+        "nl": "Je reacties op berichten op LinkedIn, uit Reactions.csv."
       },
       "headers": {
         "Date": {
@@ -315,11 +315,11 @@
       "id": "linkedin_comments",
       "title": {
         "en": "Your comments on LinkedIn",
-        "nl": "Je reacties op LinkedIn"
+        "nl": "Je opmerkingen op LinkedIn"
       },
       "description": {
         "en": "The comments you posted on LinkedIn content, from Comments.csv.",
-        "nl": "De reacties die u op LinkedIn-content heeft geplaatst, uit Comments.csv."
+        "nl": "De opmerkingen die je op LinkedIn-content hebt geplaatst, uit Comments.csv."
       },
       "headers": {
         "Date": {
@@ -384,7 +384,7 @@
       },
       "description": {
         "en": "The posts you shared on LinkedIn, from Shares.csv.",
-        "nl": "De berichten die u op LinkedIn heeft gedeeld, uit Shares.csv."
+        "nl": "De berichten die je op LinkedIn hebt gedeeld, uit Shares.csv."
       },
       "headers": {
         "Date": {
@@ -445,7 +445,7 @@
       },
       "description": {
         "en": "Your search queries on LinkedIn, from SearchQueries.csv.",
-        "nl": "Uw zoekopdrachten op LinkedIn, uit SearchQueries.csv."
+        "nl": "Je zoekopdrachten op LinkedIn, uit SearchQueries.csv."
       },
       "headers": {
         "Time": {
@@ -510,7 +510,7 @@
       },
       "description": {
         "en": "The ads you clicked on LinkedIn, from Ads Clicked.csv. Note: LinkedIn only provides numeric ad IDs, not ad titles or descriptions.",
-        "nl": "De advertenties waarop u op LinkedIn heeft geklikt, uit Ads Clicked.csv. Let op: LinkedIn geeft alleen numerieke advertentie-ID's, geen titels of beschrijvingen."
+        "nl": "De advertenties waarop je op LinkedIn hebt geklikt, uit Ads Clicked.csv. Let op: LinkedIn geeft alleen numerieke advertentie-ID's, geen titels of beschrijvingen."
       },
       "headers": {
         "Ad clicked Date": {
@@ -551,7 +551,7 @@
       },
       "description": {
         "en": "The LinkedIn members you follow, from Member_Follows.csv.",
-        "nl": "De LinkedIn-leden die u volgt, uit Member_Follows.csv."
+        "nl": "De LinkedIn-leden die je volgt, uit Member_Follows.csv."
       },
       "headers": {
         "To": {

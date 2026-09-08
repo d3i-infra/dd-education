@@ -16,11 +16,11 @@
       "id": "chatgpt_account_info",
       "title": {
         "en": "What OpenAI has on file for your account",
-        "nl": "Wat OpenAI over uw account heeft vastgelegd"
+        "nl": "Wat OpenAI over je account heeft vastgelegd"
       },
       "description": {
         "en": "The account fields OpenAI keeps for your ChatGPT account, from user.json.",
-        "nl": "De accountgegevens die OpenAI voor uw ChatGPT-account bewaart, uit user.json."
+        "nl": "De accountgegevens die OpenAI voor je ChatGPT-account bewaart, uit user.json."
       },
       "headers": {
         "Field": {
@@ -46,11 +46,11 @@
       "id": "chatgpt_conversations",
       "title": {
         "en": "Your conversations with ChatGPT",
-        "nl": "Uw gesprekken met ChatGPT"
+        "nl": "Je gesprekken met ChatGPT"
       },
       "description": {
         "en": "Your ChatGPT conversations, from the conversations export files.",
-        "nl": "Uw ChatGPT-gesprekken, uit de conversations-exportbestanden."
+        "nl": "Je ChatGPT-gesprekken, uit de conversations-exportbestanden."
       },
       "headers": {
         "conversation title": {
@@ -75,6 +75,46 @@
         }
       },
       "visualizations": [
+        {
+          "title": {
+            "en": "Your ChatGPT use at a glance",
+            "nl": "Je ChatGPT-gebruik in het kort"
+          },
+          "type": "stats",
+          "tiles": [
+            {
+              "label": {
+                "en": "Messages",
+                "nl": "Berichten"
+              },
+              "aggregate": "count"
+            },
+            {
+              "label": {
+                "en": "First message",
+                "nl": "Eerste bericht"
+              },
+              "aggregate": "first_date",
+              "column": "time"
+            },
+            {
+              "label": {
+                "en": "Last message",
+                "nl": "Laatste bericht"
+              },
+              "aggregate": "last_date",
+              "column": "time"
+            },
+            {
+              "label": {
+                "en": "Busiest day",
+                "nl": "Drukste dag"
+              },
+              "aggregate": "busiest_day",
+              "column": "time"
+            }
+          ]
+        },
         {
           "title": {
             "en": "Your messages in a wordcloud",
@@ -154,7 +194,7 @@
       },
       "description": {
         "en": "The AI model behind each of your ChatGPT replies, from the conversations export files.",
-        "nl": "Het AI-model achter elk van uw ChatGPT-antwoorden, uit de conversations-exportbestanden."
+        "nl": "Het AI-model achter elk van je ChatGPT-antwoorden, uit de conversations-exportbestanden."
       },
       "headers": {
         "model": {

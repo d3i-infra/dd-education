@@ -29,6 +29,7 @@ Platform info::
 import logging
 from collections import Counter
 from typing import Callable
+from weakref import WeakKeyDictionary
 
 import pandas as pd
 
@@ -140,7 +141,30 @@ def account_info_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFram
     return out
 
 
+#: One parse per reader, shared by every extractor that needs the turns.
+#:
+#: ``conversations-*.json`` is the largest member of a ChatGPT export — the whole
+#: conversation history — and two extractors in the same flow ask for the same turns.
+#: Keyed weakly so a reader that goes out of scope takes its turns with it rather than
+#: pinning a whole export's worth of dicts for the life of the process.
+_TURNS_BY_READER: "WeakKeyDictionary[ZipArchiveReader, list[dict]]" = WeakKeyDictionary()
+
+
 def _conversation_turns(reader: ZipArchiveReader, errors: Counter) -> list[dict]:
+    """The visible message turns for *reader*, parsed once and then reused.
+
+    The parse itself is :func:`_parse_conversation_turns`; this is the memo in front of
+    it. A cached hit counts no errors, because the errors of the one parse were already
+    counted into the ``errors`` of the call that did it.
+    """
+    turns = _TURNS_BY_READER.get(reader)
+    if turns is None:
+        turns = _parse_conversation_turns(reader, errors)
+        _TURNS_BY_READER[reader] = turns
+    return turns
+
+
+def _parse_conversation_turns(reader: ZipArchiveReader, errors: Counter) -> list[dict]:
     """Shared traversal: one dict per visible message turn across every
     ``conversations-*.json`` file, feeding both ``conversations_to_df`` and
     ``models_used_to_df`` from the same parse.
