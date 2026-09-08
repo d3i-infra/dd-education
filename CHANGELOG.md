@@ -4,6 +4,46 @@ This project follows [semantic versioning](https://semver.org/) starting from v2
 Earlier releases used sequential numbering (#1-#5) matching the upstream
 [eyra/feldspar](https://github.com/eyra/feldspar) convention.
 
+## Education fork (2026-09)
+
+This fork was rebased onto upstream `data-donation-task` v3 in September 2026.
+See [MIGRATION.md](MIGRATION.md) for the rebase itself; the education-specific
+work landed as these stories:
+
+* **Reader fix** — `ZipArchiveReader` drops extra files re-zipping can add (for
+  example, re-zipped macOS metadata entries), so DDP-category detection only
+  sees real export files.
+* **FlowBuilder hooks** — `FlowBuilder` gained education-mode hooks so a
+  platform flow can run its file prompt, validation, and extraction without a
+  donation step at the end.
+* **Education prompts** — new prompt types and structure-helpers let a flow
+  show a participant their DDP's file structure without extracting or
+  donating its contents.
+* **Education module** — a composite `education` platform module assembles
+  the enabled platforms into one menu-driven flow (ADR-0041).
+* **Configs** — every enabled platform's `configs/*.json` carries educational
+  (not research) table and column descriptions.
+* **UI** — education-specific components, routes, static assets, and a
+  loading fallback; the tool now lives at `/#/port`, with landing, about, and
+  privacy-policy pages at `/`, `/#/about`, and `/#/privacy-policy`.
+* **Build/deploy** — `VITE_PLATFORM=education` dev, build, and GitHub Pages
+  deploy pipeline (`pnpm start:education`, `pnpm build:education`).
+* **Canaries** — a Python canary suite runs every extractor against real DDP
+  exports, symlinked into `packages/python/tests/ddp/` and never committed.
+* **WhatsApp day-parts** — the WhatsApp chat parser reads Dutch 12-hour
+  day-part timestamps.
+* **Instagram HTML** — Instagram HTML exports are read via the algosoc
+  extractors alongside the existing JSON export schemas.
+* **YouTube/Google entries** — YouTube and Google are separate menu entries
+  that share the underlying Google Takeout extraction flow.
+* **ADRs** — the education fork's architectural decisions (including the
+  composite education module, ADR-0041) are recorded under `docs/decisions/`.
+* **WhatsApp txt** — bare `.txt` WhatsApp chat exports are accepted directly,
+  without requiring a zip wrapper.
+* **Consent review-only mode** — the consent prompt gained a review-only
+  mode: a participant inspects their extracted tables and can report an
+  issue, but the flow never donates.
+
 ## [Unreleased]
 
 ### Added

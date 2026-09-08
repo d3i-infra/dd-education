@@ -1,15 +1,23 @@
-# The data donation task
+# dd-education
 
-The data donation task (a fork of [Feldspar](https://github.com/eyra/feldspar)) is a front end that guides participants through the data donation steps, used in conjunction with Next.
-Next is a software as a service platform developed by [Eyra](https://eyra.co/) to facilitate scientific research.
+This is an education fork of the [data donation task](https://github.com/d3i-infra/data-donation-task)
+(itself a fork of [Feldspar](https://github.com/eyra/feldspar)). It is **not** a
+research data-collection instrument: it is a standalone teaching tool that walks a
+learner through requesting their own data download package (DDP) from a platform,
+extracting it locally in the browser, and showing them what that platform actually
+knows about them. There is no consent-to-donate step and no host to hand data to —
+**nothing is donated.**
 
-For detailed tutorials and API reference, see the [documentation site](https://d3i-infra.github.io/data-donation-task/).
+Run the tool at `/#/port`; a landing page, an about page, and a privacy-policy page
+live at `/`, `/#/about`, and `/#/privacy-policy`. The platform menu offers YouTube,
+Google, Netflix, Instagram, LinkedIn, WhatsApp, ChatGPT, and a General DDP Analyzer
+for exports that don't fit those categories.
 
-### What's new in v3.0.0
+For detailed tutorials and API reference on the upstream architecture this fork
+builds on, see the [documentation site](https://d3i-infra.github.io/data-donation-task/).
 
-Platform extraction is now config-driven: each platform has a `configs/<platform>_config.json` that declares table titles, column headers, and visualizations. Generate one with `pnpm generate-config <platform>`. The generator refuses to overwrite existing files, protecting researcher edits. `release.sh` auto-discovers platforms from `configs/` — no hardcoded list needed. `VITE_PLATFORM` is now required in dev mode.
-
-See [CHANGELOG.md](CHANGELOG.md) for the full list of changes and the migration notes for downstream forks.
+See [CHANGELOG.md](CHANGELOG.md) for the full list of changes and
+[MIGRATION.md](MIGRATION.md) for how this fork was rebased onto upstream v3.
 
 ## Installation and local testing
 
@@ -37,10 +45,12 @@ pnpm doctor
 ### Start local dev server
 
 ```sh
-VITE_PLATFORM=example pnpm start
+VITE_PLATFORM=education pnpm start
+# equivalently:
+pnpm start:education
 ```
 
-Visit [`http://localhost:3000`](http://localhost:3000).
+Visit [`http://localhost:3000/#/port`](http://localhost:3000/#/port).
 
 ### Dev-mode notes
 
@@ -65,9 +75,16 @@ sink; each one stubs `/data-submission` itself before driving the flow.
 | Command | Description |
 |---|---|
 | `VITE_PLATFORM=<platform> pnpm start` | Start dev server with hot reload |
+| `VITE_PLATFORM=education pnpm start` / `pnpm start:education` | Start the education tool's dev server |
+| `pnpm build:education` | Production build of the education tool |
 | `pnpm generate-config <platform>` | Generate `configs/<platform>_config.json` from extractor docstrings |
 | `pnpm run build` | Full production build (Python wheel + feldspar + data-collector) |
 | `pnpm doctor` | Check environment setup (13 checks) |
+
+Canary tests (`pnpm test:py`) exercise each extractor against real DDP exports.
+Those exports are never committed: symlink them into `packages/python/tests/ddp/`
+and see that directory's [`README.md`](packages/python/tests/ddp/README.md) for
+the naming convention and which fixtures the canaries look for.
 
 ### Testing & Type Checking
 
@@ -191,9 +208,17 @@ Each platform (Instagram, Facebook, YouTube, etc.) has a `FlowBuilder` subclass 
 4. Consent → participant reviews extracted tables
 5. Donation → data sent to host platform
 
+In this fork the consent step runs in review-only mode: step 5 never fires.
+The participant inspects the extracted tables and can report an issue, but
+nothing is donated. The `education` platform module (ADR-0041) composes the
+per-platform flows above into the menu below.
+
 ### Supported platforms
 
 LinkedIn, Instagram, Facebook, YouTube, TikTok, Netflix, ChatGPT, WhatsApp, X, Chrome
+are the platforms this codebase's extractors support. This fork's menu wires up a
+subset of them plus a Google Takeout flow and a General DDP Analyzer: YouTube,
+Google, Netflix, Instagram, LinkedIn, WhatsApp, ChatGPT, General DDP Analyzer.
 
 ## Citation
 
