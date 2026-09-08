@@ -49,6 +49,7 @@ Study completion is signaled by generator exhaustion, not an explicit exit: `scr
 - Don't add an in-iframe end / "thank you" page: it duplicates the host's completion UI, and a display-only page that holds an unresolved render promise silently blocks the final yield from returning (the EndPage hang).
 - `FlowBuilder.start_flow()` returns after one platform — it never ends the study; `script.py` owns the lifecycle and its final act is `emit_log("Study complete")`.
 - If a display-only page is ever needed, it must resolve its render promise — never rely on an unresolved promise to hold the UI.
+- The education fork's composite module (`platforms/education.py`) is a documented exception, not a counterexample: in education mode `FlowBuilder.start_flow()` `return`s right after the review page (never donates, never exits the process), and `education.py` renders `ph.generate_platform_completion_prompt()` — a `PropsUIPromptConfirm` that *resolves* on the participant's confirmation — before looping back to its menu. This is not an in-iframe end page: it is a resolving prompt inside a non-exhausting menu loop, needed only because the Pages deployment (ADR-0004) has no host to hand a `CommandSystemExit` to.
 
 ## Why
 

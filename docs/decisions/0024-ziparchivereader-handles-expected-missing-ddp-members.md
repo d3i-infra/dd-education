@@ -45,6 +45,7 @@ Platform extraction reads archive members through `ZipArchiveReader`. `json()` /
 - Inventory discovery — resolving the member list a `ZipArchiveReader` matches against — lives in `ArchiveSet`/`SingleArchiveSource` (`archive_set.py`), not in `ZipArchiveReader`; the reader only resolves member paths and delegates reads to `self._source.read_member()`. Reuse the already-discovered member list (`ValidateInput.archive_members` / `ArchiveSet.members`) instead of re-opening any part just to list members during extraction.
 - Do not reach for the legacy path-era helpers (`extract_file_from_zip`, `json_dumper`, `read_json_from_file`) in extraction code — they are the cascade this decision removed and survive only for backward compatibility.
 - WhatsApp is the standing exception: its input is a single chat export pre-parsed into a DataFrame, not a multi-file DDP, so it has no member inventory to consult.
+- `is_macos_metadata()` (`archive_set.py`) filters the `__MACOSX/` tree and `._*` sidecar entries out of a member inventory before matching, in both `ArchiveSet`'s discovery and `validate.py`'s single-archive `namelist()` walk — a re-zipped-on-macOS DDP must not surface Finder's own bookkeeping entries as extraction members or as validation matches.
 
 ## Why
 

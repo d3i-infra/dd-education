@@ -25,6 +25,7 @@ Extractor docstrings are the bootstrap source for a config; after that initial g
 - To re-bootstrap a platform, delete the config first (`rm configs/<platform>_config.json`), then regenerate — a deliberate two-step action.
 - The hand-editable surface of a config is: title, description, headers, `variables` (a subset and ordering of columns), table inclusion/exclusion, and visualizations — the runtime honors these because it iterates only the config's tables. Hand-edited and externally tool-generated (e.g. the external Selector) configs are treated identically at runtime.
 - Adding a new extractor does not propagate into an existing config; the researcher must notice and rm-and-regenerate (there is no merge tooling).
+- The education fork commits its menu platforms' edited configs (`configs/{education,chatgpt,youtube,netflix,instagram,linkedin,whatsapp,google}_config.json`) under a `.gitignore` allowlist carved out of the general `*_config.json` ignore rule — the generator's no-overwrite policy above is exactly what makes committing a hand-curated config safe: a future `pnpm generate-config` on an already-committed file still refuses to overwrite it.
 
 ## Why
 

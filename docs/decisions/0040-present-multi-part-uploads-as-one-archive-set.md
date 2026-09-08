@@ -56,6 +56,7 @@ satisfy via `SingleArchiveSource`.
   the next opens; there is no concurrent multi-part extraction.
 - `PayloadFiles` is `ArchiveSet`'s only transport; `ArchiveSource`,
   `SingleArchiveSource`, and `ArchiveSet` all live in `archive_set.py`.
+- `ArchiveSet`'s member inventory excludes macOS metadata (`is_macos_metadata()`) before building the union namelist, matching `validate.py`'s single-archive filtering (ADR-0024); `ArchiveSet.member_info(path)` is the public accessor for a member's `zipfile.ZipInfo` across parts.
 
 ## Why
 

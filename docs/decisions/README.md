@@ -36,6 +36,7 @@ Load the ADR(s) whose filename matches the area you are touching.
 - [0028 — Docstring-driven UI metadata for extractor functions](./0028-docstring-driven-ui-metadata-for-extractor-functions.md)
 - [0029 — Standard platform module interface](./0029-standard-platform-module-interface.md)
 - [0030 — Config lifecycle and generator overwrite policy](./0030-config-lifecycle-and-generator-overwrite-policy.md)
+- [0041 — Education is a composite platform module](./0041-education-is-a-composite-platform-module.md)
 
 ### Extraction
 
