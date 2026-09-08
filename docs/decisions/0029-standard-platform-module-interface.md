@@ -25,6 +25,7 @@ priority: default
 - Platform-authoring convention (used inside the module, not by the dispatcher): each exposes `EXTRACTOR_REGISTRY` (ordered `dict[str, Callable[..., pd.DataFrame]]`), `extraction(...)`, a `<Platform>Flow(FlowBuilder)` subclass, and `process(session_id)` returning `<Platform>Flow(session_id).start_flow()`. `example.py` is the canonical template.
 - A runnable/released platform needs a generated `configs/<platform>_config.json`, but those are generated on demand (the config lifecycle and overwrite policy are their own record) and validated at runtime by `script.py`; only `example_config.json` is committed. Adding a platform still requires no change to `script.py`.
 - Documented signature exceptions, both still exposing all four convention symbols: **Netflix** keeps `run_extraction` but with a different `extraction(reader, selected_user)` shape; **WhatsApp** has an `extraction(df)` shape and still calls `load_port_config`, but *bypasses* `run_extraction`, building its tables in its own loop.
+- **Education** (`platforms/education.py`, the education fork's composite module) is an exception to the convention itself, not a signature variant of it: it exposes only `EXTRACTOR_REGISTRY` (empty, present for the validator) and `process()` — no `extraction()`, no `<Platform>Flow` subclass of its own — because it dispatches to other platforms' already-conforming flows instead of extracting anything itself.
 
 ## Why
 
@@ -32,5 +33,5 @@ priority: default
 
 ## Checks
 
-- Confirm each *platform* module under `port/platforms/` (excluding `__init__.py` and any non-platform support files) exposes `EXTRACTOR_REGISTRY`, `extraction`, a `<Platform>Flow(FlowBuilder)` subclass, and `process`; allowlist Netflix/WhatsApp for signature divergence only.
+- Confirm each *platform* module under `port/platforms/` (excluding `__init__.py` and any non-platform support files) exposes `EXTRACTOR_REGISTRY`, `extraction`, a `<Platform>Flow(FlowBuilder)` subclass, and `process`; allowlist Netflix/WhatsApp for signature divergence, and `education.py` as a composite module with no extractors of its own (`EXTRACTOR_REGISTRY`/`process` only).
 - Confirm `script.py` dispatches only via `validate_or_raise` + `import_module("port.platforms.<platform>")` + `process()`, with no per-platform names or `PLATFORM_REGISTRY`.
