@@ -5,15 +5,16 @@ import App from "./App";
 import { LandingPage } from "./routes/landing_page";
 import { About } from "./routes/about";
 import { PrivacyPolicy } from "./routes/privacy_policy";
+import { RouteError } from "./routes/route_error";
 import "./index.css";
 import "@eyra/feldspar/dist/styles.css";
 
 const router = createHashRouter([
-  { path: "/", element: <LandingPage /> },
-  { path: "/about", element: <About /> },
-  { path: "/privacy-policy", element: <PrivacyPolicy /> },
-  { path: "/port", element: <App /> },
-  { path: "*", element: <Navigate to="/" replace /> },
+  { path: "/", element: <LandingPage />, errorElement: <RouteError /> },
+  { path: "/about", element: <About />, errorElement: <RouteError /> },
+  { path: "/privacy-policy", element: <PrivacyPolicy />, errorElement: <RouteError /> },
+  { path: "/port", element: <App />, errorElement: <RouteError /> },
+  { path: "*", element: <Navigate to="/" replace />, errorElement: <RouteError /> },
 ]);
 
 const rootElement = document.getElementById("root");

@@ -190,6 +190,23 @@ describe("ConsentFormViz", () => {
       }
     }
 
+    // Regression: figure.tsx's chart/heatmap wrappers carry `relative z-50`
+    // (upstream, not to be changed here), which painted over the chip strip
+    // while scrolling unless the strip sits above them and stays opaque.
+    test("the sticky chip strip stays above figures and opaque while scrolling", () => {
+      const resolve = jest.fn()
+      root = renderConsentFormViz(container, multiTableProps(resolve))
+
+      const nav = container.querySelector("nav")
+      if (nav === null) throw new Error("chip strip nav not found")
+
+      const classes = nav.className.split(/\s+/)
+      expect(classes).toContain("sticky")
+      expect(classes).toContain("top-0")
+      expect(classes).toContain("z-[60]")
+      expect(classes).toContain("bg-white")
+    })
+
     test("renders one chip per table with its row count", () => {
       const resolve = jest.fn()
       root = renderConsentFormViz(container, multiTableProps(resolve))

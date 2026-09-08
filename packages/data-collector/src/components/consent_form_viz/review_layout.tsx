@@ -84,7 +84,7 @@ export const ReviewLayout = ({ tables, updateTable, locale, description }: Revie
 
   return (
     <div className="flex flex-col gap-4 w-full">
-      <nav aria-label={text.navLabel} className="sticky top-0 z-20 bg-white border-b-[0.2rem] border-grey4">
+      <nav aria-label={text.navLabel} className="sticky top-0 z-[60] bg-white border-b-[0.2rem] border-grey4">
         <div className="flex gap-2 overflow-x-auto scrollbar-hide py-3">
           {orderedTables.map((table) => {
             const isActive = table.id === activeId

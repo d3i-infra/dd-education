@@ -4,6 +4,9 @@ export default {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   testMatch: ['**/*.test.ts', '**/*.test.tsx'],
+  // jsdom has no TextEncoder/TextDecoder; react-router-dom's data routers
+  // need them at import time. See src/test_support/text_encoder_polyfill.ts.
+  setupFiles: ['<rootDir>/src/test_support/text_encoder_polyfill.ts'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   // The built @eyra/feldspar cannot be resolved from jest (its exports map has
   // no "require" condition). Map the specifier onto a source re-export so tests
