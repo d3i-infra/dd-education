@@ -1,10 +1,12 @@
-import { VisualizationData, ChartVisualizationData, TextVisualizationData, Table, zVisualizationType } from './types'
+import { VisualizationData, ChartVisualizationData, TextVisualizationData, StatsVisualizationData, HeatmapVisualizationData, Table, zVisualizationType } from './types'
 import { memo, useEffect, useMemo, useState, ReactElement } from 'react'
 
 import useVisualizationData from './visualizationDataFunctions/useVisualizationData'
 
 import RechartsGraph from './figures/recharts_graph'
 import VisxWordcloud from './figures/d3_wordcloud'
+import StatTiles from './figures/stat_tiles'
+import Heatmap from './figures/heatmap'
 import { zoomInIcon, zoomOutIcon } from './zoom_icons'
 import { z } from 'zod'
 import { Loader } from './ui/loader'
@@ -166,6 +168,18 @@ export const RenderVisualization = memo(
       const textVisualizationData: TextVisualizationData = visualizationData
       if (textVisualizationData.topTerms.length === 0) return fallback
       return <VisxWordcloud visualizationData={textVisualizationData} />
+    }
+
+    if (visualizationData.type === 'stats') {
+      const statsVisualizationData: StatsVisualizationData = visualizationData
+      if (statsVisualizationData.tiles.length === 0) return fallback
+      return <StatTiles visualizationData={statsVisualizationData} locale={locale} />
+    }
+
+    if (visualizationData.type === 'heatmap') {
+      const heatmapVisualizationData: HeatmapVisualizationData = visualizationData
+      if (heatmapVisualizationData.grids.length === 0) return fallback
+      return <Heatmap visualizationData={heatmapVisualizationData} />
     }
 
     return null

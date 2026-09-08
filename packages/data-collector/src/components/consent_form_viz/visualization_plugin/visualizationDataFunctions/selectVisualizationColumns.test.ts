@@ -65,6 +65,42 @@ describe('selectVisualizationColumns', () => {
     expect(projected.head.cells).toEqual(['duration'])
   })
 
+  it('keeps only the columns referenced by stat tiles, skipping tiles with no column (e.g. count)', () => {
+    const visualization: VisualizationType = {
+      title: { en: 'stats' },
+      type: 'stats',
+      tiles: [
+        { label: { en: 'total' }, aggregate: 'count' },
+        { label: { en: 'platforms' }, aggregate: 'distinct', column: 'category' }
+      ]
+    }
+    const projected = selectVisualizationColumns(makeTable(), visualization)
+    expect(projected.head.cells).toEqual(['category'])
+  })
+
+  it('keeps dateColumn and valueColumn for a heatmap', () => {
+    const visualization: VisualizationType = {
+      title: { en: 'activity' },
+      type: 'heatmap',
+      mode: 'calendar',
+      dateColumn: 'date',
+      valueColumn: 'duration'
+    }
+    const projected = selectVisualizationColumns(makeTable(), visualization)
+    expect(projected.head.cells).toEqual(['date', 'duration'])
+  })
+
+  it('keeps only dateColumn for a heatmap with no valueColumn', () => {
+    const visualization: VisualizationType = {
+      title: { en: 'activity' },
+      type: 'heatmap',
+      mode: 'weekday_hour',
+      dateColumn: 'date'
+    }
+    const projected = selectVisualizationColumns(makeTable(), visualization)
+    expect(projected.head.cells).toEqual(['date'])
+  })
+
   it('preserves row ids so rowId-based deletion still works', () => {
     const visualization: VisualizationType = {
       title: { en: 'per day' },

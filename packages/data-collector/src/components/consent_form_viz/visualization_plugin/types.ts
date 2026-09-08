@@ -96,6 +96,9 @@ export const zAggregationGroup = z.object({
   dateFormat: zDateFormat.optional(),
   range: z.array(z.number()).optional(),
   levels: z.array(z.string()).optional(),
+  // Keep only the N groups with the largest first-series value (categorical
+  // groups only -- ignored when dateFormat is set). See prepareChartData.ts.
+  top: z.number().optional(),
 })
 export type AggregationGroup = z.infer<typeof zAggregationGroup>
 
@@ -162,9 +165,101 @@ export interface TextVisualizationData {
   topTerms: ScoredTerm[]
 }
 
+// Stats Visualizations
+
+// External types (need schema)
+
+export const zStatAggregateFunction = z.enum([
+  "count",
+  "distinct",
+  "min",
+  "max",
+  "sum",
+  "mean",
+  "first_date",
+  "last_date",
+  "span_days",
+  "busiest_day",
+])
+export type StatAggregateFunction = z.infer<typeof zStatAggregateFunction>
+
+export const zStatTile = z.object({
+  label: zTranslatable,
+  aggregate: zStatAggregateFunction,
+  column: z.string().optional(),
+  dateFormat: zDateFormat.optional(),
+})
+export type StatTile = z.infer<typeof zStatTile>
+
+export const zStatsVisualizationType = z.enum(["stats"])
+export type StatsVisualizationType = z.infer<typeof zStatsVisualizationType>
+
+export const zStatsVisualization = zVisualizationProps.extend({
+  type: zStatsVisualizationType,
+  tiles: z.array(zStatTile).min(1),
+})
+export type StatsVisualization = z.infer<typeof zStatsVisualization>
+
+// Internal types
+
+export interface StatTileData {
+  label: Translatable
+  value: string
+}
+
+export interface StatsVisualizationData {
+  type: StatsVisualizationType
+  tiles: StatTileData[]
+}
+
+// Heatmap Visualizations
+
+// External types (need schema)
+
+export const zHeatmapMode = z.enum(["calendar", "weekday_hour"])
+export type HeatmapMode = z.infer<typeof zHeatmapMode>
+
+export const zHeatmapAggregate = z.enum(["count", "sum", "mean"])
+export type HeatmapAggregate = z.infer<typeof zHeatmapAggregate>
+
+export const zHeatmapVisualizationType = z.enum(["heatmap"])
+export type HeatmapVisualizationType = z.infer<typeof zHeatmapVisualizationType>
+
+export const zHeatmapVisualization = zVisualizationProps.extend({
+  type: zHeatmapVisualizationType,
+  mode: zHeatmapMode,
+  dateColumn: z.string(),
+  valueColumn: z.string().optional(),
+  aggregate: zHeatmapAggregate.optional(),
+})
+export type HeatmapVisualization = z.infer<typeof zHeatmapVisualization>
+
+// Internal types
+
+export interface HeatmapGrid {
+  // "" for weekday_hour (a single grid); the year (e.g. "2024") per calendar grid
+  key: string
+  rowLabels: string[]
+  colLabels: string[]
+  values: number[][]
+  // Present for calendar grids only: the ISO date (yyyy-mm-dd) each cell
+  // represents, or '' for a padding cell outside the year -- used for
+  // tooltips and to skip drawing padding cells.
+  cellDates?: string[][]
+  // Present for calendar grids only: month-boundary labels along the columns.
+  colGroups?: Array<{ col: number, label: string }>
+}
+
+export interface HeatmapVisualizationData {
+  type: HeatmapVisualizationType
+  mode: HeatmapMode
+  max: number
+  grids: HeatmapGrid[]
+}
+
 // Visualization Type union
 
-export type VisualizationData = ChartVisualizationData | TextVisualizationData
+export type VisualizationData = ChartVisualizationData | TextVisualizationData | StatsVisualizationData | HeatmapVisualizationData
 
-export const zVisualizationType = z.union([zChartVisualization, zTextVisualization])
+export const zVisualizationType = z.union([zChartVisualization, zTextVisualization, zStatsVisualization, zHeatmapVisualization])
 export type VisualizationType = z.infer<typeof zVisualizationType>

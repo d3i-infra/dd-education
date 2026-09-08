@@ -1,6 +1,8 @@
-import { ChartVisualization, TextVisualization, VisualizationType, VisualizationData, Table } from '../types'
+import { ChartVisualization, TextVisualization, StatsVisualization, HeatmapVisualization, VisualizationType, VisualizationData, Table } from '../types'
 import { prepareChartData } from './prepareChartData'
 import { prepareTextData } from './prepareTextData'
+import { prepareStatsData } from './prepareStatsData'
+import { prepareHeatmapData } from './prepareHeatmapData'
 
 interface Input {
   table: Table
@@ -24,6 +26,10 @@ async function createVisualizationData (table: Table, visualization: Visualizati
   if (['line', 'bar', 'area'].includes(visualization.type)) { return await prepareChartData(table, visualization as ChartVisualization) }
 
   if (['wordcloud'].includes(visualization.type)) { return await prepareTextData(table, visualization as TextVisualization) }
+
+  if (visualization.type === 'stats') { return await prepareStatsData(table, visualization as StatsVisualization) }
+
+  if (visualization.type === 'heatmap') { return await prepareHeatmapData(table, visualization as HeatmapVisualization) }
 
   throw new Error(`Visualization type ${visualization.type} not supported`)
 }

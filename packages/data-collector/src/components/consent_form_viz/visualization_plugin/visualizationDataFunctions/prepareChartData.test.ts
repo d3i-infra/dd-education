@@ -62,3 +62,76 @@ describe('prepareChartData non-numeric value handling', () => {
     expect(groupB?.val).toBeCloseTo((100 * 5) / 15, 1)
   })
 })
+
+describe('prepareChartData top-N groups', () => {
+  function makeTopTable (): Table {
+    // counts: a=1, b=3, c=5, d=2 (first, and only, series is .COUNT)
+    return makeTable([
+      ['a', '1'],
+      ['b', '1'], ['b', '1'], ['b', '1'],
+      ['c', '1'], ['c', '1'], ['c', '1'], ['c', '1'], ['c', '1'],
+      ['d', '1'], ['d', '1']
+    ])
+  }
+
+  it('keeps the N groups with the largest first-series value, sorted descending, when top is smaller than the group count', async () => {
+    const visualization: ChartVisualization = {
+      title: {},
+      type: 'bar',
+      group: { column: 'group', top: 2 },
+      values: [{ column: '.COUNT' }]
+    }
+
+    const result = await prepareChartData(makeTopTable(), visualization)
+    expect(result.data.map((d) => d.group)).toEqual(['c', 'b'])
+    expect(result.data.map((d) => d['.COUNT'])).toEqual([5, 3])
+  })
+
+  it('keeps every group, sorted descending, when top is larger than the group count', async () => {
+    const visualization: ChartVisualization = {
+      title: {},
+      type: 'bar',
+      group: { column: 'group', top: 100 },
+      values: [{ column: '.COUNT' }]
+    }
+
+    const result = await prepareChartData(makeTopTable(), visualization)
+    expect(result.data.map((d) => d.group)).toEqual(['c', 'b', 'd', 'a'])
+  })
+
+  it('leaves ordering unchanged (alphabetical/categorical) when top is absent', async () => {
+    const visualization: ChartVisualization = {
+      title: {},
+      type: 'bar',
+      group: { column: 'group' },
+      values: [{ column: '.COUNT' }]
+    }
+
+    const result = await prepareChartData(makeTopTable(), visualization)
+    expect(result.data.map((d) => d.group)).toEqual(['a', 'b', 'c', 'd'])
+  })
+
+  it('does not apply top when the group has a dateFormat (order is meaningful)', async () => {
+    const table: Table = {
+      id: 't1',
+      head: { cells: ['date', 'val'] },
+      body: {
+        rows: [
+          { id: '0', cells: ['2020-01-01T00:00:00.000Z', '1'] },
+          { id: '1', cells: ['2021-01-01T00:00:00.000Z', '1'] },
+          { id: '2', cells: ['2022-01-01T00:00:00.000Z', '1'] }
+        ]
+      }
+    }
+    const visualization: ChartVisualization = {
+      title: {},
+      type: 'bar',
+      group: { column: 'date', dateFormat: 'year', top: 1 },
+      values: [{ column: '.COUNT' }]
+    }
+
+    const result = await prepareChartData(table, visualization)
+    // all three years kept, in chronological order, despite top: 1
+    expect(result.data.map((d) => d.date)).toEqual(['2020', '2021', '2022'])
+  })
+})

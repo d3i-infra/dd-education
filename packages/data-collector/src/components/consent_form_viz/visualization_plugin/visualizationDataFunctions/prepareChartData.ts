@@ -18,7 +18,7 @@ function createVisualizationData (
 ): ChartVisualizationData {
   const visualizationData = initializeVisualizationData(table, visualization)
 
-  visualizationData.data = Object.values(aggregate)
+  let data: Array<Record<string, any>> = Object.values(aggregate)
     .sort((a: any, b: any) => (a.sortBy < b.sortBy ? -1 : b.sortBy < a.sortBy ? 1 : 0))
     .map((d) => {
       for (const key of Object.keys(d.values)) d.values[key] = Math.round(d.values[key] * 100) / 100
@@ -31,7 +31,32 @@ function createVisualizationData (
       }
     })
 
+  // top-N only makes sense for categorical groups: a dateFormat group's order
+  // is meaningful (time progresses), so top leaves it untouched.
+  const top = visualization.group.top
+  if (top !== undefined && visualization.group.dateFormat === undefined) {
+    data = keepTopGroups(data, visualizationData, top)
+  }
+
+  visualizationData.data = data
   return visualizationData
+}
+
+function keepTopGroups (
+  data: Array<Record<string, any>>,
+  visualizationData: ChartVisualizationData,
+  top: number
+): Array<Record<string, any>> {
+  const firstSeriesKey = Object.keys(visualizationData.yKeys)[0]
+  if (firstSeriesKey === undefined) return data
+
+  return [...data]
+    .sort((a, b) => {
+      const aValue = Number(a[firstSeriesKey])
+      const bValue = Number(b[firstSeriesKey])
+      return (Number.isNaN(bValue) ? 0 : bValue) - (Number.isNaN(aValue) ? 0 : aValue)
+    })
+    .slice(0, top)
 }
 
 function initializeVisualizationData (table: Table, visualization: ChartVisualization): ChartVisualizationData {

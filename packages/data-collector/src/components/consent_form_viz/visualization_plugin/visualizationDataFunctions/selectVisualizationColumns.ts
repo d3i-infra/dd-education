@@ -1,4 +1,4 @@
-import { ChartVisualization, TextVisualization, VisualizationType, Table } from '../types'
+import { ChartVisualization, TextVisualization, StatsVisualization, HeatmapVisualization, VisualizationType, Table } from '../types'
 
 /**
  * Project a table down to only the columns the visualization reads, so that
@@ -38,6 +38,19 @@ function visualizationColumns (visualization: VisualizationType): string[] {
     const text = visualization as TextVisualization
     columns.add(text.textColumn)
     if (text.valueColumn !== undefined) columns.add(text.valueColumn)
+  }
+
+  if (visualization.type === 'stats') {
+    const stats = visualization as StatsVisualization
+    for (const tile of stats.tiles) {
+      if (tile.column !== undefined) columns.add(tile.column)
+    }
+  }
+
+  if (visualization.type === 'heatmap') {
+    const heatmap = visualization as HeatmapVisualization
+    columns.add(heatmap.dateColumn)
+    if (heatmap.valueColumn !== undefined) columns.add(heatmap.valueColumn)
   }
 
   return Array.from(columns)
