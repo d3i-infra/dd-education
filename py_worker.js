@@ -12,12 +12,15 @@ onmessage = (event) => {
       });
       break;
 
-    case "firstRunCycle":
-      const platform = event.data.platform;
-      const pyPlatform = (platform && platform !== "undefined") ? `"${platform}"` : "None";
-      pyScript = self.pyodide.runPython(`port.start(${event.data.sessionId}, ${pyPlatform})`);
+    case "firstRunCycle": {
+      const ctx = event.data.data;
+      // strip null/undefined/"undefined": the JSON text is interpolated as a Python
+      // literal and values must stay strings/numbers (JSON null is not Python)
+      for (const k of Object.keys(ctx)) if (ctx[k] == null || ctx[k] === "undefined") delete ctx[k];
+      pyScript = self.pyodide.runPython(`port.start(${JSON.stringify(ctx)})`);
       runCycle(null);
       break;
+    }
 
     case "nextRunCycle":
       const { response } = event.data;
@@ -33,8 +36,21 @@ onmessage = (event) => {
 
 function runCycle(payload) {
   console.log("[ProcessingWorker] runCycle " + JSON.stringify(payload));
+  let scriptEvent;
   try {
     scriptEvent = pyScript.send(payload);
+  } catch (error) {
+    // Local diagnostics only — escaped Python errors reach the participant
+    // as a rendered error page (ADR-0022); never posted as error/log events
+    // that would forward unconsented traceback text (ADR-0023).
+    console.error("[ProcessingWorker] Error in pyScript.send:", error);
+    self.postMessage({
+      eventType: "runCycleDone",
+      scriptEvent: generateErrorMessage(String(error)),
+    });
+    return;
+  }
+  try {
     self.postMessage({
       eventType: "runCycleDone",
       scriptEvent: scriptEvent.toJs({
@@ -43,6 +59,7 @@ function runCycle(payload) {
       }),
     });
   } catch (error) {
+    console.error("[ProcessingWorker] Error in toJs/postMessage:", error);
     self.postMessage({
       eventType: "runCycleDone",
       scriptEvent: generateErrorMessage(String(error)),
@@ -78,6 +95,13 @@ function unwrap(response) {
     switch (response.payload.__type__) {
       case "PayloadFile":
         copyFileToPyFS(response.payload.value, resolve);
+        break;
+
+      case "PayloadFiles":
+        resolve({
+          __type__: "PayloadFiles",
+          value: response.payload.value.map(createAsyncFileReader),
+        });
         break;
 
       default:
@@ -132,11 +156,27 @@ function startPyodide() {
 
 function loadPackages() {
   console.log("[ProcessingWorker] loading packages");
-  return self.pyodide.loadPackage(["micropip", "numpy", "pandas"]);
+  // "tzdata" is not in Pyodide 0.24's bundled package index, so it cannot be loaded here;
+  // installPortPackage() fetches it from PyPI through micropip instead.
+  return self.pyodide.loadPackage(["micropip", "numpy", "pandas", "lxml"]);
 }
 
-function installPortPackage() {
+async function installPortPackage() {
   console.log("[ProcessingWorker] load port package");
+  // Pyodide 0.24 ships no IANA timezone database, and "tzdata" is not in its bundled
+  // package index either, so it comes from PyPI as a pure-Python wheel (~350 KB). Without
+  // it `zoneinfo` cannot resolve Europe/Amsterdam and the Python side writes every
+  // timestamp in UTC instead (extraction_helpers._reference_zone falls back and warns
+  // locally). That is a degraded result, not a broken one, so a failed install must never
+  // block boot — hence the catch.
+  try {
+    await self.pyodide.runPythonAsync(`
+      import micropip
+      await micropip.install("tzdata")
+    `);
+  } catch (e) {
+    console.warn("tzdata unavailable, timestamps fall back to UTC", e);
+  }
   return self.pyodide.runPythonAsync(`
     import micropip
     await micropip.install("./port-0.0.0-py3-none-any.whl", deps=False)
