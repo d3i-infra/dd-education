@@ -35,6 +35,27 @@ describe('zVisualizationType: stats blocks', () => {
     }
     expect(zVisualizationType.safeParse(block).success).toBe(false)
   })
+
+  it('accepts a tile with no column when the aggregate is "count"', () => {
+    const block = {
+      title: { en: 'Overview' },
+      type: 'stats',
+      tiles: [{ label: { en: 'Total' }, aggregate: 'count' }]
+    }
+    expect(zVisualizationType.safeParse(block).success).toBe(true)
+  })
+
+  it.each(['distinct', 'min', 'max', 'sum', 'mean', 'first_date', 'last_date', 'span_days', 'busiest_day'] as const)(
+    'rejects a tile with no column for aggregate "%s"',
+    (aggregate) => {
+      const block = {
+        title: { en: 'Overview' },
+        type: 'stats',
+        tiles: [{ label: { en: 'Total' }, aggregate }]
+      }
+      expect(zVisualizationType.safeParse(block).success).toBe(false)
+    }
+  )
 })
 
 describe('zVisualizationType: heatmap blocks', () => {
@@ -99,6 +120,16 @@ describe('zChartVisualization: group.top', () => {
       title: { en: 'Top categories' },
       type: 'bar',
       group: { column: 'category', top: 'five' },
+      values: [{ column: '.COUNT' }]
+    }
+    expect(zChartVisualization.safeParse(block).success).toBe(false)
+  })
+
+  it.each([0, -1, 2.5])('rejects top: %s (must be a positive integer)', (top) => {
+    const block = {
+      title: { en: 'Top categories' },
+      type: 'bar',
+      group: { column: 'category', top },
       values: [{ column: '.COUNT' }]
     }
     expect(zChartVisualization.safeParse(block).success).toBe(false)

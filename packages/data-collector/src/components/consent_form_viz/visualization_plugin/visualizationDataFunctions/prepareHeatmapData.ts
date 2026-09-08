@@ -1,19 +1,11 @@
 import { formatDate, getTableColumn } from './util'
 import { HeatmapAggregate, HeatmapGrid, HeatmapVisualizationData, HeatmapVisualization, Table } from '../types'
 
-// A known Monday-first week (matches formatDate's own "weekday_cycle" domain)
-// used once to derive locale-correct weekday initials via util.ts, instead of
-// hardcoding English day names. Noon UTC keeps every offset well clear of a
-// local-day boundary.
-const WEEKDAY_CYCLE_ISO = [
-  '2023-11-06T12:00:00.000Z', // Monday
-  '2023-11-07T12:00:00.000Z',
-  '2023-11-08T12:00:00.000Z',
-  '2023-11-09T12:00:00.000Z',
-  '2023-11-10T12:00:00.000Z',
-  '2023-11-11T12:00:00.000Z',
-  '2023-11-12T12:00:00.000Z' // Sunday
-]
+// Two-letter weekday abbreviations, Monday-first (ISO 8601 week order). Fixed
+// strings, not locale-derived -- short axis labels are a visual convention,
+// not translated UI text. The full, locale-resolved name (for tooltips) is
+// derived separately below.
+const WEEKDAY_LABELS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
 const HOUR_TICK_INTERVAL = 3
 
@@ -50,6 +42,10 @@ function collectSamples (table: Table, visualization: HeatmapVisualization): Sam
 
     let value = 1
     if (values !== null) {
+      // Number('') is 0, not NaN -- exclude a blank cell entirely rather than
+      // letting it masquerade as a real zero and drag a mean down (matches
+      // prepareStatsData.ts's numericValues, which excludes blanks the same way).
+      if (values[i] === '') continue
       const numeric = Number(values[i])
       value = Number.isNaN(numeric) ? 0 : numeric
     }
@@ -71,14 +67,20 @@ function resolveAggregate (acc: CellAccumulator | undefined, aggregate: HeatmapA
   return acc.n // count
 }
 
-// 0 = Monday .. 6 = Sunday, matching WEEKDAY_CYCLE_ISO / formatDate's weekday_cycle domain.
+// 0 = Monday .. 6 = Sunday, matching WEEKDAY_LABELS / formatDate's weekday_cycle domain.
 function isoWeekday (date: Date): number {
   return (date.getDay() + 6) % 7
 }
 
-function weekdayInitials (): string[] {
-  const [names] = formatDate(WEEKDAY_CYCLE_ISO, 'weekday_cycle')
-  return names.map((name) => name.charAt(0).toUpperCase())
+// Full, locale-resolved weekday names (Monday-first), for the tooltip behind
+// each two-letter WEEKDAY_LABELS entry. Each reference date is built from
+// local wall-clock components (year, month, day, hour) rather than a fixed
+// UTC instant, so its weekday is correct in every timezone -- a fixed "noon
+// UTC" instant would land on the following local day at UTC+13/+14.
+function weekdayFullNames (): string[] {
+  const referenceIso = Array.from({ length: 7 }, (_, i) => new Date(2023, 10, 6 + i, 12).toISOString())
+  const [names] = formatDate(referenceIso, 'weekday_cycle')
+  return names
 }
 
 function isLeapYear (year: number): boolean {
@@ -115,7 +117,8 @@ function prepareWeekdayHour (samples: Sample[], aggregate: HeatmapAggregate): He
 
   const grid: HeatmapGrid = {
     key: '',
-    rowLabels: weekdayInitials(),
+    rowLabels: WEEKDAY_LABELS,
+    rowTooltipLabels: weekdayFullNames(),
     colLabels,
     values
   }
@@ -128,7 +131,7 @@ function prepareCalendar (samples: Sample[], aggregate: HeatmapAggregate): Heatm
   for (const { time, value } of samples) accumulate(acc, dayKey(new Date(time)), value)
 
   const years = Array.from(new Set(samples.map((s) => new Date(s.time).getFullYear()))).sort((a, b) => a - b)
-  const rowLabels = weekdayInitials()
+  const rowTooltipLabels = weekdayFullNames()
 
   let max = 0
   const grids: HeatmapGrid[] = years.map((year) => {
@@ -171,7 +174,8 @@ function prepareCalendar (samples: Sample[], aggregate: HeatmapAggregate): Heatm
 
     return {
       key: String(year),
-      rowLabels,
+      rowLabels: WEEKDAY_LABELS,
+      rowTooltipLabels,
       colLabels: Array<string>(weeks).fill(''),
       values,
       cellDates,

@@ -31,7 +31,10 @@ export default function Heatmap ({ visualizationData }: Props): ReactElement | n
   const { grids, max, mode } = visualizationData
   if (grids.length === 0) return null
 
-  const topPad = (mode === 'calendar' ? GROUP_LABEL_H : 0) + COL_LABEL_H
+  // The column-label band only exists for weekday_hour's hour ticks; a
+  // calendar grid never draws one (its colLabels are blank), so reserving
+  // COL_LABEL_H for it there would leave dead space above the grid.
+  const topPad = mode === 'calendar' ? GROUP_LABEL_H : COL_LABEL_H
 
   return (
     <div className='w-full h-full flex flex-col gap-4 p-2 overflow-auto'>
@@ -85,7 +88,11 @@ export default function Heatmap ({ visualizationData }: Props): ReactElement | n
                     const y = topPad + row * STEP
                     // weekday_hour has no cellDates; label every hour in the
                     // tooltip even though only every 3rd hour gets an axis tick.
-                    const title = dateLabel !== undefined ? `${dateLabel}: ${value}` : `${grid.rowLabels[row]} ${col}:00: ${value}`
+                    // The tooltip always spells out the full weekday name --
+                    // the axis only has room for its two-letter abbreviation.
+                    const title = dateLabel !== undefined
+                      ? `${dateLabel}: ${value}`
+                      : `${grid.rowTooltipLabels[row]} ${col}:00: ${value}`
 
                     return (
                       <rect key={col} x={x} y={y} width={CELL} height={CELL} rx={2} fill={colorFor(value, max)}>

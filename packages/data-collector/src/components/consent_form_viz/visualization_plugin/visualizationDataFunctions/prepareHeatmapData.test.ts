@@ -25,12 +25,23 @@ describe('prepareHeatmapData empty table', () => {
 })
 
 describe('prepareHeatmapData weekday_hour mode', () => {
+  // Built from local wall-clock components, not a fixed UTC instant, so the
+  // weekday/hour bucket this lands in is correct under any runner timezone
+  // (mirrors prepareHeatmapData.ts's own local-time date handling).
+  function localIso (y: number, monthIndex: number, day: number, hour: number, minute = 0): string {
+    return new Date(y, monthIndex, day, hour, minute).toISOString()
+  }
+
+  function isoWeekdayOf (y: number, monthIndex: number, day: number, hour: number, minute = 0): number {
+    return (new Date(y, monthIndex, day, hour, minute).getDay() + 6) % 7 // 0 = Monday .. 6 = Sunday
+  }
+
   it('buckets rows into a 7x24 grid of row=weekday, col=hour counts', async () => {
     const visualization: HeatmapVisualization = { title: {}, type: 'heatmap', mode: 'weekday_hour', dateColumn: 'date' }
     const table = makeTable([
-      ['2024-01-01T09:00:00.000Z'], // Monday, 9am UTC
-      ['2024-01-01T09:30:00.000Z'], // same weekday+hour bucket
-      ['2024-01-08T15:00:00.000Z'] // next Monday, 3pm UTC
+      [localIso(2024, 0, 1, 9)], // Monday, 9am local
+      [localIso(2024, 0, 1, 9, 30)], // same weekday+hour bucket
+      [localIso(2024, 0, 8, 15)] // next Monday, 3pm local
     ], ['date'])
 
     const result = await prepareHeatmapData(table, visualization)
@@ -38,14 +49,13 @@ describe('prepareHeatmapData weekday_hour mode', () => {
     expect(result.grids).toHaveLength(1)
     const grid = result.grids[0]
     expect(grid.rowLabels).toHaveLength(7)
+    expect(grid.rowTooltipLabels).toHaveLength(7)
     expect(grid.values).toHaveLength(7)
     expect(grid.values[0]).toHaveLength(24)
 
-    const mondayRow = 0 // Monday is row 0 (Monday-first week)
-    const nineAmDate = new Date('2024-01-01T09:00:00.000Z')
-    const threePmDate = new Date('2024-01-08T15:00:00.000Z')
-    expect(grid.values[mondayRow][nineAmDate.getHours()]).toBe(2)
-    expect(grid.values[mondayRow][threePmDate.getHours()]).toBe(1)
+    const mondayRow = isoWeekdayOf(2024, 0, 1, 9)
+    expect(grid.values[mondayRow][9]).toBe(2)
+    expect(grid.values[mondayRow][15]).toBe(1)
     expect(result.max).toBe(2)
 
     const total = grid.values.flat().reduce((a, b) => a + b, 0)
@@ -57,12 +67,12 @@ describe('prepareHeatmapData weekday_hour mode', () => {
       title: {}, type: 'heatmap', mode: 'weekday_hour', dateColumn: 'date', valueColumn: 'value', aggregate: 'sum'
     }
     const table = makeTable([
-      ['2024-01-01T09:00:00.000Z', '10'],
-      ['2024-01-01T09:15:00.000Z', '5']
+      [localIso(2024, 0, 1, 9), '10'],
+      [localIso(2024, 0, 1, 9, 15), '5']
     ])
     const result = await prepareHeatmapData(table, visualization)
-    const date = new Date('2024-01-01T09:00:00.000Z')
-    expect(result.grids[0].values[0][date.getHours()]).toBe(15)
+    const row = isoWeekdayOf(2024, 0, 1, 9)
+    expect(result.grids[0].values[row][9]).toBe(15)
   })
 
   it('treats a non-numeric valueColumn cell as 0 instead of poisoning the sum with NaN', async () => {
@@ -70,12 +80,27 @@ describe('prepareHeatmapData weekday_hour mode', () => {
       title: {}, type: 'heatmap', mode: 'weekday_hour', dateColumn: 'date', valueColumn: 'value', aggregate: 'sum'
     }
     const table = makeTable([
-      ['2024-01-01T09:00:00.000Z', '10'],
-      ['2024-01-01T09:15:00.000Z', 'not-a-number']
+      [localIso(2024, 0, 1, 9), '10'],
+      [localIso(2024, 0, 1, 9, 15), 'not-a-number']
     ])
     const result = await prepareHeatmapData(table, visualization)
-    const date = new Date('2024-01-01T09:00:00.000Z')
-    expect(result.grids[0].values[0][date.getHours()]).toBe(10)
+    const row = isoWeekdayOf(2024, 0, 1, 9)
+    expect(result.grids[0].values[row][9]).toBe(10)
+  })
+
+  it('excludes a blank valueColumn cell from a mean instead of counting it as a real zero', async () => {
+    const visualization: HeatmapVisualization = {
+      title: {}, type: 'heatmap', mode: 'weekday_hour', dateColumn: 'date', valueColumn: 'value', aggregate: 'mean'
+    }
+    const table = makeTable([
+      [localIso(2024, 0, 1, 9), '10'],
+      [localIso(2024, 0, 1, 9, 15), ''],
+      [localIso(2024, 0, 1, 9, 30), '20']
+    ])
+    const result = await prepareHeatmapData(table, visualization)
+    const row = isoWeekdayOf(2024, 0, 1, 9)
+    // (10 + 20) / 2, not (10 + 0 + 20) / 3 -- Number('') is 0, not NaN.
+    expect(result.grids[0].values[row][9]).toBe(15)
   })
 })
 

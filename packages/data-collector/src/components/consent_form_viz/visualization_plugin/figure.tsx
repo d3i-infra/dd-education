@@ -171,8 +171,10 @@ export const RenderVisualization = memo(
     }
 
     if (visualizationData.type === 'stats') {
+      // No "no data" fallback here: zStatsVisualization.tiles requires min(1)
+      // and prepareStatsData always emits exactly one output tile per input
+      // tile, so tiles.length === 0 can never happen.
       const statsVisualizationData: StatsVisualizationData = visualizationData
-      if (statsVisualizationData.tiles.length === 0) return fallback
       return <StatTiles visualizationData={statsVisualizationData} locale={locale} />
     }
 

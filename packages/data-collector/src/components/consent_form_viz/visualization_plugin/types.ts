@@ -98,7 +98,7 @@ export const zAggregationGroup = z.object({
   levels: z.array(z.string()).optional(),
   // Keep only the N groups with the largest first-series value (categorical
   // groups only -- ignored when dateFormat is set). See prepareChartData.ts.
-  top: z.number().optional(),
+  top: z.number().int().positive().optional(),
 })
 export type AggregationGroup = z.infer<typeof zAggregationGroup>
 
@@ -188,6 +188,16 @@ export const zStatTile = z.object({
   aggregate: zStatAggregateFunction,
   column: z.string().optional(),
   dateFormat: zDateFormat.optional(),
+}).superRefine((tile, ctx) => {
+  // 'count' is the only aggregate that can run over the whole table (row
+  // count); every other aggregate needs a column to read (see README.md).
+  if (tile.aggregate !== 'count' && tile.column === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['column'],
+      message: `'column' is required for aggregate '${tile.aggregate}'`,
+    })
+  }
 })
 export type StatTile = z.infer<typeof zStatTile>
 
@@ -239,7 +249,10 @@ export type HeatmapVisualization = z.infer<typeof zHeatmapVisualization>
 export interface HeatmapGrid {
   // "" for weekday_hour (a single grid); the year (e.g. "2024") per calendar grid
   key: string
+  // Two-letter weekday abbreviations (Mo Tu We Th Fr Sa Su), Monday-first.
   rowLabels: string[]
+  // Full weekday names (locale-resolved), parallel to rowLabels, for tooltips.
+  rowTooltipLabels: string[]
   colLabels: string[]
   values: number[][]
   // Present for calendar grids only: the ISO date (yyyy-mm-dd) each cell
