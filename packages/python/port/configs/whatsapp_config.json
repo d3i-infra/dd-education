@@ -2,8 +2,8 @@
   "platform_info": {
     "name": "WhatsApp Group Chat",
     "filetypes": [
-      "txt",
-      "zip"
+      "zip",
+      "txt"
     ],
     "languages": [
       "en",

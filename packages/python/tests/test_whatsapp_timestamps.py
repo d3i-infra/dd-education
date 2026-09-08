@@ -1,3 +1,6 @@
+import io
+import zipfile
+
 import pytest
 from port.platforms import whatsapp as W
 
@@ -29,3 +32,24 @@ def test_line_parses_with_correct_hour(line, iso, name):
 ])
 def test_to_24h(hour, ampm, daypart, expected):
     assert W.to_24h(hour, ampm, daypart) == expected
+
+
+CHAT = "22-07-2023 6:50 ’s avonds - Sam Voorbeeld: Hey\n22-07-2023 7:15 ’s avonds - Example User: Hey love\n"
+
+
+def test_parse_chat_reads_bare_txt_reader():
+    df = W.parse_chat(io.BytesIO(CHAT.encode("utf-8")))
+    assert list(df["name"]) == ["Sam Voorbeeld", "Example User"]
+
+
+def test_parse_chat_reads_zip_reader():
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr("WhatsApp-chat.txt", CHAT)
+    buf.seek(0)
+    assert len(W.parse_chat(buf)) == 2
+
+
+def test_file_prompt_accepts_zip_and_text():
+    prompt = W.WhatsAppFlow("s").generate_file_prompt()
+    assert "application/zip" in prompt.extensions and "text/plain" in prompt.extensions

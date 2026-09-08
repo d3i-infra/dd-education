@@ -30,6 +30,7 @@ from dateutil import parser
 import unicodedata
 import logging
 import zipfile
+import io
 import re
 
 import pandas as pd
@@ -37,6 +38,7 @@ import pandas as pd
 from port.api.d3i_props import ExtractionResult
 from port.api.file_utils import SeekableBinaryReader
 import port.helpers.validate as validate
+import port.helpers.port_helpers as ph
 from port.helpers.flow_builder import FlowBuilder
 from port.helpers.emoji_pattern import EMOJI_PATTERN
 
@@ -288,12 +290,17 @@ def read_chat_file(chat_file: SeekableBinaryReader) -> list[str]:
             lines = [line.decode("utf-8") for line in lines]
 
     else:
-        # Bare .txt chat exports are not supported through the upload
-        # pipeline: the file prompt accepts application/zip, and per ADR-0026
-        # the payload arrives as a reader, so there is no path to open().
-        # parse_chat() catches this and returns an empty DataFrame, which is
-        # the participant-visible outcome this branch already produced.
-        raise ValueError("WhatsApp chat upload is not a zip archive")
+        # Bare .txt chat exports (Android, no-media export): read as a
+        # streaming UTF-8 text reader rather than chat_file.read() (ADR-0026
+        # forbids whole-upload reads). zipfile.is_zipfile() above consumed
+        # the reader's position while probing for a zip header, so it must
+        # be rewound before TextIOWrapper starts pulling bounded chunks.
+        chat_file.seek(0)
+        text = io.TextIOWrapper(chat_file, encoding="utf-8", newline="")  # pyright: ignore
+        try:
+            lines = list(text)
+        finally:
+            text.detach()  # leave the upload reader open for the caller
 
     out = [remove_unwanted_characters(line) for line in lines]
 
@@ -664,7 +671,14 @@ def extraction(df: pd.DataFrame) -> ExtractionResult:
 class WhatsAppFlow(FlowBuilder):
     def __init__(self, session_id: str):
         super().__init__(session_id, "WhatsApp Group Chat")
-        
+
+    def generate_file_prompt(self):
+        # Android exports a bare .txt when there is no media; iOS exports a
+        # zip. WhatsApp is always a single-file upload (expected_file_payload
+        # stays "PayloadFile"), so the base class's multiple= computation is
+        # unused here (ADR-0012).
+        return ph.generate_file_prompt("application/zip, text/plain")
+
     def validate_file(self, file):
         df = parse_chat(file)
         if not df.empty:
