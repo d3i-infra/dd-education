@@ -1528,36 +1528,64 @@ def _saved_posts_json(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame
             url = ""
             username = ""
             hashtags = ""
+            timestamp_source = item.get("timestamp", "")
 
-            for lv in item.get("label_values", []):
-                if "value" in lv:
-                    # Flavour 1: {"label": "...", "value": "..."}
-                    label = lv.get("label", "")
-                    value = eh.fix_latin1_string(lv.get("value", ""))
-                    if label == "Caption":
-                        caption = value
-                    elif label == "URL":
-                        url = value
-                    elif label == "Username":
-                        username = value
-                elif "dict" in lv:
-                    # Flavour 2: {"dict": [...], "title": "..."}
-                    title = lv.get("title", "")
-                    if title == "Hashtags":
-                        dict_list = lv.get("dict", [])
-                        tags = []
-                        for dict_item in dict_list:
-                            denested = eh.dict_denester(dict_item)
-                            tag = eh.find_item(denested, "value")
-                            if tag:
-                                tags.append(eh.fix_latin1_string(tag))
-                        hashtags = " ".join(tags) if tags else "Geen hashtags"
-                    elif title == "Owner":
-                        dict_list = lv.get("dict", [])
-                        for dict_item in dict_list:
-                            for inner in dict_item.get("dict", []):
-                                if inner.get("label") == "Username":
-                                    username = eh.fix_latin1_string(inner.get("value", ""))
+            if "label_values" in item:
+                # Newer schema: a label_values list, either flat {"label",
+                # "value"} pairs or nested {"dict": [...], "title": "..."}
+                # groups. Caption/URL/Username/Hashtags all come from here;
+                # the item-level "timestamp" set above is correct for this
+                # schema.
+                for lv in item.get("label_values", []):
+                    if "value" in lv:
+                        # Flavour 1: {"label": "...", "value": "..."}
+                        label = lv.get("label", "")
+                        value = eh.fix_latin1_string(lv.get("value", ""))
+                        if label == "Caption":
+                            caption = value
+                        elif label == "URL":
+                            url = value
+                        elif label == "Username":
+                            username = value
+                    elif "dict" in lv:
+                        # Flavour 2: {"dict": [...], "title": "..."}
+                        title = lv.get("title", "")
+                        if title == "Hashtags":
+                            dict_list = lv.get("dict", [])
+                            tags = []
+                            for dict_item in dict_list:
+                                denested = eh.dict_denester(dict_item)
+                                tag = eh.find_item(denested, "value")
+                                if tag:
+                                    tags.append(eh.fix_latin1_string(tag))
+                            hashtags = " ".join(tags) if tags else "Geen hashtags"
+                        elif title == "Owner":
+                            dict_list = lv.get("dict", [])
+                            for dict_item in dict_list:
+                                for inner in dict_item.get("dict", []):
+                                    if inner.get("label") == "Username":
+                                        username = eh.fix_latin1_string(inner.get("value", ""))
+            else:
+                # Older schema (upstream, pre-algosoc): a bare "title" plus
+                # either "string_list_data" (a one-entry list carrying href
+                # and timestamp) or "string_map_data" (keyed by a "Saved
+                # on"/"Opgeslagen op" entry with the same two fields).
+                # Neither older shape carries a username or hashtags, so
+                # those stay blank/"Geen hashtags" as they always did for
+                # this schema — only Caption, URL and Timestamp are
+                # available. Restored from `git show
+                # 0c4412a:packages/python/port/platforms/instagram.py`
+                # (upstream's saved_posts_to_df) so an older-schema donor
+                # doesn't silently lose Caption/URL to a label_values-shaped
+                # empty read.
+                caption = eh.fix_latin1_string(item.get("title", ""))
+                if "string_list_data" in item:
+                    string_list = item.get("string_list_data", [{}])
+                    entry = string_list[0] if string_list else {}
+                else:
+                    entry = _first_present(item.get("string_map_data", {}), ["Saved on", "Opgeslagen op"])
+                url = entry.get("href", "")
+                timestamp_source = entry.get("timestamp", "")
 
             if not hashtags:
                 hashtags = "Geen hashtags"
@@ -1567,7 +1595,7 @@ def _saved_posts_json(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame
                 url,
                 username,
                 hashtags,
-                eh.epoch_to_datetime_string(item.get("timestamp", ""), errors=errors),
+                eh.epoch_to_datetime_string(timestamp_source, errors=errors),
             ))
         out = pd.DataFrame(datapoints, columns=["Caption", "URL", "Username", "Hashtags", "Timestamp"])  # pyright: ignore
         out = _sort_by_date(out, "Timestamp")
