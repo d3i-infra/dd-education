@@ -109,11 +109,11 @@ def account_info_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFram
           "id": "chatgpt_account_info",
           "title": {
             "en": "What OpenAI has on file for your account",
-            "nl": "Wat OpenAI over uw account heeft vastgelegd"
+            "nl": "Wat OpenAI over je account heeft vastgelegd"
           },
           "description": {
             "en": "The account fields OpenAI keeps for your ChatGPT account, from user.json.",
-            "nl": "De accountgegevens die OpenAI voor uw ChatGPT-account bewaart, uit user.json."
+            "nl": "De accountgegevens die OpenAI voor je ChatGPT-account bewaart, uit user.json."
           },
           "headers": {
             "Field": {"en": "Field", "nl": "Veld"},
@@ -181,12 +181,19 @@ def _parse_conversation_turns(reader: ZipArchiveReader, errors: Counter) -> list
     matching the original ``conversations_to_df`` behaviour: no partial rows
     from a conversation half-read.
 
+    ``conversation id`` is the export's own conversation identifier
+    (``conversation_id``, falling back to ``id`` — the real export carries
+    both, equal), not the conversation's ``title``: two distinct
+    conversations can share the same title (a participant renames one, or
+    never renames either), and grouping by title alone would silently merge
+    them. ``conversations_to_df`` groups by this id.
+
     Returns
     -------
     list[dict]
-        Each dict has keys ``conversation title``, ``role``, ``message``,
-        ``model``, ``time``. Empty list when no conversations file is found
-        or parsing fails.
+        Each dict has keys ``conversation title``, ``conversation id``,
+        ``role``, ``message``, ``model``, ``time``. Empty list when no
+        conversations file is found or parsing fails.
     """
     results = reader.json_all(r"conversations-.*\.json")
     if not results:
@@ -197,6 +204,7 @@ def _parse_conversation_turns(reader: ZipArchiveReader, errors: Counter) -> list
     try:
         for conversation in conversations:
             title = conversation["title"]
+            conversation_id = conversation.get("conversation_id") or conversation.get("id") or ""
             for _, turn in conversation["mapping"].items():
 
                 denested_d = eh.dict_denester(turn)
@@ -209,6 +217,7 @@ def _parse_conversation_turns(reader: ZipArchiveReader, errors: Counter) -> list
 
                     datapoint = {
                         "conversation title": title,
+                        "conversation id": conversation_id,
                         "role": role,
                         "message": message,
                         "model": model,
@@ -225,10 +234,10 @@ def _parse_conversation_turns(reader: ZipArchiveReader, errors: Counter) -> list
 
 
 def _parse_iso(value: str) -> "datetime | None":
-    """``time`` / ``model`` cells are already-formatted output of
-    ``eh.epoch_to_iso`` (or blank); parse defensively rather than trust that,
-    the same way ``prepareHeatmapData.ts`` treats an unparseable date cell as
-    absent instead of crashing the block."""
+    """``time`` cells are already-formatted output of ``eh.epoch_to_iso``
+    (or blank); parse defensively rather than trust that, the same way
+    ``prepareHeatmapData.ts`` treats an unparseable date cell as absent
+    instead of crashing the block."""
     if not value:
         return None
     try:
@@ -241,10 +250,16 @@ def conversations_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFra
     """Extract one row per ChatGPT conversation, aggregated from its turns.
 
     Groups the shared turn parse (``_conversation_turns``) by conversation
-    title, preserving each conversation's first-appearance order in the
-    export (not sorted by date or size). ``Models`` only ever looks at
-    assistant turns — a user turn's ``model`` is always blank, see
-    ``_conversation_turns`` — so it never contains an empty entry.
+    id, not title — two distinct conversations can share the same title (a
+    participant renames one, or never renames either), and grouping by
+    title alone would silently merge them into one row. First-appearance
+    order in the export is preserved (not sorted by date or size).
+    ``Conversation title`` in the output is the group's own title (every
+    turn in a conversation carries the same title, since it comes straight
+    off the conversation object, not a per-turn field). ``Models`` only
+    ever looks at assistant turns — a user turn's ``model`` is always
+    blank, see ``_conversation_turns`` — so it never contains an empty
+    entry.
 
     Parameters
     ----------
@@ -326,11 +341,16 @@ def conversations_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFra
         groups: dict[str, dict] = {}
         order: list[str] = []
         for turn in turns:
-            title = turn.get("conversation title", "")
-            if title not in groups:
-                groups[title] = {"times": [], "models": set(), "count": 0}
-                order.append(title)
-            group = groups[title]
+            conversation_id = turn.get("conversation id", "")
+            if conversation_id not in groups:
+                groups[conversation_id] = {
+                    "title": turn.get("conversation title", ""),
+                    "times": [],
+                    "models": set(),
+                    "count": 0,
+                }
+                order.append(conversation_id)
+            group = groups[conversation_id]
             group["count"] += 1
             parsed = _parse_iso(turn.get("time", ""))
             if parsed is not None:
@@ -338,12 +358,12 @@ def conversations_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFra
             if turn.get("role") == "assistant" and turn.get("model"):
                 group["models"].add(turn["model"])
 
-        for title in order:
-            group = groups[title]
+        for conversation_id in order:
+            group = groups[conversation_id]
             started = min(group["times"])[1] if group["times"] else ""
             last_message = max(group["times"])[1] if group["times"] else ""
             rows.append({
-                "Conversation title": title,
+                "Conversation title": group["title"],
                 "Started": started,
                 "Last message": last_message,
                 "Turns": group["count"],
@@ -375,7 +395,7 @@ def messages_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
     Returns
     -------
     pd.DataFrame
-        Columns, in order: ``Time``, ``Conversation title``, ``Role``, ``Message``, ``Model``.
+        Columns, in order: ``Time``, ``Conversation title``, ``Role``, ``Message``, ``Model``, ``Conversation id``.
         Empty DataFrame when the file is absent or parsing fails.
 
     Table documentation::
@@ -388,7 +408,8 @@ def messages_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
             "Conversation title": "Title of the conversation as stored in the export.",
             "Role": "Role of the message author: 'user' or 'assistant'.",
             "Message": "Full text of the message.",
-            "Model": "ChatGPT model slug used to generate the assistant reply. Blank on user turns — only an assistant reply records which model produced it."
+            "Model": "ChatGPT model slug used to generate the assistant reply. Blank on user turns — only an assistant reply records which model produced it.",
+            "Conversation id": "The export's own conversation identifier — distinct conversations can share the same title, so this (not the title) is what groups turns into a conversation."
           }
         }
 
@@ -402,14 +423,15 @@ def messages_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
           },
           "description": {
             "en": "Every message turn across your ChatGPT conversations, from the conversations export files.",
-            "nl": "Elk berichtbeurt uit je ChatGPT-gesprekken, uit de conversations-exportbestanden."
+            "nl": "Elke berichtbeurt uit je ChatGPT-gesprekken, uit de conversations-exportbestanden."
           },
           "headers": {
             "Time": {"en": "Time", "nl": "Tijd"},
             "Conversation title": {"en": "Conversation title", "nl": "Gesprektitel"},
             "Role": {"en": "Role", "nl": "Rol"},
             "Message": {"en": "Message", "nl": "Bericht"},
-            "Model": {"en": "Model", "nl": "Model"}
+            "Model": {"en": "Model", "nl": "Model"},
+            "Conversation id": {"en": "Conversation id", "nl": "Gesprek-ID"}
           },
           "visualizations": [
             {
@@ -418,7 +440,8 @@ def messages_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
                 "nl": "Je gesprekken"
               },
               "type": "thread",
-              "groupColumn": "Conversation title",
+              "groupColumn": "Conversation id",
+              "titleColumn": "Conversation title",
               "roleColumn": "Role",
               "textColumn": "Message",
               "timeColumn": "Time",
@@ -459,8 +482,9 @@ def messages_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
         "role": "Role",
         "message": "Message",
         "model": "Model",
+        "conversation id": "Conversation id",
     })
-    return pd.DataFrame(df[["Time", "Conversation title", "Role", "Message", "Model"]])
+    return pd.DataFrame(df[["Time", "Conversation title", "Role", "Message", "Model", "Conversation id"]])
 
 
 def models_used_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
@@ -511,7 +535,7 @@ def models_used_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame
           },
           "description": {
             "en": "The AI model behind each of your ChatGPT replies, from the conversations export files.",
-            "nl": "Het AI-model achter elk van uw ChatGPT-antwoorden, uit de conversations-exportbestanden."
+            "nl": "Het AI-model achter elk van je ChatGPT-antwoorden, uit de conversations-exportbestanden."
           },
           "headers": {
             "model": {"en": "Model", "nl": "Model"},

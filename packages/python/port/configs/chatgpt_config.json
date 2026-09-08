@@ -183,6 +183,10 @@
         "Model": {
           "en": "Model",
           "nl": "Model"
+        },
+        "Conversation id": {
+          "en": "Conversation id",
+          "nl": "Gesprek-ID"
         }
       },
       "visualizations": [
@@ -192,7 +196,8 @@
             "nl": "Je gesprekken"
           },
           "type": "thread",
-          "groupColumn": "Conversation title",
+          "groupColumn": "Conversation id",
+          "titleColumn": "Conversation title",
           "roleColumn": "Role",
           "textColumn": "Message",
           "timeColumn": "Time",
@@ -251,7 +256,8 @@
           "Conversation title": "Title of the conversation as stored in the export.",
           "Role": "Role of the message author: 'user' or 'assistant'.",
           "Message": "Full text of the message.",
-          "Model": "ChatGPT model slug used to generate the assistant reply."
+          "Model": "ChatGPT model slug used to generate the assistant reply. Blank on user turns — only an assistant reply records which model produced it.",
+          "Conversation id": "The export's own conversation identifier — distinct conversations can share the same title, so this (not the title) is what groups turns into a conversation."
         }
       }
     },

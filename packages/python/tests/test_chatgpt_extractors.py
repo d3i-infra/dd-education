@@ -11,9 +11,18 @@ import io
 import json
 import zipfile
 from collections import Counter
+from datetime import datetime
+
+import pytest
 
 from port.helpers.extraction_helpers import ZipArchiveReader, epoch_to_iso
-from port.platforms.chatgpt import account_info_to_df, conversations_to_df, messages_to_df, models_used_to_df
+from port.platforms.chatgpt import (
+    _parse_iso,
+    account_info_to_df,
+    conversations_to_df,
+    messages_to_df,
+    models_used_to_df,
+)
 
 USER_JSON = json.dumps({
     "chatgpt_plus_user": True,
@@ -57,10 +66,14 @@ def _turn_node(role: str, model: str | None, text: str, create_time: int, *, hid
 #: A synthetic two-conversation export: conversation A has one user turn and
 #: one assistant turn; conversation B has one user turn and two assistant
 #: turns answered by a different model, plus one hidden assistant turn that
-#: must be excluded entirely from both extractors' output.
+#: must be excluded entirely from both extractors' output. Each conversation
+#: carries its own conversation_id (distinct from title), the way a real
+#: export does.
 CONVERSATIONS_JSON = json.dumps([
     {
         "title": "Test conversation A",
+        "conversation_id": "conv-test-a",
+        "id": "conv-test-a",
         "mapping": {
             "n1": _turn_node("user", None, "Test question one", 1700000000),
             "n2": _turn_node("assistant", "gpt-test-large", "Test answer one", 1700000010),
@@ -68,11 +81,37 @@ CONVERSATIONS_JSON = json.dumps([
     },
     {
         "title": "Test conversation B",
+        "conversation_id": "conv-test-b",
+        "id": "conv-test-b",
         "mapping": {
             "n3": _turn_node("user", None, "Test question two", 1700000100),
             "n4": _turn_node("assistant", "gpt-test-large", "Test answer two", 1700000110),
             "n5": _turn_node("assistant", "gpt-test-mini", "Test answer three", 1700000120),
             "n6": _turn_node("assistant", "gpt-test-hidden", "Hidden answer", 1700000130, hidden=True),
+        },
+    },
+])
+
+#: Two conversations that share the exact same title but have distinct
+#: conversation_id values -- the case grouping-by-title used to merge
+#: (see TestConversations.test_conversations_with_identical_titles_stay_separate).
+DUPLICATE_TITLE_CONVERSATIONS_JSON = json.dumps([
+    {
+        "title": "Duplicate title",
+        "conversation_id": "conv-dup-x",
+        "id": "conv-dup-x",
+        "mapping": {
+            "n1": _turn_node("user", None, "First conversation's question", 1700001000),
+            "n2": _turn_node("assistant", "gpt-test-large", "First conversation's answer", 1700001010),
+        },
+    },
+    {
+        "title": "Duplicate title",
+        "conversation_id": "conv-dup-y",
+        "id": "conv-dup-y",
+        "mapping": {
+            "n3": _turn_node("user", None, "Second conversation's question", 1700002000),
+            "n4": _turn_node("assistant", "gpt-test-mini", "Second conversation's answer", 1700002010),
         },
     },
 ])
@@ -167,6 +206,16 @@ class TestConversations:
         assert out.empty
         assert sum(errors.values()) == 0
 
+    def test_conversations_with_identical_titles_stay_separate(self):
+        """The bug this grouping-by-id fix exists for: two distinct
+        conversations sharing the same title must not merge into one row."""
+        reader = _reader_for({"conversations-000.json": DUPLICATE_TITLE_CONVERSATIONS_JSON})
+        out = conversations_to_df(reader, Counter())
+        assert len(out) == 2
+        assert list(out["Conversation title"]) == ["Duplicate title", "Duplicate title"]
+        assert list(out["Turns"]) == [2, 2]
+        assert list(out["Models"]) == ["gpt-test-large", "gpt-test-mini"]
+
 
 class TestMessages:
     """messages_to_df is the per-turn frame conversations_to_df used to
@@ -177,7 +226,19 @@ class TestMessages:
     def test_column_order(self):
         reader = _reader_for({"conversations-000.json": CONVERSATIONS_JSON})
         out = messages_to_df(reader, Counter())
-        assert list(out.columns) == ["Time", "Conversation title", "Role", "Message", "Model"]
+        assert list(out.columns) == ["Time", "Conversation title", "Role", "Message", "Model", "Conversation id"]
+
+    def test_conversation_id_matches_the_export_s_conversation_id(self):
+        reader = _reader_for({"conversations-000.json": CONVERSATIONS_JSON})
+        out = messages_to_df(reader, Counter())
+        ids_by_title = out.groupby("Conversation title")["Conversation id"].unique()
+        assert set(ids_by_title["Test conversation A"]) == {"conv-test-a"}
+        assert set(ids_by_title["Test conversation B"]) == {"conv-test-b"}
+
+    def test_identical_titles_keep_distinct_conversation_ids(self):
+        reader = _reader_for({"conversations-000.json": DUPLICATE_TITLE_CONVERSATIONS_JSON})
+        out = messages_to_df(reader, Counter())
+        assert set(out["Conversation id"]) == {"conv-dup-x", "conv-dup-y"}
 
     def test_still_includes_blank_model_user_turns(self):
         """Unchanged behaviour from the pre-split conversations_to_df: every
@@ -273,6 +334,21 @@ class TestTheConversationsAreParsedOnce:
         gc.collect()
 
         assert len(_TURNS_BY_READER) == 0
+
+
+class TestParseIso:
+    """``_parse_iso`` parses ``time`` cells defensively (task 21b fix
+    round 1): empty is an expected absence, malformed is tolerated rather
+    than raising, and a well-formed cell round-trips."""
+
+    @pytest.mark.parametrize("value,expected", [
+        ("", None),
+        ("not-a-date", None),
+        ("2024-13-99", None),  # not a valid calendar date
+        (epoch_to_iso(1700000000), datetime.fromisoformat(epoch_to_iso(1700000000))),
+    ])
+    def test_parse_iso(self, value, expected):
+        assert _parse_iso(value) == expected
 
 
 def test_no_real_names_or_pii_in_synthetic_fixtures():
