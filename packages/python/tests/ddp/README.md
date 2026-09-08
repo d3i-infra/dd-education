@@ -39,6 +39,8 @@ machine) — not reproduced here, per ADR-0014:
 | `instagram_html_2026-08.zip`        | Instagram export, HTML format (same test-account export) | 2026-08-29 |
 | `facebook_a_json_2026-08.zip`       | Facebook export, JSON format (test-account)   | 2026-08-29 |
 | `facebook_html_2026-08.zip`         | Facebook export, HTML format (same test-account export) | 2026-08-29 |
+| `facebook_self_json_alltime.zip`    | Facebook export, JSON format, Danielle's own all-time account (contacts and friend-suggestion files) | 2026-09-02 |
+| `facebook_self_html_alltime.zip`    | Facebook export, HTML format (same all-time account export) | 2026-09-02 |
 | `youtube_html_2026-08.zip`          | YouTube Takeout export, HTML format           | 2026-08 |
 
 The Instagram JSON fixture is named `instagram_a_json_2026-08.zip` (not
@@ -52,9 +54,17 @@ separately.
 The Facebook JSON fixture is named `facebook_a_json_2026-08.zip` for the
 same reason: `html` sorts before `json`, so without the `a_` infix
 `find_fixture("facebook")` would return the HTML export instead.
-`test_extractor_integration_facebook.py` matches on a "json"/"html"
-substring directly (as the Instagram canary does) rather than relying on
-`find_fixture`, so both formats are exercised.
+`test_extractor_integration_facebook.py` matches on exact filenames per
+account pair rather than relying on `find_fixture`, so both formats of both
+accounts are exercised.
+
+`facebook_self_{json,html}_alltime.zip` is Danielle's own all-time export
+(Task 15d, story edu-curation) — the small test-account export above never
+uploaded a phone contact list or received friend suggestions, so it carries
+none of the contact/friend-suggestion source files that task's tables read
+(`contacts_uploaded_before_2021`, `your_imported_contacts`,
+`contacts_uploaded_from_your_phone`, `suggested_friends`,
+`friends_you_see_less`, `your_friends`); the all-time export does.
 
 ## Re-creating the symlinks
 
@@ -75,4 +85,6 @@ ln -s "$D"/facebook/*-CvOb8P1q.zip                          "$T/facebook_a_json_
 ln -s "$D"/facebook/*-ixwaNMDM.zip                          "$T/facebook_html_2026-08.zip"
 ln -s "$D/youtube/Takeout-2.zip"                            "$T/youtube_html_2026-08.zip"
 ln -s ~/data/d3i/self/chatgpt/*.zip                         "$T/chatgpt_2026-08.zip"
+ln -s ~/data/d3i/self/facebook/*-6zxl8WMW.zip               "$T/facebook_self_json_alltime.zip"
+ln -s ~/data/d3i/self/facebook/*-gpgIKVJQ.zip               "$T/facebook_self_html_alltime.zip"
 ```

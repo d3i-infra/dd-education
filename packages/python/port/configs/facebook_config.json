@@ -13,6 +13,402 @@
   },
   "tables": [
     {
+      "id": "facebook_uploaded_contacts",
+      "title": {
+        "en": "Contacts Facebook has on file",
+        "nl": "Contacten die Facebook heeft opgeslagen"
+      },
+      "description": {
+        "en": "Every contact list Facebook has connected to your account — names and numbers you or your phone uploaded, some of them years ago, still on file.",
+        "nl": "Elke contactenlijst die Facebook aan je account heeft gekoppeld — namen en nummers die jij of je telefoon hebt geüpload, sommige al jaren geleden, nog steeds bewaard."
+      },
+      "headers": {
+        "Source": {
+          "en": "Source",
+          "nl": "Bron"
+        },
+        "Name": {
+          "en": "Name",
+          "nl": "Naam"
+        },
+        "Number": {
+          "en": "Number",
+          "nl": "Nummer"
+        },
+        "Timestamp": {
+          "en": "Date",
+          "nl": "Datum en tijd"
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Contacts uploaded over time",
+            "nl": "Contacten geüpload in de loop van de tijd"
+          },
+          "type": "area",
+          "group": {
+            "column": "Timestamp",
+            "dateFormat": "auto",
+            "label": {
+              "en": "Date",
+              "nl": "Datum"
+            }
+          },
+          "values": [
+            {
+              "aggregate": "count",
+              "label": {
+                "en": "Contacts",
+                "nl": "Contacten"
+              }
+            }
+          ]
+        }
+      ],
+      "extractor": "facebook_uploaded_contacts_to_df",
+      "documentation": {
+        "summary": "Each row is one contact from a list Facebook has connected to the participant's account: an address book uploaded before 2021, an ongoing contact-sync list, or a phone's contacts uploaded directly. Number is blank where the source file carries no phone number or email address.",
+        "source_file": "personal_information/profile_information/contacts_uploaded_before_2021.json + personal_information/other_personal_information/your_imported_contacts.json + personal_information/other_personal_information/contacts_uploaded_from_your_phone.json; .html twins",
+        "columns": {
+          "Source": "Which of the three contact files this row came from.",
+          "Name": "Name as the contact was saved.",
+          "Number": "Phone number or email address tied to the contact, when the source file carries one.",
+          "Timestamp": "ISO 8601 timestamp of when the contact was first imported, last updated, or uploaded, depending on the source file."
+        }
+      }
+    },
+    {
+      "id": "facebook_people_you_may_know",
+      "title": {
+        "en": "People Facebook thinks you might know",
+        "nl": "Mensen die Facebook denkt dat je kent"
+      },
+      "description": {
+        "en": "The people Facebook suggested you might know, and when it made that batch of suggestions.",
+        "nl": "De mensen die Facebook voorstelde dat je misschien kent, en wanneer die suggesties zijn gedaan."
+      },
+      "headers": {
+        "Name": {
+          "en": "Name",
+          "nl": "Naam"
+        },
+        "Timestamp": {
+          "en": "Suggested on",
+          "nl": "Voorgesteld op"
+        }
+      },
+      "extractor": "people_you_may_know_to_df",
+      "documentation": {
+        "summary": "Each row is one person Facebook suggested the participant might know, from one batch of suggestions. Every row in a batch shares that batch's creation timestamp. The html export lists only the first 10 names of the batch; the json export lists all of them.",
+        "source_file": "connections/friends/people_you_may_know.json / people_you_may_know.html",
+        "columns": {
+          "Name": "Name of the suggested person.",
+          "Timestamp": "ISO 8601 timestamp of when this batch of suggestions was created."
+        }
+      }
+    },
+    {
+      "id": "facebook_suggested_friends",
+      "title": {
+        "en": "Friends suggested to you",
+        "nl": "Voorgestelde vrienden"
+      },
+      "description": {
+        "en": "People Facebook suggested as friends on your behalf, with when the suggestion was created and sent.",
+        "nl": "Mensen die Facebook namens jou als vriend voorstelde, met wanneer die suggestie is gemaakt en verstuurd."
+      },
+      "headers": {
+        "Name": {
+          "en": "Name",
+          "nl": "Naam"
+        },
+        "Creation time": {
+          "en": "Created",
+          "nl": "Aangemaakt"
+        },
+        "Suggestion sent time": {
+          "en": "Sent",
+          "nl": "Verstuurd"
+        }
+      },
+      "extractor": "suggested_friends_to_df",
+      "documentation": {
+        "summary": "Each row is a friend suggestion Facebook generated for the participant, with when it was created and when it was sent.",
+        "source_file": "connections/friends/suggested_friends.json / suggested_friends.html",
+        "columns": {
+          "Name": "Name of the suggested friend.",
+          "Creation time": "ISO 8601 timestamp of when the suggestion was created.",
+          "Suggestion sent time": "ISO 8601 timestamp of when the suggestion was sent to the participant."
+        }
+      }
+    },
+    {
+      "id": "facebook_friends_you_see_less",
+      "title": {
+        "en": "Friends you see less of",
+        "nl": "Vrienden van wie je minder ziet"
+      },
+      "description": {
+        "en": "The friends you've told Facebook to show you less of.",
+        "nl": "De vrienden van wie je Facebook hebt verteld dat je minder wilt zien."
+      },
+      "headers": {
+        "Name": {
+          "en": "Name",
+          "nl": "Naam"
+        },
+        "Timestamp": {
+          "en": "Date",
+          "nl": "Datum en tijd"
+        }
+      },
+      "extractor": "friends_you_see_less_to_df",
+      "documentation": {
+        "summary": "Each row is a friend the participant has asked Facebook to show them less of, and when.",
+        "source_file": "connections/friends/friends_you_see_less.json / friends_you_see_less.html",
+        "columns": {
+          "Name": "Name of the friend.",
+          "Timestamp": "ISO 8601 timestamp of when this setting was recorded."
+        }
+      }
+    },
+    {
+      "id": "facebook_your_friends",
+      "title": {
+        "en": "Your friends on Facebook",
+        "nl": "Je vrienden op Facebook"
+      },
+      "description": {
+        "en": "This table lists your current friends on Facebook.",
+        "nl": "Deze tabel toont je huidige vrienden op Facebook."
+      },
+      "headers": {
+        "Number of friends": {
+          "en": "Number of friends",
+          "nl": "Aantal vrienden op facebook"
+        }
+      },
+      "extractor": "your_friends_to_df",
+      "documentation": {
+        "summary": "Contains the total number of friends the participant has on Facebook.",
+        "source_file": "your_friends.json",
+        "columns": {
+          "Number of friends": "Total count of Facebook friends."
+        }
+      }
+    },
+    {
+      "id": "facebook_ads_interests",
+      "title": {
+        "en": "Your ad interests",
+        "nl": "Je advertentie-interesses"
+      },
+      "description": {
+        "en": "The interests Facebook has assigned to your account for ad targeting — not what you said you like, but what its systems inferred.",
+        "nl": "De interesses die Facebook aan je account heeft toegekend voor advertentiedoeleinden — niet wat je zelf hebt aangegeven leuk te vinden, maar wat de systemen hebben afgeleid."
+      },
+      "headers": {
+        "Ad": {
+          "en": "Interest",
+          "nl": "Interesse"
+        }
+      },
+      "extractor": "ads_interests_to_df",
+      "documentation": {
+        "summary": "Each row represents an interest topic Facebook has associated with the participant for ad targeting purposes.",
+        "source_file": "ads_interests.json / ads_interests.html",
+        "columns": {
+          "Ad": "Interest topic used for ad targeting."
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Facebook's ad interests for you",
+            "nl": "Facebooks advertentie-interesses voor jou"
+          },
+          "type": "wordcloud",
+          "textColumn": "Ad",
+          "tokenize": false
+        }
+      ]
+    },
+    {
+      "id": "facebook_other_categories_used_to_reach_you",
+      "title": {
+        "en": "Other targeting categories used to reach you",
+        "nl": "Overige targetingcategorieën die zijn gebruikt om je te bereiken"
+      },
+      "description": {
+        "en": "The specific targeting categories advertisers have used to reach you — the labels behind the ads, not just the ads themselves.",
+        "nl": "De specifieke targetingcategorieën die adverteerders hebben gebruikt om je te bereiken — de labels achter de advertenties, niet alleen de advertenties zelf."
+      },
+      "headers": {
+        "Category": {
+          "en": "Category",
+          "nl": "Categorie"
+        }
+      },
+      "extractor": "other_categories_used_to_reach_you_to_df",
+      "documentation": {
+        "summary": "Each row represents a targeting category advertisers used to reach the participant on Facebook.",
+        "source_file": "ads_information/other_categories_used_to_reach_you.json / other_categories_used_to_reach_you.html",
+        "columns": {
+          "Category": "Targeting category used by advertisers."
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Categories advertisers used to target you",
+            "nl": "Categorieën die adverteerders gebruikten om jou te bereiken"
+          },
+          "type": "wordcloud",
+          "textColumn": "Category",
+          "tokenize": false
+        }
+      ]
+    },
+    {
+      "id": "facebook_advertisers_using_your_activity",
+      "title": {
+        "en": "Advertisers using your activity or information",
+        "nl": "Adverteerders die je activiteit of informatie gebruiken"
+      },
+      "description": {
+        "en": "Every advertiser that has uploaded a list matching you, or used your activity to target you — usually a much longer list than expected.",
+        "nl": "Elke adverteerder die een lijst heeft geüpload die met jou overeenkomt, of je activiteit heeft gebruikt om je te targeten — meestal een veel langere lijst dan verwacht."
+      },
+      "headers": {
+        "Label": {
+          "en": "How they reached you",
+          "nl": "Hoe zij u bereikten"
+        },
+        "Value": {
+          "en": "Advertiser",
+          "nl": "Adverteerder"
+        }
+      },
+      "extractor": "advertisers_using_your_activity_to_df",
+      "documentation": {
+        "summary": "Each row represents an advertiser who used the participant's activity or information for ad targeting on Facebook, grouped by targeting method.",
+        "source_file": "ads_information/advertisers_using_your_activity_or_information.json / advertisers_using_your_activity_or_information.html",
+        "columns": {
+          "Label": "The method used by the advertiser to target the participant (e.g. a list uploaded by the advertiser).",
+          "Value": "Name of the advertiser or value of the setting."
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Advertisers with your data",
+            "nl": "Adverteerders met jouw gegevens"
+          },
+          "type": "wordcloud",
+          "textColumn": "Value",
+          "tokenize": false
+        }
+      ]
+    },
+    {
+      "id": "facebook_advertisers_youve_interacted_with",
+      "title": {
+        "en": "Ads you clicked or engaged with",
+        "nl": "Advertenties waarop je hebt geklikt of gereageerd"
+      },
+      "description": {
+        "en": "Ads you actually clicked or engaged with, by the advertiser behind them.",
+        "nl": "Advertenties waarop je daadwerkelijk hebt geklikt of gereageerd, per adverteerder."
+      },
+      "headers": {
+        "Action": {
+          "en": "Action",
+          "nl": "Actie"
+        },
+        "Title": {
+          "en": "Title",
+          "nl": "Titel"
+        },
+        "URL": {
+          "en": "URL",
+          "nl": "URL"
+        },
+        "Timestamp": {
+          "en": "Date",
+          "nl": "Datum en tijd"
+        }
+      },
+      "extractor": "advertisers_youve_interacted_with_to_df",
+      "documentation": {
+        "summary": "Each row represents an ad the participant clicked or engaged with on Facebook, including the action taken, ad title, URL, and timestamp.",
+        "source_file": "ads_information/advertisers_you've_interacted_with.json / advertisers_you've_interacted_with.html",
+        "columns": {
+          "Action": "Type of interaction with the ad (e.g. Click).",
+          "Title": "Title of the ad interacted with.",
+          "URL": "URL of the ad or post interacted with.",
+          "Timestamp": "ISO 8601 timestamp of when the interaction occurred."
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Ads you actually clicked",
+            "nl": "Advertenties waarop je daadwerkelijk hebt geklikt"
+          },
+          "type": "wordcloud",
+          "textColumn": "Title",
+          "tokenize": false
+        }
+      ]
+    },
+    {
+      "id": "facebook_activity_off_meta",
+      "title": {
+        "en": "Your activity off Meta technologies",
+        "nl": "Je activiteit buiten Meta"
+      },
+      "description": {
+        "en": "Businesses and apps share with Meta what you do on their websites and apps, such as page views, searches and purchases. This table lists what they reported about you.",
+        "nl": "Bedrijven en apps delen met Meta wat je op hun websites en apps doet, zoals paginaweergaven, zoekopdrachten en aankopen. Deze tabel toont wat zij over jou hebben doorgegeven."
+      },
+      "headers": {
+        "Business": {
+          "en": "Business",
+          "nl": "Bedrijf"
+        },
+        "Event": {
+          "en": "Event",
+          "nl": "Gebeurtenis"
+        },
+        "Date": {
+          "en": "Date",
+          "nl": "Datum en tijd"
+        }
+      },
+      "extractor": "your_activity_off_meta_to_df",
+      "documentation": {
+        "summary": "Each row is one activity that a business or organisation reported to Meta about the participant on its own website or app (page view, search, purchase, app open, ...). JSON has two shapes (off_facebook_activity_v2 with events[]; 2026 record format with label_values); HTML is an index page plus one page per business, read one at a time.",
+        "source_file": "apps_and_websites_off_of_facebook/your_activity_off_meta_technologies.json / .html + your_activity_off_meta_technologies/<business>.html",
+        "columns": {
+          "Business": "Name of the business or app that reported the activity.",
+          "Event": "Meta's event code (PAGE_VIEW, VIEW_CONTENT, SEARCH, PURCHASE, CUSTOM, ...).",
+          "Date": "Timestamp of when Meta received the event, in the reference zone."
+        }
+      },
+      "visualizations": [
+        {
+          "title": {
+            "en": "Businesses tracking you off Facebook",
+            "nl": "Bedrijven die je buiten Facebook volgen"
+          },
+          "type": "wordcloud",
+          "textColumn": "Business",
+          "tokenize": false
+        }
+      ]
+    },
+    {
       "id": "facebook_search_history",
       "title": {
         "en": "Searches",
@@ -50,31 +446,6 @@
         "columns": {
           "Search term": "The search query entered by the participant.",
           "Date": "ISO 8601 timestamp of when the search was made."
-        }
-      }
-    },
-    {
-      "id": "facebook_ads_interests",
-      "title": {
-        "en": "Your ad interests",
-        "nl": "Je advertentie-interesses"
-      },
-      "description": {
-        "en": "This table shows the interests Facebook has identified for showing you personalized ads.",
-        "nl": "Deze tabel toont de interesses die Facebook heeft geïdentificeerd om je gepersonaliseerde advertenties te tonen."
-      },
-      "headers": {
-        "Ad": {
-          "en": "Interest",
-          "nl": "Interesse"
-        }
-      },
-      "extractor": "ads_interests_to_df",
-      "documentation": {
-        "summary": "Each row represents an interest topic Facebook has associated with the participant for ad targeting purposes.",
-        "source_file": "ads_interests.json / ads_interests.html",
-        "columns": {
-          "Ad": "Interest topic used for ad targeting."
         }
       }
     },
@@ -310,136 +681,6 @@
         "columns": {
           "Label": "Name of the ad-preference setting.",
           "Value": "Current value of the setting."
-        }
-      }
-    },
-    {
-      "id": "facebook_other_categories_used_to_reach_you",
-      "title": {
-        "en": "Other targeting categories used to reach you",
-        "nl": "Overige targetingcategorieën die zijn gebruikt om je te bereiken"
-      },
-      "description": {
-        "en": "This table shows other categories advertisers used to target you on Facebook.",
-        "nl": "Deze tabel toont overige categorieën die adverteerders hebben gebruikt om je te bereiken op Facebook."
-      },
-      "headers": {
-        "Category": {
-          "en": "Category",
-          "nl": "Categorie"
-        }
-      },
-      "extractor": "other_categories_used_to_reach_you_to_df",
-      "documentation": {
-        "summary": "Each row represents a targeting category advertisers used to reach the participant on Facebook.",
-        "source_file": "ads_information/other_categories_used_to_reach_you.json / other_categories_used_to_reach_you.html",
-        "columns": {
-          "Category": "Targeting category used by advertisers."
-        }
-      }
-    },
-    {
-      "id": "facebook_advertisers_using_your_activity",
-      "title": {
-        "en": "Advertisers using your activity or information",
-        "nl": "Adverteerders die je activiteit of informatie gebruiken"
-      },
-      "description": {
-        "en": "This table shows advertisers who used your activity or information to target you on Facebook.",
-        "nl": "Deze tabel toont adverteerders die je activiteit of informatie hebben gebruikt om je te targeten op Facebook."
-      },
-      "headers": {
-        "Label": {
-          "en": "How they reached you",
-          "nl": "Hoe zij u bereikten"
-        },
-        "Value": {
-          "en": "Advertiser",
-          "nl": "Adverteerder"
-        }
-      },
-      "extractor": "advertisers_using_your_activity_to_df",
-      "documentation": {
-        "summary": "Each row represents an advertiser who used the participant's activity or information for ad targeting on Facebook, grouped by targeting method.",
-        "source_file": "ads_information/advertisers_using_your_activity_or_information.json / advertisers_using_your_activity_or_information.html",
-        "columns": {
-          "Label": "The method used by the advertiser to target the participant (e.g. a list uploaded by the advertiser).",
-          "Value": "Name of the advertiser or value of the setting."
-        }
-      }
-    },
-    {
-      "id": "facebook_advertisers_youve_interacted_with",
-      "title": {
-        "en": "Ads you clicked or engaged with",
-        "nl": "Advertenties waarop je hebt geklikt of gereageerd"
-      },
-      "description": {
-        "en": "This table shows the ads you have clicked or otherwise engaged with on Facebook.",
-        "nl": "Deze tabel toont de advertenties waarop je hebt geklikt of waarmee je hebt gecommuniceerd op Facebook."
-      },
-      "headers": {
-        "Action": {
-          "en": "Action",
-          "nl": "Actie"
-        },
-        "Title": {
-          "en": "Title",
-          "nl": "Titel"
-        },
-        "URL": {
-          "en": "URL",
-          "nl": "URL"
-        },
-        "Timestamp": {
-          "en": "Date",
-          "nl": "Datum en tijd"
-        }
-      },
-      "extractor": "advertisers_youve_interacted_with_to_df",
-      "documentation": {
-        "summary": "Each row represents an ad the participant clicked or engaged with on Facebook, including the action taken, ad title, URL, and timestamp.",
-        "source_file": "ads_information/advertisers_you've_interacted_with.json / advertisers_you've_interacted_with.html",
-        "columns": {
-          "Action": "Type of interaction with the ad (e.g. Click).",
-          "Title": "Title of the ad interacted with.",
-          "URL": "URL of the ad or post interacted with.",
-          "Timestamp": "ISO 8601 timestamp of when the interaction occurred."
-        }
-      }
-    },
-    {
-      "id": "facebook_activity_off_meta",
-      "title": {
-        "en": "Your activity off Meta technologies",
-        "nl": "Je activiteit buiten Meta"
-      },
-      "description": {
-        "en": "Businesses and apps share with Meta what you do on their websites and apps, such as page views, searches and purchases. This table lists what they reported about you.",
-        "nl": "Bedrijven en apps delen met Meta wat je op hun websites en apps doet, zoals paginaweergaven, zoekopdrachten en aankopen. Deze tabel toont wat zij over jou hebben doorgegeven."
-      },
-      "headers": {
-        "Business": {
-          "en": "Business",
-          "nl": "Bedrijf"
-        },
-        "Event": {
-          "en": "Event",
-          "nl": "Gebeurtenis"
-        },
-        "Date": {
-          "en": "Date",
-          "nl": "Datum en tijd"
-        }
-      },
-      "extractor": "your_activity_off_meta_to_df",
-      "documentation": {
-        "summary": "Each row is one activity that a business or organisation reported to Meta about the participant on its own website or app (page view, search, purchase, app open, ...). JSON has two shapes (off_facebook_activity_v2 with events[]; 2026 record format with label_values); HTML is an index page plus one page per business, read one at a time.",
-        "source_file": "apps_and_websites_off_of_facebook/your_activity_off_meta_technologies.json / .html + your_activity_off_meta_technologies/<business>.html",
-        "columns": {
-          "Business": "Name of the business or app that reported the activity.",
-          "Event": "Meta's event code (PAGE_VIEW, VIEW_CONTENT, SEARCH, PURCHASE, CUSTOM, ...).",
-          "Date": "Timestamp of when Meta received the event, in the reference zone."
         }
       }
     },

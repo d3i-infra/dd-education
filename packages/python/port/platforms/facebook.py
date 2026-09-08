@@ -82,7 +82,7 @@ DDP_CATEGORIES = [
         ddp_filetype=DDPFiletype.JSON,
         language=Language.EN,
         known_files=[
-"subscription_for_no_ads.json", "other_categories_used_to_reach_you.json", "ads_feedback_activity.json", "ads_personalization_consent.json", "advertisers_you've_interacted_with.json", "advertisers_using_your_activity_or_information.json", "story_views_in_past_7_days.json", "ad_preferences.json", "groups_you've_searched_for.json", "your_search_history.json", "primary_public_location.json", "timezone.json", "primary_location.json", "your_privacy_jurisdiction.json", "people_and_friends.json", "ads_interests.json", "notifications.json", "notification_of_meta_privacy_policy_update.json", "recently_viewed.json", "recently_visited.json", "your_avatar.json", "meta_avatars_post_backgrounds.json", "contacts_sync_settings.json", "timezone.json", "autofill_information.json", "profile_information.json", "profile_update_history.json", "your_transaction_survey_information.json", "your_recently_followed_history.json", "your_recently_used_emojis.json", "navigation_bar_activity.json", "pages_and_profiles_you_follow.json", "pages_you've_liked.json", "your_saved_items.json", "fundraiser_posts_you_likely_viewed.json", "your_fundraiser_donations_information.json", "your_events.json", "event_invitations.json", "your_event_invitation_links.json", "likes_and_reactions_1.json", "your_uncategorized_photos.json", "payment_history.json", "your_answers_to_membership_questions.json", "your_group_membership_activity.json", "your_contributions.json", "group_posts_and_comments.json", "your_comments_in_groups.json", "instant_games.json", "your_page_or_groups_badges.json", "instant_games_usage_data.json", "who_you've_followed.json", "people_you_may_know.json", "received_friend_requests.json", "your_friends.json", "likes_and_reactions.json", "controls.json",
+"subscription_for_no_ads.json", "other_categories_used_to_reach_you.json", "ads_feedback_activity.json", "ads_personalization_consent.json", "advertisers_you've_interacted_with.json", "advertisers_using_your_activity_or_information.json", "story_views_in_past_7_days.json", "ad_preferences.json", "groups_you've_searched_for.json", "your_search_history.json", "primary_public_location.json", "timezone.json", "primary_location.json", "your_privacy_jurisdiction.json", "people_and_friends.json", "ads_interests.json", "notifications.json", "notification_of_meta_privacy_policy_update.json", "recently_viewed.json", "recently_visited.json", "your_avatar.json", "meta_avatars_post_backgrounds.json", "contacts_sync_settings.json", "timezone.json", "autofill_information.json", "profile_information.json", "profile_update_history.json", "your_transaction_survey_information.json", "your_recently_followed_history.json", "your_recently_used_emojis.json", "navigation_bar_activity.json", "pages_and_profiles_you_follow.json", "pages_you've_liked.json", "your_saved_items.json", "fundraiser_posts_you_likely_viewed.json", "your_fundraiser_donations_information.json", "your_events.json", "event_invitations.json", "your_event_invitation_links.json", "likes_and_reactions_1.json", "your_uncategorized_photos.json", "payment_history.json", "your_answers_to_membership_questions.json", "your_group_membership_activity.json", "your_contributions.json", "group_posts_and_comments.json", "your_comments_in_groups.json", "instant_games.json", "your_page_or_groups_badges.json", "instant_games_usage_data.json", "who_you've_followed.json", "people_you_may_know.json", "received_friend_requests.json", "your_friends.json", "likes_and_reactions.json", "controls.json", "contacts_uploaded_before_2021.json", "your_imported_contacts.json", "contacts_uploaded_from_your_phone.json", "suggested_friends.json", "friends_you_see_less.json",
         ],
     ),
     DDPCategory(
@@ -90,7 +90,7 @@ DDP_CATEGORIES = [
         ddp_filetype=DDPFiletype.HTML,
         language=Language.EN,
         known_files=[
-"subscription_for_no_ads.html", "other_categories_used_to_reach_you.html", "ads_feedback_activity.html", "advertisers_you've_interacted_with.html", "advertisers_using_your_activity_or_information.html", "story_views_in_past_7_days.html", "ad_preferences.html", "your_search_history.html", "primary_public_location.html", "primary_location.html", "your_privacy_jurisdiction.html", "people_and_friends.html", "ads_interests.html", "notifications.html", "contacts_sync_settings.html", "autofill_information.html", "profile_information.html", "profile_update_history.html", "your_transaction_survey_information.html", "your_recently_used_emojis.html", "pages_and_profiles_you_follow.html", "pages_you've_liked.html", "your_saved_items.html", "fundraiser_posts_you_likely_viewed.html", "your_fundraiser_donations_information.html", "your_events.html", "event_invitations.html", "your_event_invitation_links.html", "likes_and_reactions_1.html", "payment_history.html", "your_group_membership_activity.html", "your_contributions.html", "your_page_or_groups_badges.html", "who_you've_followed.html", "people_you_may_know.html", "received_friend_requests.html", "your_friends.html", "likes_and_reactions.html", "comments.html", "your_posts__check_ins__photos_and_videos_1.html", "archived_stories.html", "connected_apps_and_websites.html", "your_activity_off_meta_technologies.html", "content_that_has_been_shown_to_you_in_your_feed.html", "items_viewed.html", "profile_visits.html", "start_here.html", "your_comments_in_groups.html"
+"subscription_for_no_ads.html", "other_categories_used_to_reach_you.html", "ads_feedback_activity.html", "advertisers_you've_interacted_with.html", "advertisers_using_your_activity_or_information.html", "story_views_in_past_7_days.html", "ad_preferences.html", "your_search_history.html", "primary_public_location.html", "primary_location.html", "your_privacy_jurisdiction.html", "people_and_friends.html", "ads_interests.html", "notifications.html", "contacts_sync_settings.html", "autofill_information.html", "profile_information.html", "profile_update_history.html", "your_transaction_survey_information.html", "your_recently_used_emojis.html", "pages_and_profiles_you_follow.html", "pages_you've_liked.html", "your_saved_items.html", "fundraiser_posts_you_likely_viewed.html", "your_fundraiser_donations_information.html", "your_events.html", "event_invitations.html", "your_event_invitation_links.html", "likes_and_reactions_1.html", "payment_history.html", "your_group_membership_activity.html", "your_contributions.html", "your_page_or_groups_badges.html", "who_you've_followed.html", "people_you_may_know.html", "received_friend_requests.html", "your_friends.html", "likes_and_reactions.html", "comments.html", "your_posts__check_ins__photos_and_videos_1.html", "archived_stories.html", "connected_apps_and_websites.html", "your_activity_off_meta_technologies.html", "content_that_has_been_shown_to_you_in_your_feed.html", "items_viewed.html", "profile_visits.html", "start_here.html", "your_comments_in_groups.html", "contacts_uploaded_before_2021.html", "your_imported_contacts.html", "contacts_uploaded_from_your_phone.html", "suggested_friends.html", "friends_you_see_less.html"
         ],
     ),
 ]
@@ -185,7 +185,7 @@ def _leaf_fields(node) -> tuple[dict[str, str], dict[str, str]]:
     return values, hrefs
 
 
-_DATE_COLUMNS = ("Timestamp", "Date", "Created")
+_DATE_COLUMNS = ("Timestamp", "Date", "Created", "Creation time", "Suggestion sent time")
 
 
 def _account_timezone(reader: ZipArchiveReader) -> str | None:
@@ -796,7 +796,7 @@ def _your_search_history_html(reader: ZipArchiveReader, errors: Counter) -> pd.D
     return pd.DataFrame()
 
 
-def your_friends_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
+def your_friends_to_df(reader: ZipArchiveReader, errors: Counter, validation=None) -> pd.DataFrame:
     """Extract the number of Facebook friends.
 
     Parameters
@@ -806,6 +806,11 @@ def your_friends_to_df(reader: ZipArchiveReader, errors: Counter) -> pd.DataFram
     errors:
         Mutable counter that accumulates error type counts encountered during
         extraction.  Updated in-place.
+    validation:
+        Accepted for calling-convention parity with the rest of the registry
+        (``extraction()`` passes ``validation`` to every table) but unused —
+        this extractor is json-only; an html export has no ``your_friends``
+        page to read (ADR-0024).
 
     Returns
     -------
@@ -4360,6 +4365,590 @@ def _items_viewed_html(reader: ZipArchiveReader, errors: Counter) -> pd.DataFram
     return pd.DataFrame()
 
 
+# ---------------------------------------------------------------------------
+# New extractors (Task 15d, story edu-curation): the "what Facebook holds
+# from old permissions" flagship — every contact list Facebook has connected
+# to the account, plus the friend-suggestion tables that reveal how it uses
+# them. Built against Danielle's all-time export
+# (tests/ddp/facebook_self_{json,html}_alltime.zip); absent on the small
+# 2026-08 test-account export except people_you_may_know (ADR-0024).
+# ---------------------------------------------------------------------------
+
+_UPLOADED_CONTACTS_COLUMNS = ["Source", "Name", "Number", "Timestamp"]
+
+_CONTACTS_BEFORE_2021_JSON = "personal_information/profile_information/contacts_uploaded_before_2021.json"
+_CONTACTS_BEFORE_2021_HTML = "personal_information/profile_information/contacts_uploaded_before_2021.html"
+_CONTACTS_BEFORE_2021_SOURCE = "Contacts uploaded before 2021"
+
+_IMPORTED_CONTACTS_JSON = "personal_information/other_personal_information/your_imported_contacts.json"
+_IMPORTED_CONTACTS_HTML = "personal_information/other_personal_information/your_imported_contacts.html"
+_IMPORTED_CONTACTS_SOURCE = "Your imported contacts"
+
+_CONTACTS_FROM_PHONE_JSON = "personal_information/other_personal_information/contacts_uploaded_from_your_phone.json"
+_CONTACTS_FROM_PHONE_HTML = "personal_information/other_personal_information/contacts_uploaded_from_your_phone.html"
+_CONTACTS_FROM_PHONE_SOURCE = "Contacts uploaded from your phone"
+
+
+def facebook_uploaded_contacts_to_df(reader: ZipArchiveReader, errors: Counter, validation=None) -> pd.DataFrame:
+    """Extract every contact list Facebook holds on the participant: an
+    address book uploaded before 2021, an ongoing contact-sync list, and a
+    phone's contacts uploaded directly — Danielle's own "Facebook Contacts"
+    example, a phone's whole address book kept under an old permission.
+
+    Three source files, three shapes, merged by a ``Source`` column.
+    ``contacts_uploaded_before_2021`` writes one record whose single
+    ``Contacts`` list holds every contact (``Name``, ``Contact point``,
+    ``Time of first import``). ``your_imported_contacts`` writes a flat list
+    of one record per contact (``Contact name``, ``Contact point``, ``Update
+    time``). ``contacts_uploaded_from_your_phone`` also writes a flat list,
+    but usually carries no ``Contact point`` at all — only name fields — so
+    ``Number`` is blank on those rows; its date is ``Upload time`` when set,
+    else ``Creation time`` (the two are never both zero on the export this
+    was built against).
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load JSON or HTML files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+    validation:
+        Validation result; its DDP category selects the JSON or HTML path.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Source``, ``Name``, ``Number``, ``Timestamp``, newest first.
+        Empty DataFrame when none of the three files are present.
+
+    Table documentation::
+
+        {
+          "summary": "Each row is one contact from a list Facebook has connected to the participant's account: an address book uploaded before 2021, an ongoing contact-sync list, or a phone's contacts uploaded directly. Number is blank where the source file carries no phone number or email address.",
+          "source_file": "personal_information/profile_information/contacts_uploaded_before_2021.json + personal_information/other_personal_information/your_imported_contacts.json + personal_information/other_personal_information/contacts_uploaded_from_your_phone.json; .html twins",
+          "columns": {
+            "Source": "Which of the three contact files this row came from.",
+            "Name": "Name as the contact was saved.",
+            "Number": "Phone number or email address tied to the contact, when the source file carries one.",
+            "Timestamp": "ISO 8601 timestamp of when the contact was first imported, last updated, or uploaded, depending on the source file."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "facebook_uploaded_contacts",
+          "title": {
+            "en": "Contacts Facebook has on file",
+            "nl": "Contacten die Facebook heeft opgeslagen"
+          },
+          "description": {
+            "en": "Every contact list Facebook has connected to your account — names and numbers you or your phone uploaded, some of them years ago, still on file.",
+            "nl": "Elke contactenlijst die Facebook aan je account heeft gekoppeld — namen en nummers die jij of je telefoon hebt geüpload, sommige al jaren geleden, nog steeds bewaard."
+          },
+          "headers": {
+            "Source": {"en": "Source", "nl": "Bron"},
+            "Name": {"en": "Name", "nl": "Naam"},
+            "Number": {"en": "Number", "nl": "Nummer"},
+            "Timestamp": {"en": "Date", "nl": "Datum en tijd"}
+          },
+          "visualizations": [
+            {
+              "title": {"en": "Contacts uploaded over time", "nl": "Contacten geüpload in de loop van de tijd"},
+              "type": "area",
+              "group": {"column": "Timestamp", "dateFormat": "auto", "label": {"en": "Date", "nl": "Datum"}},
+              "values": [{"aggregate": "count", "label": {"en": "Contacts", "nl": "Contacten"}}]
+            }
+          ]
+        }
+    """
+    if validation and validation.current_ddp_category.ddp_filetype == DDPFiletype.HTML:
+        return _sort_by_date(_uploaded_contacts_html(reader, errors), "Timestamp")
+
+    return _sort_by_date(_uploaded_contacts_json(reader, errors), "Timestamp")
+
+
+def _contacts_before_2021_records_json(d, errors: Counter) -> list[tuple[str, str, str, str]]:
+    rows = []
+    for lv in d.get("label_values", []):
+        for item in lv.get("vec", []):
+            fields = {entry.get("label"): entry for entry in item.get("dict", [])}
+            timestamp = fields.get("Time of first import", {}).get("timestamp_value", "")
+            rows.append((
+                _CONTACTS_BEFORE_2021_SOURCE,
+                eh.fix_latin1_string(fields.get("Name", {}).get("value", "")),
+                fields.get("Contact point", {}).get("value", ""),
+                eh.epoch_to_datetime_string(timestamp, errors=errors),
+            ))
+    return rows
+
+
+def _uploaded_contacts_json(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
+    datapoints: list[tuple[str, str, str, str]] = []
+
+    result = reader.json(_CONTACTS_BEFORE_2021_JSON)
+    if result.found:
+        try:
+            datapoints.extend(_contacts_before_2021_records_json(result.data, errors))
+        except Exception as e:
+            logger.error("Exception caught: %s", e)
+            errors[type(e).__name__] += 1
+
+    result = reader.json(_IMPORTED_CONTACTS_JSON)
+    if result.found:
+        try:
+            for record in _records(result.data):
+                fields = {lv.get("label"): lv for lv in record.get("label_values", [])}
+                datapoints.append((
+                    _IMPORTED_CONTACTS_SOURCE,
+                    eh.fix_latin1_string(fields.get("Contact name", {}).get("value", "")),
+                    fields.get("Contact point", {}).get("value", ""),
+                    eh.epoch_to_datetime_string(fields.get("Update time", {}).get("timestamp_value", ""), errors=errors),
+                ))
+        except Exception as e:
+            logger.error("Exception caught: %s", e)
+            errors[type(e).__name__] += 1
+
+    result = reader.json(_CONTACTS_FROM_PHONE_JSON)
+    if result.found:
+        try:
+            for record in _records(result.data):
+                fields = {lv.get("label"): lv for lv in record.get("label_values", [])}
+                upload = fields.get("Upload time", {}).get("timestamp_value", 0)
+                creation = fields.get("Creation time", {}).get("timestamp_value", 0)
+                datapoints.append((
+                    _CONTACTS_FROM_PHONE_SOURCE,
+                    eh.fix_latin1_string(fields.get("Name", {}).get("value", "")),
+                    "",
+                    eh.epoch_to_datetime_string(upload or creation or "", errors=errors),
+                ))
+        except Exception as e:
+            logger.error("Exception caught: %s", e)
+            errors[type(e).__name__] += 1
+
+    if datapoints:
+        return pd.DataFrame(datapoints, columns=_UPLOADED_CONTACTS_COLUMNS)  # pyright: ignore
+
+    return pd.DataFrame()
+
+
+def _uploaded_contacts_html(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
+    datapoints: list[tuple[str, str, str, str]] = []
+
+    result = reader.raw(_CONTACTS_BEFORE_2021_HTML)
+    if result.found:
+        try:
+            tree = etree.HTML(result.data.read())
+            for leaf in eh.xpath_nodes(tree, "//section[contains(@class, '_a6-g') and not(.//section)]"):
+                values, _hrefs = _leaf_fields(leaf)
+                if not values:
+                    continue
+                datapoints.append((
+                    _CONTACTS_BEFORE_2021_SOURCE,
+                    values.get("Name", ""),
+                    values.get("Contact point", ""),
+                    eh.meta_html_timestamp_to_datetime_string(values.get("Time of first import", ""), errors=errors),
+                ))
+        except Exception as e:
+            logger.error("Exception caught: %s", e)
+            errors[type(e).__name__] += 1
+
+    result = reader.raw(_IMPORTED_CONTACTS_HTML)
+    if result.found:
+        try:
+            tree = etree.HTML(result.data.read())
+            for record in eh.xpath_nodes(tree, "//section[contains(@class, '_a6-g') and not(ancestor::section)]"):
+                values, _hrefs = _leaf_fields(record)
+                if not values:
+                    continue
+                datapoints.append((
+                    _IMPORTED_CONTACTS_SOURCE,
+                    values.get("Contact name", ""),
+                    values.get("Contact point", ""),
+                    eh.meta_html_timestamp_to_datetime_string(values.get("Update time", ""), errors=errors),
+                ))
+        except Exception as e:
+            logger.error("Exception caught: %s", e)
+            errors[type(e).__name__] += 1
+
+    result = reader.raw(_CONTACTS_FROM_PHONE_HTML)
+    if result.found:
+        try:
+            tree = etree.HTML(result.data.read())
+            for record in eh.xpath_nodes(tree, "//section[contains(@class, '_a6-g') and not(ancestor::section)]"):
+                values, _hrefs = _leaf_fields(record)
+                if not values:
+                    continue
+                timestamp = values.get("Upload time") or values.get("Creation time", "")
+                datapoints.append((
+                    _CONTACTS_FROM_PHONE_SOURCE,
+                    values.get("Name", ""),
+                    "",
+                    eh.meta_html_timestamp_to_datetime_string(timestamp, errors=errors),
+                ))
+        except Exception as e:
+            logger.error("Exception caught: %s", e)
+            errors[type(e).__name__] += 1
+
+    if datapoints:
+        return pd.DataFrame(datapoints, columns=_UPLOADED_CONTACTS_COLUMNS)  # pyright: ignore
+
+    return pd.DataFrame()
+
+
+def people_you_may_know_to_df(reader: ZipArchiveReader, errors: Counter, validation=None) -> pd.DataFrame:
+    """Extract the people Facebook suggested the participant might know.
+
+    The file writes one record: a single "When these suggestions were
+    created" timestamp for the whole batch, and a "Friend suggestions" list
+    of plain names. Every name in the batch gets that one shared timestamp.
+    The html export caps this list at 10 names where the json export carries
+    the full batch (158 on the export this was built against) — a real
+    format difference, not a defect.
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load JSON or HTML files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+    validation:
+        Validation result; its DDP category selects the JSON or HTML path.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Name``, ``Timestamp``.
+        Empty DataFrame when the file is absent or parsing fails.
+
+    Table documentation::
+
+        {
+          "summary": "Each row is one person Facebook suggested the participant might know, from one batch of suggestions. Every row in a batch shares that batch's creation timestamp. The html export lists only the first 10 names of the batch; the json export lists all of them.",
+          "source_file": "connections/friends/people_you_may_know.json / people_you_may_know.html",
+          "columns": {
+            "Name": "Name of the suggested person.",
+            "Timestamp": "ISO 8601 timestamp of when this batch of suggestions was created."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "facebook_people_you_may_know",
+          "title": {
+            "en": "People Facebook thinks you might know",
+            "nl": "Mensen die Facebook denkt dat je kent"
+          },
+          "description": {
+            "en": "The people Facebook suggested you might know, and when it made that batch of suggestions.",
+            "nl": "De mensen die Facebook voorstelde dat je misschien kent, en wanneer die suggesties zijn gedaan."
+          },
+          "headers": {
+            "Name": {"en": "Name", "nl": "Naam"},
+            "Timestamp": {"en": "Suggested on", "nl": "Voorgesteld op"}
+          }
+        }
+    """
+    if validation and validation.current_ddp_category.ddp_filetype == DDPFiletype.HTML:
+        return _people_you_may_know_html(reader, errors)
+
+    return _people_you_may_know_json(reader, errors)
+
+
+def _people_you_may_know_json(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
+    result = reader.json("connections/friends/people_you_may_know.json")
+    if not result.found:
+        return pd.DataFrame()
+    d = result.data
+
+    out = pd.DataFrame()
+    datapoints = []
+
+    try:
+        fields = {lv.get("label"): lv for lv in d.get("label_values", [])}  # pyright: ignore
+        created = eh.epoch_to_datetime_string(
+            fields.get("When these suggestions were created", {}).get("timestamp_value", ""), errors=errors
+        )
+        for item in fields.get("Friend suggestions", {}).get("vec", []):
+            datapoints.append((eh.fix_latin1_string(item.get("value", "")), created))
+
+        out = pd.DataFrame(datapoints, columns=["Name", "Timestamp"])  # pyright: ignore
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return out
+
+
+def _people_you_may_know_html(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
+    result = reader.raw("connections/friends/people_you_may_know.html")
+    if not result.found:
+        return pd.DataFrame()
+
+    datapoints = []
+
+    try:
+        tree = etree.HTML(result.data.read())
+        records = eh.xpath_nodes(tree, "//section[contains(@class, '_a6-g') and not(ancestor::section)]")
+        if records:
+            values, _hrefs = _leaf_fields(records[0])
+            created = eh.meta_html_timestamp_to_datetime_string(
+                values.get("When these suggestions were created", ""), errors=errors
+            )
+            for cell in eh.xpath_nodes(records[0], ".//td[@colspan][contains(@class, '_a6_q')]"):
+                for name_div in eh.xpath_nodes(cell, ".//div[not(*)][normalize-space(text()) != '']"):
+                    datapoints.append((name_div.text.strip(), created))
+
+        if datapoints:
+            return pd.DataFrame(datapoints, columns=["Name", "Timestamp"])  # pyright: ignore
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return pd.DataFrame()
+
+
+def suggested_friends_to_df(reader: ZipArchiveReader, errors: Counter, validation=None) -> pd.DataFrame:
+    """Extract the friends Facebook suggested on the participant's behalf.
+
+    Each record carries three record-level timestamps (``Creation time``,
+    ``Last modified time`` — dropped, usually identical to the other two —
+    and ``Suggestion sent time``) plus a ``Name`` field nested two levels
+    deep (json: ``label_values`` entry with no ``label`` of its own, only a
+    ``title`` of ``"Name"``, wrapping a further ``dict``/``dict`` pair; html:
+    a nested ``h2``-headed sub-section whose leaf holds the plain name text,
+    found as the one leaf div outside the record's own label cells).
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load JSON or HTML files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+    validation:
+        Validation result; its DDP category selects the JSON or HTML path.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Name``, ``Creation time``, ``Suggestion sent time``.
+        Empty DataFrame when the file is absent or parsing fails.
+
+    Table documentation::
+
+        {
+          "summary": "Each row is a friend suggestion Facebook generated for the participant, with when it was created and when it was sent.",
+          "source_file": "connections/friends/suggested_friends.json / suggested_friends.html",
+          "columns": {
+            "Name": "Name of the suggested friend.",
+            "Creation time": "ISO 8601 timestamp of when the suggestion was created.",
+            "Suggestion sent time": "ISO 8601 timestamp of when the suggestion was sent to the participant."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "facebook_suggested_friends",
+          "title": {
+            "en": "Friends suggested to you",
+            "nl": "Voorgestelde vrienden"
+          },
+          "description": {
+            "en": "People Facebook suggested as friends on your behalf, with when the suggestion was created and sent.",
+            "nl": "Mensen die Facebook namens jou als vriend voorstelde, met wanneer die suggestie is gemaakt en verstuurd."
+          },
+          "headers": {
+            "Name": {"en": "Name", "nl": "Naam"},
+            "Creation time": {"en": "Created", "nl": "Aangemaakt"},
+            "Suggestion sent time": {"en": "Sent", "nl": "Verstuurd"}
+          }
+        }
+    """
+    if validation and validation.current_ddp_category.ddp_filetype == DDPFiletype.HTML:
+        return _suggested_friends_html(reader, errors)
+
+    return _suggested_friends_json(reader, errors)
+
+
+def _suggested_friends_json(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
+    result = reader.json("connections/friends/suggested_friends.json")
+    if not result.found:
+        return pd.DataFrame()
+    d = result.data
+
+    out = pd.DataFrame()
+    datapoints = []
+
+    try:
+        for record in _records(d):
+            name = ""
+            creation = ""
+            sent = ""
+            for lv in record.get("label_values", []):
+                label = lv.get("label")
+                if label == "Creation time":
+                    creation = eh.epoch_to_datetime_string(lv.get("timestamp_value", ""), errors=errors)
+                elif label == "Suggestion sent time":
+                    sent = eh.epoch_to_datetime_string(lv.get("timestamp_value", ""), errors=errors)
+                elif label is None and lv.get("title") == "Name":
+                    for outer in lv.get("dict", []):
+                        for inner in outer.get("dict", []):
+                            if inner.get("label") == "Name":
+                                name = inner.get("value", "")
+            datapoints.append((eh.fix_latin1_string(name), creation, sent))
+
+        out = pd.DataFrame(datapoints, columns=["Name", "Creation time", "Suggestion sent time"])  # pyright: ignore
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return out
+
+
+def _suggested_friends_html(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
+    result = reader.raw("connections/friends/suggested_friends.html")
+    if not result.found:
+        return pd.DataFrame()
+
+    datapoints = []
+
+    try:
+        tree = etree.HTML(result.data.read())
+        for record in eh.xpath_nodes(tree, "//section[contains(@class, '_a6-g') and not(ancestor::section)]"):
+            values, _hrefs = _leaf_fields(record)
+            name_divs = eh.xpath_nodes(
+                record,
+                ".//div[not(div)][normalize-space(text()) != ''][not(contains(@class, '_a6_q'))]",
+            )
+            name = name_divs[0].text.strip() if name_divs and name_divs[0].text else ""
+            datapoints.append((
+                name,
+                eh.meta_html_timestamp_to_datetime_string(values.get("Creation time", ""), errors=errors),
+                eh.meta_html_timestamp_to_datetime_string(values.get("Suggestion sent time", ""), errors=errors),
+            ))
+
+        if datapoints:
+            return pd.DataFrame(datapoints, columns=["Name", "Creation time", "Suggestion sent time"])  # pyright: ignore
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return pd.DataFrame()
+
+
+def friends_you_see_less_to_df(reader: ZipArchiveReader, errors: Counter, validation=None) -> pd.DataFrame:
+    """Extract the friends the participant has told Facebook to show less of.
+
+    Parameters
+    ----------
+    reader:
+        Archive reader used to load JSON or HTML files from the DDP zip.
+    errors:
+        Mutable counter that accumulates error type counts encountered during
+        extraction.  Updated in-place.
+    validation:
+        Validation result; its DDP category selects the JSON or HTML path.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``Name``, ``Timestamp``, newest first.
+        Empty DataFrame when the file is absent or parsing fails.
+
+    Table documentation::
+
+        {
+          "summary": "Each row is a friend the participant has asked Facebook to show them less of, and when.",
+          "source_file": "connections/friends/friends_you_see_less.json / friends_you_see_less.html",
+          "columns": {
+            "Name": "Name of the friend.",
+            "Timestamp": "ISO 8601 timestamp of when this setting was recorded."
+          }
+        }
+
+    Table config::
+
+        {
+          "id": "facebook_friends_you_see_less",
+          "title": {
+            "en": "Friends you see less of",
+            "nl": "Vrienden van wie je minder ziet"
+          },
+          "description": {
+            "en": "The friends you've told Facebook to show you less of.",
+            "nl": "De vrienden van wie je Facebook hebt verteld dat je minder wilt zien."
+          },
+          "headers": {
+            "Name": {"en": "Name", "nl": "Naam"},
+            "Timestamp": {"en": "Date", "nl": "Datum en tijd"}
+          }
+        }
+    """
+    if validation and validation.current_ddp_category.ddp_filetype == DDPFiletype.HTML:
+        return _sort_by_date(_friends_you_see_less_html(reader, errors), "Timestamp")
+
+    return _sort_by_date(_friends_you_see_less_json(reader, errors), "Timestamp")
+
+
+def _friends_you_see_less_json(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
+    result = reader.json("connections/friends/friends_you_see_less.json")
+    if not result.found:
+        return pd.DataFrame()
+    d = result.data
+
+    out = pd.DataFrame()
+    datapoints = []
+
+    try:
+        for record in _records(d):
+            fields = {lv.get("label"): lv for lv in record.get("label_values", [])}
+            name = fields.get("Name", {}).get("value", "")
+            timestamp = eh.epoch_to_datetime_string(record.get("timestamp", ""), errors=errors)
+            datapoints.append((eh.fix_latin1_string(name), timestamp))
+
+        out = pd.DataFrame(datapoints, columns=["Name", "Timestamp"])  # pyright: ignore
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return out
+
+
+def _friends_you_see_less_html(reader: ZipArchiveReader, errors: Counter) -> pd.DataFrame:
+    result = reader.raw("connections/friends/friends_you_see_less.html")
+    if not result.found:
+        return pd.DataFrame()
+
+    datapoints = []
+
+    try:
+        tree = etree.HTML(result.data.read())
+        for record in eh.xpath_nodes(tree, "//section[contains(@class, '_a6-g') and not(ancestor::section)]"):
+            values, _hrefs = _leaf_fields(record)
+            name = values.get("Name", "")
+            timestamp = _section_timestamp(record, errors)
+            if name or timestamp:
+                datapoints.append((name, timestamp))
+
+        if datapoints:
+            return pd.DataFrame(datapoints, columns=["Name", "Timestamp"])  # pyright: ignore
+
+    except Exception as e:
+        logger.error("Exception caught: %s", e)
+        errors[type(e).__name__] += 1
+
+    return pd.DataFrame()
+
 
 # ---------------------------------------------------------------------------
 # Extractor registry & platform info
@@ -4371,6 +4960,12 @@ TEXT_COLUMNS = ["Title", "Comment", "Post", "Reaction", "Name"]
 
 #: Mapping from the string names used in port_config.json to actual extractor functions.
 EXTRACTOR_REGISTRY: dict[str, Callable[..., pd.DataFrame]] = {
+    # --- Task 15d: the "old permissions" flagship, config-ordered first ---
+    "facebook_uploaded_contacts_to_df": facebook_uploaded_contacts_to_df,                          # contacts_uploaded_before_2021.json + your_imported_contacts.json + contacts_uploaded_from_your_phone.json
+    "people_you_may_know_to_df": people_you_may_know_to_df,                                        # connections/friends/people_you_may_know.json
+    "suggested_friends_to_df": suggested_friends_to_df,                                            # connections/friends/suggested_friends.json
+    "friends_you_see_less_to_df": friends_you_see_less_to_df,                                      # connections/friends/friends_you_see_less.json
+    "your_friends_to_df": your_friends_to_df,                                                      # connections/friends/your_friends.json — re-enabled (Task 15d)
     # --- Ordered to match the spreadsheet ---
     "your_search_history_to_df": your_search_history_to_df,                                      # logged_information/search/your_search_history.json
     "ads_interests_to_df": ads_interests_to_df,                                                  # logged_information/other_logged_information/ads_interests.json
@@ -4401,7 +4996,6 @@ EXTRACTOR_REGISTRY: dict[str, Callable[..., pd.DataFrame]] = {
     # "notifications_to_df": notifications_to_df,
     # "content_sharing_you_have_created_to_df": content_sharing_you_have_created_to_df,
     # "last_28_days_to_df": last_28_days_to_df,
-    # "your_friends_to_df": your_friends_to_df,
     # "profile_update_history_to_df": profile_update_history_to_df,
     # "group_posts_and_comments_to_df": group_posts_and_comments_to_df,
     # "your_answers_to_membership_questions_to_df": your_answers_to_membership_questions_to_df,
