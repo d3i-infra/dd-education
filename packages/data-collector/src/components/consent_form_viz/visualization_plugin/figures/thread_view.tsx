@@ -64,8 +64,11 @@ export default function ThreadView ({ visualizationData, locale }: Props): React
     setTurnPage((page) => clamp(page + delta, 0, turnPageCount - 1))
   }
 
+  // min-w-0: as a grid item the root's automatic minimum is its min-content
+  // width, and one long unbreakable token in a message would then widen the
+  // figure row past the card (Danielle, live run).
   return (
-    <div className='w-full flex max-md:flex-col gap-4 p-2'>
+    <div className='w-full min-w-0 flex max-md:flex-col gap-4 p-2'>
       <div
         data-pane='list'
         className='flex flex-col gap-2 md:w-1/3 min-w-0 min-h-[32rem]'
@@ -167,7 +170,7 @@ function Bubble ({ turn, isSelf, locale }: { turn: ThreadTurn, isSelf: boolean, 
   return (
     <div className={`flex ${isSelf ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[85%] md:max-w-[70%] rounded-lg px-3 py-2 whitespace-pre-wrap break-words text-sm ${
+        className={`max-w-[85%] md:max-w-[70%] rounded-lg px-3 py-2 whitespace-pre-wrap wrap-anywhere text-sm ${
           isSelf ? 'bg-primary text-white' : 'bg-grey5 text-grey1'
         }`}
       >
