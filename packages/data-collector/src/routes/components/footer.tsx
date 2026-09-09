@@ -2,15 +2,18 @@ import { Link } from "react-router-dom";
 import pdiSshLogo from "../icons/pdi_ssh_logo.png";
 import uvaLogo from "../icons/uva_logo.png";
 import uuLogo from "../icons/uu_logo.png";
+import { useSiteText } from "../site_text";
 
 export const Footer = () => {
+  const text = useSiteText();
+
   return (
     <footer className="bg-grey5 py-6">
       <div className="container mx-auto px-4 flex flex-wrap justify-between items-center">
         <div className="text-sm text-grey2 mb-2 md:mb-0">
           © {new Date().getFullYear()} Digital Footprint Explorer. All rights reserved.
           <span className="mx-2">|</span>
-          <Link to="/privacy-policy" className="hover:text-grey1 underline">Privacy Policy</Link>
+          <Link to="/privacy-policy" className="hover:text-grey1 underline">{text.footerPrivacy}</Link>
         </div>
         <div className="flex items-center space-x-4">
           <span className="text-sm text-grey2">Funded by PDI-SSH</span>

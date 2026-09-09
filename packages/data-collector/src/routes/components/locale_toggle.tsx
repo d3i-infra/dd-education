@@ -1,4 +1,5 @@
 import { OFFERED_UI_LOCALES, setUiLocale, useUiLocale } from "../../locale/ui_locale"
+import { useSiteText } from "../site_text"
 
 /** What each offered locale calls itself. */
 const LABELS: Record<string, string> = {
@@ -20,9 +21,10 @@ const SHORT: Record<string, string> = {
  */
 export const LocaleToggle = () => {
   const locale = useUiLocale()
+  const text = useSiteText()
 
   return (
-    <div className="flex items-center gap-1" role="group" aria-label="Language">
+    <div className="flex items-center gap-1" role="group" aria-label={text.languageGroup}>
       {OFFERED_UI_LOCALES.map((offered) => {
         const isCurrent = offered === locale
         return (
