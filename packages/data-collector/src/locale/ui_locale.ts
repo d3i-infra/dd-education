@@ -94,8 +94,7 @@ function subscribe(listener: () => void): () => void {
  * when it mounts and holds it for the session (see `App.tsx`), so a change made here
  * takes effect the next time the tool is opened. Re-rendering the tool on a locale change
  * is not an option — `ScriptHostComponent`'s effect lists `locale`, and remounting that
- * effect terminates the worker it has just started while leaving the previous one
- * running.
+ * effect restarts the tool from its first page, so the participant loses their place.
  */
 export function setUiLocale(locale: string): void {
   if (!isOffered(locale) || locale === snapshot()) return

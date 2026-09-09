@@ -25,3 +25,4 @@ export {
   PrimaryButton,
 } from '../../../feldspar/src/framework/visualization/react/ui/elements/button'
 export { DonateButtons } from '../../../feldspar/src/framework/visualization/react/ui/prompts/donate_buttons'
+export { ScriptHostComponent } from '../../../feldspar/src/components/script_host_component'
