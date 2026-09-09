@@ -6,8 +6,8 @@ import { LandingPage } from "./routes/landing_page";
 import { About } from "./routes/about";
 import { PrivacyPolicy } from "./routes/privacy_policy";
 import { RouteError } from "./routes/route_error";
-import "./index.css";
 import "@eyra/feldspar/dist/styles.css";
+import "./index.css";
 
 const router = createHashRouter([
   { path: "/", element: <LandingPage />, errorElement: <RouteError /> },
