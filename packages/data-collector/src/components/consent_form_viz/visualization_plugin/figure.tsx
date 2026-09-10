@@ -126,7 +126,12 @@ export const FigureComponent = ({
   return (
     <div className={`max-w ${threadAutoHeight ? '' : 'overflow-hidden'} bg-grey6 rounded-md border-[0.2rem] border-grey4`}>
       <div className='flex justify-between'>
-        <div className='font-bold p-3'>{resolveFlatText(visualization.title, locale)}</div>
+        {/* Task 8 polish: one caption style for every chart type — this is the
+            only place a figure title renders, so `font-bodybold text-label
+            text-grey1` (the weight+colour heatmap.tsx's own inner labels
+            already use) applies to stats/bar/line/area/wordcloud/heatmap/
+            thread alike instead of the previous unbranded `font-bold`. */}
+        <div className='font-bodybold text-label text-grey1 p-3'>{resolveFlatText(visualization.title, locale)}</div>
         <button onClick={toggleDouble} className={showStatus !== 'hidden' && canDouble ? 'text-primary' : 'hidden'}>
           {showStatus === 'double' ? zoomOutIcon : zoomInIcon}
         </button>

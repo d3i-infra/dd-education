@@ -68,7 +68,10 @@ export default function ThreadView ({ visualizationData, locale }: Props): React
   // width, and one long unbreakable token in a message would then widen the
   // figure row past the card (Danielle, live run).
   return (
-    <div className='w-full min-w-0 flex max-md:flex-col gap-4 p-2'>
+    // Task 8 polish: gap-3 to match the "gap-3 inside" card rhythm — this
+    // layout lives one level inside a card's figure wrapper, so it follows
+    // the same interior scale as everything else in there.
+    <div className='w-full min-w-0 flex max-md:flex-col gap-3 p-2'>
       <div
         data-pane='list'
         className='flex flex-col gap-2 md:w-1/3 min-w-0 min-h-[32rem]'

@@ -70,6 +70,14 @@ export const Table = ({
   })
 
   const cellClass = 'min-h-[2.1rem] md:min-h-[2.5rem] px-3 flex items-center font-table-row'
+  // Task 8 polish: the header row is visually distinct from data rows via
+  // weight, not a zebra background — font-table-header instead of the body
+  // cells' font-table-row.
+  const headerCellClass = 'min-h-[2.1rem] md:min-h-[2.5rem] px-3 flex items-center font-table-header'
+  // Hairline separators (1px), not the heavier 2px rule the rest of the
+  // fork's tables use elsewhere -- review tables read denser, so a lighter
+  // rule keeps rows from looking boxed in.
+  const rowBorderClass = 'border-b border-grey4'
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- PENDING_ISSUES "lint hygiene" entry 2026-08-26: pagination reset on table swap; fix needs ADR-0031-safe redesign
@@ -153,7 +161,7 @@ export const Table = ({
     const displayName = table.headers?.[value] ?? value
     return (
       <th key={`header ${i}`}>
-        <div className={`text-left ${cellClass}`}>
+        <div className={`text-left ${headerCellClass}`}>
           <div>{displayName}</div>
         </div>
       </th>
@@ -164,7 +172,7 @@ export const Table = ({
     if (item == null && i >= unfilteredRows) return null
     if (item == null) {
       return (
-        <tr key={`{empty ${i}`} className='border-b-2 border-grey4'>
+        <tr key={`{empty ${i}`} className={rowBorderClass}>
           <td>
             <div className={cellClass} />
           </td>
@@ -172,7 +180,7 @@ export const Table = ({
       )
     }
     return (
-      <tr key={item.id} className='border-b-2 border-grey4 border-solid'>
+      <tr key={item.id} className={rowBorderClass}>
         {table.deleteOption &&
           (
             <td key='select'>
@@ -219,40 +227,55 @@ export const Table = ({
     >
       <div ref={innerRef} className={`h-min ${unfilteredRows === 0 ? 'invisible' : ''}`}>
         <div className='my-2 bg-grey6 rounded-md border-grey4 border-[0.2rem]'>
-          <div ref={scrollRef} className='p-3 pt-1 pb-2 max-w-full overflow-x-auto'>
-            <table
-              className='table-fixed'
-              // Widths are only known once the container has been measured; until
-              // then fall back to letting the browser divide the space evenly.
-              style={columnWidths == null ? { width: '100%' } : { width: `${tableWidth}px` }}
-            >
-              {columnWidths != null && (
-                <colgroup>
-                  {table.deleteOption && <col style={{ width: `${CHECKBOX_COLUMN_PX}px` }} />}
-                  {columnWidths.map((width, i) => (
-                    <col key={`col ${i}`} style={{ width: `${width}px` }} />
-                  ))}
-                </colgroup>
-              )}
-              <thead className=''>
-                <tr className='border-b-2 border-grey4 border-solid'>
-                  {table.deleteOption &&
-                    (
-                      <td className='w-8'>
-                        <CheckBox
-                          id='selectAll'
-                          size='w-6 h-6'
-                          selected={table.body.rows.length > 0 && selected.size === table.body.rows.length}
-                          onSelect={toggleSelectAll}
-                        />
-                      </td>
-                    )
-                  }
-                  {columnNames.map(renderHeaderCell)}
-                </tr>
-              </thead>
-              <tbody>{items.map(renderRow)}</tbody>
-            </table>
+          {/* relative wrapper is NOT the scrolling element itself -- an
+              absolutely-positioned child of the overflow-x-auto div below
+              would scroll away with the content instead of staying pinned to
+              the visible right edge, defeating the hint. */}
+          <div className='relative'>
+            <div ref={scrollRef} className='p-3 pt-1 pb-2 max-w-full overflow-x-auto'>
+              <table
+                className='table-fixed'
+                // Widths are only known once the container has been measured; until
+                // then fall back to letting the browser divide the space evenly.
+                style={columnWidths == null ? { width: '100%' } : { width: `${tableWidth}px` }}
+              >
+                {columnWidths != null && (
+                  <colgroup>
+                    {table.deleteOption && <col style={{ width: `${CHECKBOX_COLUMN_PX}px` }} />}
+                    {columnWidths.map((width, i) => (
+                      <col key={`col ${i}`} style={{ width: `${width}px` }} />
+                    ))}
+                  </colgroup>
+                )}
+                <thead className=''>
+                  <tr className={rowBorderClass}>
+                    {table.deleteOption &&
+                      (
+                        <td className='w-8'>
+                          <CheckBox
+                            id='selectAll'
+                            size='w-6 h-6'
+                            selected={table.body.rows.length > 0 && selected.size === table.body.rows.length}
+                            onSelect={toggleSelectAll}
+                          />
+                        </td>
+                      )
+                    }
+                    {columnNames.map(renderHeaderCell)}
+                  </tr>
+                </thead>
+                <tbody>{items.map(renderRow)}</tbody>
+              </table>
+            </div>
+            {/* Sideways-scroll hint: only when the table is actually wider than
+                the space it has (jsdom has no ResizeObserver, so availableWidth
+                stays 0 and this branch never renders there). */}
+            {tableWidth > availableWidth && (
+              <div
+                aria-hidden='true'
+                className='pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-grey6'
+              />
+            )}
           </div>
           <div className='px-3 pb-1 flex justify-between min-h-[2.5rem]'>
             <div className='pt-2 pb-2'>
