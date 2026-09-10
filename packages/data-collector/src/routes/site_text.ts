@@ -59,8 +59,8 @@ const bundles = {
     .add("nl", "De Digitale Voetafdruk Verkenner is ontwikkeld als onderdeel van het"),
   aboutProjectLink: new TextBundle().add("en", "Data Donation Project").add("nl", "Data Donation Project"),
   aboutProjectAfter: new TextBundle()
-    .add("en", ". This project builds Europe's Data Donation Infrastructure (D3I), which enables researchers to conduct ethical and transparent data donation studies. It is a collaboration between universities including the University of Amsterdam and Utrecht University, and is funded by PDI-SSH.")
-    .add("nl", ". Dit project bouwt aan Europa's Data Donation Infrastructure (D3I), waarmee onderzoekers ethische en transparante datadonatiestudies kunnen uitvoeren. Het is een samenwerking tussen universiteiten, waaronder de Universiteit van Amsterdam en de Universiteit Utrecht, en wordt gefinancierd door PDI-SSH."),
+    .add("en", ". This project builds the Data Donation Infrastructure (D3I), which enables researchers to conduct ethical and transparent data donation studies. It is a collaboration between universities including the University of Amsterdam and Utrecht University, and is funded by PDI-SSH.")
+    .add("nl", ". Dit project bouwt aan de Data Donation Infrastructure (D3I), waarmee onderzoekers ethische en transparante datadonatiestudies kunnen uitvoeren. Het is een samenwerking tussen universiteiten, waaronder de Universiteit van Amsterdam en de Universiteit Utrecht, en wordt gefinancierd door PDI-SSH."),
   privacyTitle: new TextBundle().add("en", "Privacy Policy").add("nl", "Privacybeleid"),
   privacyIntroTitle: new TextBundle().add("en", "1. Introduction").add("nl", "1. Inleiding"),
   privacyIntroBody: new TextBundle()
@@ -79,7 +79,12 @@ const bundles = {
   privacyRightsTitle: new TextBundle().add("en", "3. Your Rights").add("nl", "3. Je rechten"),
   privacyRightsBody: new TextBundle().add("en", "If you have any questions or remarks").add("nl", "Heb je vragen of opmerkingen,"),
   privacyContact: new TextBundle().add("en", "please contact us").add("nl", "neem dan contact met ons op"),
-  footerPrivacy: new TextBundle().add("en", "Privacy Policy").add("nl", "Privacybeleid"),
+  // The footer mirrors datadonation.eu and stays in English in both locales
+  // (Danielle, Task 4 review): the nl values repeat the en text on purpose.
+  footerPrivacy: new TextBundle().add("en", "Privacy Policy").add("nl", "Privacy Policy"),
+  footerProvidedBy: new TextBundle().add("en", "A service provided by").add("nl", "A service provided by"),
+  footerSupportedBy: new TextBundle().add("en", "and supported by").add("nl", "and supported by"),
+  footerPartners: new TextBundle().add("en", "Project partners").add("nl", "Project partners"),
   landingHeroAlt: new TextBundle().add("en", "Digital Footprint Banner").add("nl", "Banner Digitale Voetafdruk"),
   languageGroup: new TextBundle().add("en", "Language").add("nl", "Taal"),
 }

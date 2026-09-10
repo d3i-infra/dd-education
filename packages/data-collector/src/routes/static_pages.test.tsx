@@ -82,4 +82,40 @@ describe("static pages follow the site's en/nl toggle", () => {
     expect(nl).not.toMatch(/\b[Uu]w\b/)
     expect(nl).not.toMatch(/\bU\b/)
   })
+
+  test("the footer carries the website's partner strip and copyright", () => {
+    mount(<LandingPage />)
+    const footer = container.querySelector("footer")
+    if (footer === null) throw new Error("footer not found")
+    expect(footer.textContent).toMatch(/A service provided by/)
+    expect(footer.textContent).toMatch(/Project partners/)
+
+    for (const name of [
+      "ODISSEI",
+      "Eyra",
+      "University of Amsterdam",
+      "Radboud University",
+      "Utrecht University",
+      "Vrije Universiteit Amsterdam",
+      "Tilburg University",
+      "Erasmus University Rotterdam",
+    ]) {
+      const img = container.querySelector(`img[alt="${name}"]`)
+      if (img === null) throw new Error(`logo with alt "${name}" not found`)
+    }
+
+    expect(footer.textContent).toContain(`© ${new Date().getFullYear()} datadonation.eu`)
+
+    const privacyLink = Array.from(container.querySelectorAll("a")).find(
+      (candidate) => candidate.textContent === "Privacy Policy"
+    )
+    if (privacyLink === undefined) throw new Error("Privacy Policy link not found")
+    expect(privacyLink.getAttribute("href")).toBe("/privacy-policy")
+  })
+
+  test("the About page no longer claims all of Europe", () => {
+    mount(<About />)
+    expect(container.textContent).not.toMatch(/Europe's/)
+    expect(container.textContent).toMatch(/Data Donation Infrastructure \(D3I\)/)
+  })
 })
