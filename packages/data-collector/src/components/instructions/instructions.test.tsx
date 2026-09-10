@@ -190,6 +190,85 @@ describe("Instructions", () => {
     })
   })
 
+  describe("export link", () => {
+    test("renders a link to the platform's export page above the images when linkUrl is set", () => {
+      const resolve = jest.fn()
+      root = renderInstructions(container, {
+        ...baseProps(resolve),
+        imageUrl: "a.webp",
+        linkUrl: "https://example.test/export",
+      })
+
+      const link = container.querySelector("a")
+      if (link === null) throw new Error("export link not found")
+      expect(link.getAttribute("href")).toBe("https://example.test/export")
+      expect(link.getAttribute("target")).toBe("_blank")
+      expect(link.getAttribute("rel")).toBe("noopener noreferrer")
+    })
+
+    test("renders no link when linkUrl is empty", () => {
+      const resolve = jest.fn()
+      root = renderInstructions(container, {
+        ...baseProps(resolve),
+        imageUrl: "a.webp",
+        linkUrl: "",
+      })
+
+      expect(container.querySelector("a")).toBeNull()
+    })
+
+    test("renders no link when linkUrl is not provided", () => {
+      const resolve = jest.fn()
+      root = renderInstructions(container, {
+        ...baseProps(resolve),
+        imageUrl: "a.webp",
+      })
+
+      expect(container.querySelector("a")).toBeNull()
+    })
+  })
+
+  describe("export note", () => {
+    const note = { translations: { en: "Login note.", nl: "Login notitie." } }
+
+    test("renders the note in the current locale when given", () => {
+      const resolve = jest.fn()
+      root = renderInstructions(container, {
+        ...baseProps(resolve),
+        imageUrl: "a.webp",
+        linkUrl: "https://example.test/export",
+        linkNote: note,
+        locale: "nl",
+      })
+
+      const p = container.querySelector("p")
+      expect(p?.textContent).toBe("Login notitie.")
+    })
+
+    test("renders no note when linkNote is null", () => {
+      const resolve = jest.fn()
+      root = renderInstructions(container, {
+        ...baseProps(resolve),
+        imageUrl: "a.webp",
+        linkUrl: "https://example.test/export",
+        linkNote: null,
+      })
+
+      expect(container.querySelector("p")).toBeNull()
+    })
+
+    test("renders no note when linkNote is not provided", () => {
+      const resolve = jest.fn()
+      root = renderInstructions(container, {
+        ...baseProps(resolve),
+        imageUrl: "a.webp",
+        linkUrl: "https://example.test/export",
+      })
+
+      expect(container.querySelector("p")).toBeNull()
+    })
+  })
+
   describe("a single-entry imageUrls list", () => {
     test("behaves like a single image, not a stepper", () => {
       const resolve = jest.fn()

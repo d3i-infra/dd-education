@@ -168,6 +168,35 @@ def test_instruction_image_entries_resolve_to_files_that_exist():
             assert on_disk == set(entry.instruction_image), name
 
 
+def test_every_web_platform_has_a_request_url():
+    for name, entry in education.PLATFORMS.items():
+        if name in ("WhatsApp", "General DDP Analyzer"):
+            assert entry.request_url is None
+        else:
+            assert entry.request_url is not None and entry.request_url.startswith("https://")
+
+
+def test_build_flow_sets_the_instruction_url():
+    entry = education.PLATFORMS["Netflix"]
+    flow = education._build_flow("s1", entry)
+    assert flow.instruction_url == entry.request_url
+
+
+def test_only_chatgpt_and_netflix_have_a_request_note():
+    for name, entry in education.PLATFORMS.items():
+        if name in ("ChatGPT", "Netflix"):
+            assert entry.request_note is not None, name
+            assert set(entry.request_note.translations) >= {"en", "nl"}
+        else:
+            assert entry.request_note is None, name
+
+
+def test_build_flow_sets_the_instruction_note():
+    entry = education.PLATFORMS["ChatGPT"]
+    flow = education._build_flow("s1", entry)
+    assert flow.instruction_note == entry.request_note
+
+
 def test_config_validates():
     from port.helpers.port_config_validator import validate_or_raise
     validate_or_raise("education")

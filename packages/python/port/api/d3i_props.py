@@ -315,11 +315,15 @@ class PropsUIPromptInstructions:
     deck set ``imageUrls`` (one entry per step, in order) and may leave
     ``imageUrl`` empty — the React side renders a stepper when ``imageUrls``
     has more than one entry, and falls back to the single ``imageUrl`` image
-    otherwise.
+    otherwise. ``linkUrl`` is the platform's export page; empty when there is
+    none. ``linkNote`` is a short line shown under the link when the platform
+    needs guidance after login; None when not.
     """
     description: props.Translatable
     imageUrl: str = ""
     imageUrls: list[str] = field(default_factory=list)
+    linkUrl: str = ""
+    linkNote: props.Translatable | None = None
 
     def toDict(self):
         return {
@@ -327,6 +331,8 @@ class PropsUIPromptInstructions:
             "description": self.description.toDict(),
             "imageUrl": self.imageUrl,
             "imageUrls": self.imageUrls,
+            "linkUrl": self.linkUrl,
+            "linkNote": self.linkNote.toDict() if self.linkNote is not None else None,
         }
 
 

@@ -61,6 +61,15 @@ class FlowBuilder:
     donate_enabled: bool = True
     instruction_image: str | list[str] | None = None
 
+    # instruction_url is the platform's own export page, shown as a link above
+    # the instruction images; None when the export is in-app only (WhatsApp).
+    instruction_url: str | None = None
+
+    # instruction_note is a short line shown under the export link when the
+    # platform needs extra guidance after login (e.g. ChatGPT, Netflix); None
+    # when not. A note alone never renders the instructions page.
+    instruction_note: props.Translatable | None = None
+
     def __init__(self, session_id: str, platform_name: str):
         self.session_id = session_id
         self.platform_name = platform_name
@@ -115,8 +124,10 @@ class FlowBuilder:
         (through emit_log). These must be PII-free. Local logger keeps full
         diagnostic detail in browser console only.
         """
-        if self.instruction_image:
-            _ = yield ph.render_instructions_page(self.platform_name, self.instruction_image)
+        if self.instruction_image or self.instruction_url:
+            _ = yield ph.render_instructions_page(
+                self.platform_name, self.instruction_image, self.instruction_url, self.instruction_note
+            )
 
         while True:
             # 1. Render file prompt → receive payload

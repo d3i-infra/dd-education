@@ -560,11 +560,21 @@ def render_protocol_error_page(platform_name: str) -> CommandUIRender:
     return render_page(header, body)
 
 
-def render_instructions_page(platform_name: str, images: str | list[str]) -> CommandUIRender:
+def render_instructions_page(
+    platform_name: str,
+    images: str | list[str] | None,
+    url: str | None = None,
+    note: props.Translatable | None = None,
+) -> CommandUIRender:
     """Instruction page shown before the file prompt (education mode).
 
-    `images` is either a single image URL (single-image platforms) or a list
-    of per-step image URLs, in order (platforms with a step-by-step deck).
+    `images` is either a single image URL (single-image platforms), a list
+    of per-step image URLs, in order (platforms with a step-by-step deck), or
+    None (a platform with no instruction images but a `url` to its export
+    page, e.g. Facebook, Google). `url` is the platform's own export page,
+    shown as a link above the images; empty string when there is none. `note`
+    is a short line shown under the link when the platform needs guidance
+    after login (e.g. ChatGPT, Netflix); None when not.
     """
     header = props.Translatable({
         "en": f"Instructions to request your {platform_name} data",
@@ -579,9 +589,9 @@ def render_instructions_page(platform_name: str, images: str | list[str]) -> Com
                "als je klaar bent om naar de volgende stap te gaan."),
     })
     if isinstance(images, list):
-        prompt = d3i_props.PropsUIPromptInstructions(description, imageUrls=images)
+        prompt = d3i_props.PropsUIPromptInstructions(description, imageUrls=images, linkUrl=url or "", linkNote=note)
     else:
-        prompt = d3i_props.PropsUIPromptInstructions(description, imageUrl=images)
+        prompt = d3i_props.PropsUIPromptInstructions(description, imageUrl=images or "", linkUrl=url or "", linkNote=note)
     return render_page(header, prompt)
 
 

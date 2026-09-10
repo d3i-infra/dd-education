@@ -596,6 +596,36 @@ class TestEducationHooks:
         assert type(cmd.page.body).__name__ == "PropsUIPromptFileInput"
 
     @patch("port.helpers.uploads.check_payload_size")
+    def test_instruction_page_renders_for_url_without_images(self, _):
+        """A platform with an export URL but no instruction images (Facebook,
+        Google) still gets the page: description plus link, no image."""
+        flow = StubFlow()
+        flow.instruction_url = "https://example.test/export"
+        gen = flow.start_flow()
+        cmd = start_and_skip_logs(gen)
+        assert isinstance(cmd, CommandUIRender)
+        body = cmd.page.body
+        assert type(body).__name__ == "PropsUIPromptInstructions"
+        assert body.linkUrl == "https://example.test/export"
+        assert body.imageUrl == ""
+        assert body.imageUrls == []
+        nxt = advance_past_logs(gen, make_payload("PayloadTrue"))
+        assert type(nxt.page.body).__name__ == "PropsUIPromptFileInput"
+
+    @patch("port.helpers.uploads.check_payload_size")
+    def test_instruction_page_carries_url_next_to_images(self, _):
+        flow = StubFlow()
+        flow.instruction_image = "instructions/netflix/step-01.webp"
+        flow.instruction_url = "https://example.test/export"
+        note = props.Translatable({"en": "Note", "nl": "Notitie"})
+        flow.instruction_note = note
+        gen = flow.start_flow()
+        body = start_and_skip_logs(gen).page.body
+        assert body.imageUrl == "instructions/netflix/step-01.webp"
+        assert body.linkUrl == "https://example.test/export"
+        assert body.linkNote == note
+
+    @patch("port.helpers.uploads.check_payload_size")
     def test_donate_disabled_returns_after_consent(self, _):
         flow = StubFlow()
         flow.donate_enabled = False
