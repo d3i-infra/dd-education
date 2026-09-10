@@ -10,8 +10,8 @@ import {
     SetStateAction
 } from 'react'
 import Highlighter from 'react-highlight-words'
-import { 
-    TableWithContext, 
+import {
+    TableWithContext,
 } from './types'
 import UndoSvg from './assets/images/undo.svg'
 import DeleteSvg from './assets/images/delete.svg'
@@ -20,6 +20,7 @@ import TextBundle from '@eyra/feldspar'
 import { resolveAll } from '../../locale/text'
 import { CheckBox } from "./check_box"
 import { PropsUITableRow } from "./types"
+import { distributeColumnWidths, longestCellChars, CHECKBOX_COLUMN_PX } from './column_widths'
 
 
 export interface Props {
@@ -55,6 +56,8 @@ export const Table = ({
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const ref = useRef<HTMLDivElement>(null)
   const innerRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [availableWidth, setAvailableWidth] = useState(0)
   const nPages = Math.ceil(table.body.rows.length / pageSize)
   const selectedLabel = selected.size.toLocaleString(locale, { useGrouping: true })
   const text = useMemo(() => getTranslations(locale), [locale])
@@ -73,6 +76,19 @@ export const Table = ({
     setSelected(new Set())
     setPage((page) => Math.max(0, Math.min(page, nPages - 1)))
   }, [table, nPages])
+
+  useLayoutEffect(() => {
+    // Column widths are laid out in pixels, so they have to follow the width the
+    // table actually gets.
+    if (typeof ResizeObserver === 'undefined') return // jsdom
+    const element = scrollRef.current
+    if (element == null) return
+    const observer = new ResizeObserver((entries) => {
+      setAvailableWidth(entries[entries.length - 1].contentRect.width)
+    })
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     // rm tooltip on scroll
@@ -100,6 +116,28 @@ export const Table = ({
     const interval = setInterval(responsiveHeight, 1000)
     return () => clearInterval(interval)
   }, [ref, innerRef, show, nPages, unfilteredRows])
+
+  // Length of the longest value per column, which drives the column widths
+  // below. Taken from originalBody (ADR-0031) so the layout does not jump
+  // around while the participant searches, deletes rows or pages through the
+  // table.
+  const charCounts = useMemo(
+    () => longestCellChars(table, columnNames),
+    [table.originalBody, table.headers, columnNames]
+  )
+
+  const columnWidths = useMemo(() => {
+    if (availableWidth === 0 || charCounts.length === 0) return null
+    const forColumns = availableWidth - (table.deleteOption ? CHECKBOX_COLUMN_PX : 0)
+    return distributeColumnWidths(charCounts, forColumns)
+  }, [charCounts, availableWidth, table.deleteOption])
+
+  // Wider than the container when the columns did not fit, which is what makes
+  // the table scroll horizontally instead of squeezing the values further.
+  const tableWidth =
+    columnWidths == null
+      ? 0
+      : columnWidths.reduce((sum, width) => sum + width, table.deleteOption ? CHECKBOX_COLUMN_PX : 0)
 
   const items = useMemo(() => {
     const items: Array<PropsUITableRow | null> = new Array(pageSize).fill(null)
@@ -150,7 +188,7 @@ export const Table = ({
 
         {item.cells.map((cell, j) => (
           <td key={j}>
-            <Cell cell={cell} search={search} cellClass={cellClass} setTooltip={setTooltip} />
+            <Cell cell={cell} search={search} cellClass={cellClass} setTooltip={setTooltip} layoutKey={tableWidth} />
           </td>
         ))}
       </tr>
@@ -181,8 +219,21 @@ export const Table = ({
     >
       <div ref={innerRef} className={`h-min ${unfilteredRows === 0 ? 'invisible' : ''}`}>
         <div className='my-2 bg-grey6 rounded-md border-grey4 border-[0.2rem]'>
-          <div className='p-3 pt-1 pb-2 max-w-full overflow-x-auto'>
-            <table className='table-fixed min-w-full '>
+          <div ref={scrollRef} className='p-3 pt-1 pb-2 max-w-full overflow-x-auto'>
+            <table
+              className='table-fixed'
+              // Widths are only known once the container has been measured; until
+              // then fall back to letting the browser divide the space evenly.
+              style={columnWidths == null ? { width: '100%' } : { width: `${tableWidth}px` }}
+            >
+              {columnWidths != null && (
+                <colgroup>
+                  {table.deleteOption && <col style={{ width: `${CHECKBOX_COLUMN_PX}px` }} />}
+                  {columnWidths.map((width, i) => (
+                    <col key={`col ${i}`} style={{ width: `${width}px` }} />
+                  ))}
+                </colgroup>
+              )}
               <thead className=''>
                 <tr className='border-b-2 border-grey4 border-solid'>
                   {table.deleteOption &&
@@ -236,19 +287,26 @@ export const Table = ({
   )
 }
 
+function isCoarsePointer (): boolean {
+  return window.matchMedia?.('(pointer: coarse)')?.matches === true
+}
+
 function Cell ({
   cell,
   search,
   cellClass,
-  setTooltip
+  setTooltip,
+  layoutKey
 }: {
   cell: string
   search: string
   cellClass: string
   setTooltip: Dispatch<SetStateAction<Tooltip>>
+  layoutKey: number
 }): ReactElement {
   const textRef = useRef<HTMLDivElement>(null)
   const [overflows, setOverflows] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const isUrl = /^https?:\/\//.test(cell)
 
   const searchWords = useMemo(() => {
@@ -259,7 +317,9 @@ function Cell ({
   useEffect(() => {
     if (textRef.current == null) return
     setOverflows(textRef.current.scrollWidth > textRef.current.clientWidth)
-  }, [textRef])
+    // Column widths (layoutKey) settle after the first paint, and the value a
+    // cell is truncated at only changes once they do.
+  }, [textRef, layoutKey])
 
   function onSetTooltip (): void {
     if (isUrl) return
@@ -289,14 +349,34 @@ function Cell ({
     setTooltip((tooltip: Tooltip) => (tooltip.show ? { ...tooltip, show: false } : tooltip))
   }
 
+  function onClick (): void {
+    // Touch devices have no hover tooltip; tap the truncated cell to expand
+    // it in place instead. Fine pointers keep the existing tooltip behaviour.
+    // An expanded cell always collapses on tap: once expanded its text wraps,
+    // so `overflows` reads false and could otherwise never let it close
+    // (Task 6 review).
+    if (isCoarsePointer() && (expanded || overflows)) {
+      setExpanded((expanded) => !expanded)
+      return
+    }
+    onSetTooltip()
+  }
+
   return (
     <div
       className={`relative ${cellClass}`}
       onMouseEnter={onSetTooltip}
       onMouseLeave={onRmTooltip}
-      onClick={onSetTooltip}
+      onClick={onClick}
     >
-      <div ref={textRef} className='whitespace-nowrap max-w-[15rem] overflow-hidden overflow-ellipsis z-10'>
+      <div
+        ref={textRef}
+        className={
+          expanded
+            ? 'whitespace-normal break-words min-w-0 flex-1'
+            : 'whitespace-nowrap min-w-0 flex-1 overflow-hidden overflow-ellipsis z-10'
+        }
+      >
         {isUrl
           ? (
             <a href={cell} className='text-primary' target='_blank' rel='noopener noreferrer'>
@@ -325,7 +405,7 @@ function Cell ({
 function TooltipIcon (): ReactElement {
   return (
     <svg
-      className='w-3 h-3 mb-1 text-gray-800 dark:text-white'
+      className='w-3 h-3 mb-1 shrink-0 text-gray-800 dark:text-white'
       aria-hidden='true'
       xmlns='http://www.w3.org/2000/svg'
       fill='none'
