@@ -188,22 +188,44 @@ module.exports = {
     },
   },
   plugins: [
-    plugin(function ({ addUtilities }) {
+    plugin(function ({ addUtilities, addComponents }) {
       const newUtilities = {
         ".h-viewport": {
           height: "calc(var(--vh, 1vh) * 100)",
         },
-        ".scrollbar-hide": {
-          /* Firefox */
-          "scrollbar-width": "thin",
-
-          /* Safari and Chrome */
-          "&::-webkit-scrollbar": {
-            display: "none",
-          },
-        },
       };
       addUtilities(newUtilities);
+
+      /* Font classes with the weights feldspar's config gives them (packages/
+         feldspar/tailwind.config.js). Both stylesheets emit these names; since
+         index.tsx imports feldspar's first, ours are the ones that win, so
+         they must carry the same weights or every title renders regular. */
+      addComponents({
+        // Nunito (> 20px) - Extra-Bold weight
+        ".font-title0": { "font-family": "Nunito, sans-serif", "font-weight": "800" },
+        ".font-title1": { "font-family": "Nunito, sans-serif", "font-weight": "800" },
+        ".font-title2": { "font-family": "Nunito, sans-serif", "font-weight": "800" },
+        ".font-title3": { "font-family": "Nunito, sans-serif", "font-weight": "800" },
+        ".font-title4": { "font-family": "Nunito, sans-serif", "font-weight": "800" },
+        ".font-title5": { "font-family": "Nunito, sans-serif", "font-weight": "700" },
+        ".font-bodylarge": { "font-family": "Nunito, sans-serif", "font-weight": "300" },
+        ".font-introdesktop": { "font-family": "Nunito, sans-serif", "font-weight": "500" },
+        // Nunito Sans (<= 20px)
+        ".font-title6": { "font-family": '"Nunito Sans", sans-serif', "font-weight": "700" },
+        ".font-title7": { "font-family": '"Nunito Sans", sans-serif', "font-weight": "700" },
+        ".font-caption": { "font-family": '"Nunito Sans", sans-serif', "font-weight": "500" },
+        ".font-link": { "font-family": '"Nunito Sans", sans-serif', "font-weight": "500" },
+        ".font-subhead": { "font-family": '"Nunito Sans", sans-serif', "font-weight": "600" },
+        ".font-button": { "font-family": '"Nunito Sans", sans-serif', "font-weight": "700" },
+        ".font-intro": { "font-family": '"Nunito Sans", sans-serif', "font-weight": "500" },
+        ".font-label": { "font-family": '"Nunito Sans", sans-serif', "font-weight": "700" },
+        ".font-body": { "font-family": '"Nunito Sans", sans-serif', "font-weight": "300" },
+        ".font-bodybold": { "font-family": '"Nunito Sans", sans-serif', "font-weight": "500" },
+        ".font-table-header": { "font-family": '"Nunito Sans", sans-serif', "font-weight": "700" },
+        ".font-table-row": { "font-family": '"Nunito Sans", sans-serif', "font-weight": "400" },
+        ".font-card-key": { "font-family": '"Nunito Sans", sans-serif', "font-weight": "500" },
+        ".font-card-value": { "font-family": '"Nunito Sans", sans-serif', "font-weight": "400" },
+      });
     }),
   ],
 };

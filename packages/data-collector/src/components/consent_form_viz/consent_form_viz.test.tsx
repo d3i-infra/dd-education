@@ -144,9 +144,12 @@ describe("ConsentFormViz", () => {
     })
 
     // Locks down the exact markup study mode produced before the review-ui
-    // layout work (Task 19) — the review-only branch is a separate tree
-    // entirely, so this DOM must never move as review mode evolves.
-    test("layout DOM is unchanged by the review-layout work", () => {
+    // layout work — the review-only branch is a separate tree, so nothing
+    // review-specific may reach this DOM. What study mode does share with
+    // review mode is the Table and Figure internals (header font, hairline
+    // rows, the scroll-fade wrapper, caption style); a change there updates
+    // this snapshot on purpose and must be named in the task report.
+    test("study-mode DOM changes only through the shared Table/Figure internals", () => {
       const resolve = jest.fn()
       root = renderConsentFormViz(container, baseProps(resolve))
 
@@ -197,10 +200,30 @@ describe("ConsentFormViz", () => {
       }
     }
 
+    // Task 21 (hybrid review layout) fixtures: a table built with an
+    // arbitrary set of visualizations (or none), and the two figure shapes
+    // the featured-table rule cares about. `threadViz` needs `groupColumn`/
+    // `roleColumn`/`textColumn` naming real columns of `tableWithRows`'
+    // single "col" column (see figure.test.tsx for a valid thread shape).
+    function makeTable(id: string, opts: { visualizations?: any[] } = {}): PropsUIPromptConsentFormTableViz {
+      const visualizations = opts.visualizations ?? []
+      return visualizations.length > 0
+        ? tableWithVisualizations(id, id, visualizations)
+        : tableWithRows(id, id, 2)
+    }
+
+    function threadViz(): any {
+      return { type: "thread", title: { en: "Conversations" }, groupColumn: "col", roleColumn: "col", textColumn: "col" }
+    }
+
+    function bar(): any {
+      return { type: "bar", title: { en: "A bar chart" }, group: { column: "col" }, values: [{ column: ".COUNT" }] }
+    }
+
     // Regression: figure.tsx's chart/heatmap wrappers carry `relative z-50`
     // (upstream, not to be changed here), which painted over the chip strip
     // while scrolling unless the strip sits above them and stays opaque.
-    test("the sticky chip strip stays above figures and opaque while scrolling", () => {
+    test("the sticky navigation row stays above figures and opaque while scrolling", () => {
       const resolve = jest.fn()
       root = renderConsentFormViz(container, multiTableProps(resolve))
 
@@ -214,7 +237,7 @@ describe("ConsentFormViz", () => {
       expect(classes).toContain("bg-white")
     })
 
-    test("renders one chip per table with its row count", () => {
+    test("renders one jump-line entry per grouped table with its row count", () => {
       const resolve = jest.fn()
       root = renderConsentFormViz(container, multiTableProps(resolve))
 
@@ -245,12 +268,159 @@ describe("ConsentFormViz", () => {
         ],
       })
 
+      // A thread figure makes this table featured (task 21), so it's off the
+      // overview and only mounted on its own page — open it via its page chip.
+      act(() => {
+        container.querySelector('[data-page-chip="a"]')!.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+      })
+
       const cardA = container.querySelector<HTMLElement>('[data-card-id="a"]')
       if (cardA === null) throw new Error("card 'a' not found")
       const figureWrappers = Array.from(cardA.querySelectorAll<HTMLElement>(".grid.grid-cols-1.md\\:grid-cols-2 > div"))
       expect(figureWrappers).toHaveLength(2)
       expect(figureWrappers[0].className).toContain("md:col-span-2") // thread
       expect(figureWrappers[1].className).not.toContain("md:col-span-2") // bar
+    })
+
+    // Task 21: a thread figure or four-plus figures makes a table "featured"
+    // — dense enough to want its own page instead of a shared scroll — so it
+    // shouldn't render on the overview at all.
+    test("a table with a thread figure or four figures is featured and absent from the overview", () => {
+      const resolve = jest.fn()
+      root = renderConsentFormViz(container, {
+        ...multiTableProps(resolve),
+        tables: [
+          makeTable("chat", { visualizations: [threadViz()] }),
+          makeTable("views", { visualizations: [bar(), bar(), bar(), bar()] }),
+          makeTable("account", { visualizations: [] }),
+        ],
+      })
+
+      const overviewChip = container.querySelector<HTMLElement>("[data-overview-chip]")
+      if (overviewChip === null) throw new Error("overview chip not found")
+      expect(overviewChip.textContent).toMatch(/Overview|Overzicht/)
+      expect(overviewChip.getAttribute("aria-current")).toBe("page")
+      expect(container.querySelector('[data-card-id="account"]')).not.toBeNull()
+      expect(container.querySelector('[data-card-id="chat"]')).toBeNull()
+      expect(container.querySelector('[data-card-id="views"]')).toBeNull()
+    })
+
+    // The overview is page 1, so with two featured tables (chat, views) the
+    // "views" page is page 3 of 3 — the pager counts every page, not just
+    // the featured ones.
+    test("a featured chip mounts only that table, with previous/next among featured tables", () => {
+      const resolve = jest.fn()
+      root = renderConsentFormViz(container, {
+        ...multiTableProps(resolve),
+        tables: [
+          makeTable("chat", { visualizations: [threadViz()] }),
+          makeTable("views", { visualizations: [bar(), bar(), bar(), bar()] }),
+          makeTable("account", { visualizations: [] }),
+        ],
+      })
+
+      act(() => {
+        container.querySelector('[data-page-chip="views"]')!.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+      })
+
+      expect(container.querySelector('[data-card-id="views"]')).not.toBeNull()
+      expect(container.querySelector('[data-card-id="account"]')).toBeNull()
+      expect(container.querySelector("[data-pager]")!.textContent).toContain("3 of 3")
+
+      const previousButton = container.querySelector<HTMLButtonElement>('button[aria-label="Previous"]')
+      if (previousButton === null) throw new Error("Previous button not found")
+      act(() => {
+        previousButton.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+      })
+
+      expect(container.querySelector('[data-card-id="chat"]')).not.toBeNull()
+    })
+
+    test("a featured page falls back to the overview when a new upload drops that table", () => {
+      const resolve = jest.fn()
+      const props = {
+        ...multiTableProps(resolve),
+        tables: [
+          makeTable("chat", { visualizations: [threadViz()] }),
+          makeTable("account", { visualizations: [] }),
+        ],
+      }
+      root = renderConsentFormViz(container, props)
+      act(() => {
+        container.querySelector('[data-page-chip="chat"]')!.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+      })
+      expect(container.querySelector('[data-card-id="chat"]')).not.toBeNull()
+
+      // The host sends a new tables array (a fresh upload) without "chat".
+      act(() => {
+        root!.render(<ConsentFormViz {...props} tables={[makeTable("account", { visualizations: [] })]} />)
+      })
+
+      expect(container.querySelector('[data-card-id="account"]')).not.toBeNull()
+      expect(container.querySelector("[data-overview-chip]")!.getAttribute("aria-current")).toBe("page")
+    })
+
+    // Fix round 1: the review is a sequence of equal pages — page 1 is the
+    // overview, pages 2..n are the featured tables — and one pager drives
+    // all of it. Fix round 2 (variant A): the count reads "i of n", no
+    // "page" word.
+    test("the pager shows 1 of n on the overview and the featured chips switch pages", () => {
+      const resolve = jest.fn()
+      root = renderConsentFormViz(container, {
+        ...multiTableProps(resolve),
+        tables: [makeTable("chat", { visualizations: [threadViz()] }), makeTable("account", { visualizations: [] })],
+      })
+
+      expect(container.querySelector("[data-pager]")!.textContent).toContain("1 of 2")
+
+      act(() => {
+        container.querySelector('[data-page-chip="chat"]')!.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+      })
+
+      expect(container.querySelector('[data-card-id="chat"]')).not.toBeNull()
+      expect(container.querySelector("[data-pager]")!.textContent).toContain("2 of 2")
+
+      const previousButton = container.querySelector<HTMLButtonElement>('button[aria-label="Previous"]')
+      if (previousButton === null) throw new Error("Previous button not found")
+      act(() => {
+        previousButton.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+      })
+
+      expect(container.querySelector('[data-card-id="account"]')).not.toBeNull()
+      expect(container.querySelector("[data-overview-chip]")!.getAttribute("aria-current")).toBe("page")
+    })
+
+    test("with no featured table the pager reads 1 of 1 with both buttons disabled", () => {
+      const resolve = jest.fn()
+      root = renderConsentFormViz(container, multiTableProps(resolve))
+
+      expect(container.querySelector("[data-pager]")!.textContent).toContain("1 of 1")
+
+      const previousButton = container.querySelector<HTMLButtonElement>('button[aria-label="Previous"]')
+      const nextButton = container.querySelector<HTMLButtonElement>('button[aria-label="Next"]')
+      if (previousButton === null || nextButton === null) throw new Error("pager buttons not found")
+
+      expect(previousButton.disabled).toBe(true)
+      expect(nextButton.disabled).toBe(true)
+    })
+
+    // Fix round 2 (variant A): the old grouped-chip pill strip became a
+    // plain-text "Jump to" line, overview only — data-chip-id lives inside
+    // it now, not in a separate row.
+    test("the jump line lists the grouped tables on the overview and is absent on a featured page", () => {
+      const resolve = jest.fn()
+      root = renderConsentFormViz(container, {
+        ...multiTableProps(resolve),
+        tables: [makeTable("chat", { visualizations: [threadViz()] }), makeTable("account", { visualizations: [] })],
+      })
+
+      expect(container.querySelector('[data-jump] [data-chip-id="account"]')).not.toBeNull()
+
+      act(() => {
+        container.querySelector('[data-page-chip="chat"]')!.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+      })
+
+      expect(container.querySelector("[data-jump]")).toBeNull()
     })
 
     test("empty tables sink to the end of the page", () => {

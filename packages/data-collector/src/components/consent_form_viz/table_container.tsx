@@ -17,6 +17,12 @@ import { zTable, Table as ValidatedTable } from "./visualization_plugin/types"
 // expanded instead of behind the "Show N rows" toggle.
 const REVIEW_AUTO_EXPAND_THRESHOLD = 25
 
+// Task 8 polish: review card titles want text-title5 below md and text-title4
+// from md — feldspar's Title4 can't take that (it's title6→title5→title4 at
+// its own sm/lg breakpoints, no md step, and no size override prop), so the
+// review card's title is a plain element instead, carrying the four classes
+// directly. Study mode keeps Title4 unchanged below.
+
 interface TableContainerProps {
   id: string
   table: TableWithContext
@@ -115,7 +121,7 @@ export const TableContainer = ({ id, table, updateTable, locale, variant = "stud
           className="p-4 md:p-5 flex flex-col gap-2 w-full overflow-hidden border-[0.2rem] border-grey4 rounded-lg bg-grey6"
         >
           <div className="flex items-center justify-between gap-4">
-            <Title4 text={table.title} margin="" />
+            <div className="font-title5 text-title5 md:font-title4 md:text-title4 text-grey1">{table.title}</div>
             {!emptiedByDeletion ? (
               <div className="text-caption font-body text-grey2 whitespace-nowrap">{text.noEntries}</div>
             ) : null}
@@ -130,17 +136,17 @@ export const TableContainer = ({ id, table, updateTable, locale, variant = "stud
     return (
       <div
         key={table.id}
-        className="p-3 md:p-4 lg:p-6 flex flex-col gap-4 w-full overflow-hidden border-[0.2rem] border-grey4 rounded-lg bg-white"
+        className="p-3 md:p-4 lg:p-6 flex flex-col gap-3 w-full overflow-hidden border-[0.2rem] border-grey4 rounded-lg bg-white"
       >
         <div className="flex flex-col gap-1">
-          <Title4 text={table.title} margin="" />
+          <div className="font-title5 text-title5 md:font-title4 md:text-title4 text-grey1">{table.title}</div>
           {table.description !== "" ? (
             <p className="text-caption font-body text-grey2 max-w-2xl">{table.description}</p>
           ) : null}
         </div>
 
         {tableVisualizations.length > 0 && validatedTable != null ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {tableVisualizations.map((vs: any, i: number) => (
               <div key={table.id + "_" + String(i)} className={visualizationSpan(vs)}>
                 <Figure

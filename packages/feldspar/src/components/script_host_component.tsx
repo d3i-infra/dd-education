@@ -47,11 +47,12 @@ const FeldsparContent: React.FC<ScriptHostProps> = ({
 
     const worker = new Worker(workerUrl);
     workerRef.current = worker;
+    let assembly: Assembly | null = null;
 
     const run = (bridge: Bridge, selectedLocale: string = locale) => {
       if (defaultLocale != null) Translator.setDefaultLocale(defaultLocale);
       const effectiveLocale = mapLocale != null ? mapLocale(selectedLocale) : selectedLocale;
-      const assembly = new Assembly(worker, bridge, effectiveLocale, factories, logLevel, platform);
+      assembly = new Assembly(worker, bridge, effectiveLocale, factories, logLevel, platform);
       assembly.visualizationEngine.start(
         containerRef.current!,
         effectiveLocale,
@@ -83,13 +84,26 @@ const FeldsparContent: React.FC<ScriptHostProps> = ({
 
     return () => {
       observer.disconnect();
+      // Terminate what THIS run created, not whatever the refs hold by the time
+      // the timeout fires: a re-run (StrictMode double mount, or a dependency
+      // change) has already replaced the refs with its own worker by then.
+      const ownWorker = worker;
+      const ownAssembly = assembly;
       setTimeout(() => {
-        assemblyRef.current?.visualizationEngine.terminate();
-        assemblyRef.current?.processingEngine.terminate();
-        if (workerRef.current) {
-          workerRef.current.terminate();
-          workerRef.current = null;
+        if (ownAssembly != null) {
+          // processingEngine.terminate() already terminates ownWorker (it is
+          // the same instance the engine was constructed with) — calling
+          // ownWorker.terminate() as well would be a second, redundant call.
+          ownAssembly.visualizationEngine.terminate();
+          ownAssembly.processingEngine.terminate();
+        } else {
+          // run() never fired before cleanup (the LiveBridge handshake is
+          // async and can lose the race) — nothing owns ownWorker yet, so
+          // terminate it directly.
+          ownWorker.terminate();
         }
+        if (workerRef.current === ownWorker) workerRef.current = null;
+        if (assemblyRef.current === ownAssembly) assemblyRef.current = null;
       }, 0);
     };
   }, [workerUrl, locale, defaultLocale, standalone, setState, factories, logLevel, platform, mapLocale]);

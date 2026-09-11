@@ -98,10 +98,10 @@ def test_retry_prompt_multiple_ok_cancel_labels_unchanged():
 
 def test_render_instructions_page_single_image_shape():
     """A bare string builds imageUrl, leaving imageUrls empty — the shape
-    single-image platforms (e.g. Netflix, LinkedIn, WhatsApp) still use."""
-    body = ph.render_instructions_page("Netflix", "netflix_instructions.webp").toDict()["page"]["body"][0]
+    single-image platforms (Netflix, LinkedIn, WhatsApp, each a one-step deck under public/instructions/) still use."""
+    body = ph.render_instructions_page("Netflix", "instructions/netflix/step-01.webp").toDict()["page"]["body"][0]
     assert body["__type__"] == "PropsUIPromptInstructions"
-    assert body["imageUrl"] == "netflix_instructions.webp"
+    assert body["imageUrl"] == "instructions/netflix/step-01.webp"
     assert body["imageUrls"] == []
     assert set(body["description"]["translations"]) >= {"en", "nl"}
 
@@ -114,6 +114,33 @@ def test_render_instructions_page_step_list_shape():
     assert body["__type__"] == "PropsUIPromptInstructions"
     assert body["imageUrls"] == steps
     assert body["imageUrl"] == ""
+
+
+def test_render_instructions_page_carries_the_export_link():
+    page = ph.render_instructions_page("Netflix", "instructions/netflix/step-01.webp",
+                                       url="https://www.netflix.com/account")
+    prompt = page.toDict()["page"]["body"][0]
+    assert prompt["__type__"] == "PropsUIPromptInstructions"
+    assert prompt["linkUrl"] == "https://www.netflix.com/account"
+
+
+def test_render_instructions_page_without_link_sends_empty_string():
+    page = ph.render_instructions_page("WhatsApp", "instructions/whatsapp/step-01.webp")
+    assert page.toDict()["page"]["body"][0]["linkUrl"] == ""
+
+
+def test_render_instructions_page_carries_the_export_note():
+    note = props.Translatable({"en": "Log in first.", "nl": "Eerst inloggen."})
+    page = ph.render_instructions_page("ChatGPT", "instructions/chatgpt/step-01.webp",
+                                       url="https://chatgpt.com/#settings/DataControls", note=note)
+    prompt = page.toDict()["page"]["body"][0]
+    assert prompt["linkNote"] == note.toDict()
+
+
+def test_render_instructions_page_without_note_sends_none():
+    page = ph.render_instructions_page("Netflix", "instructions/netflix/step-01.webp",
+                                       url="https://www.netflix.com/account")
+    assert page.toDict()["page"]["body"][0]["linkNote"] is None
 
 
 def test_platform_selection_menu_shape():

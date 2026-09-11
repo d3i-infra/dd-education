@@ -1,35 +1,40 @@
 import { Footer } from "./components/footer";
 import { NavBar } from "./components/navbar";
+import { useSiteText } from "./site_text";
+import { useUiLocale } from "../locale/ui_locale";
 
 export const PrivacyPolicy = () => {
+  const text = useSiteText();
+  const locale = useUiLocale();
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Navigation Bar */}
       <NavBar />
 
       {/* Privacy Policy Content */}
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
+      <main lang={locale} className="flex-grow container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-6">{text.privacyTitle}</h1>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
+          <h2 className="text-2xl font-semibold mb-4">{text.privacyIntroTitle}</h2>
           <p className="text-lg text-grey1 mb-4">
-            Digital Footprint Explorer is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service.
+            {text.privacyIntroBody}
           </p>
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">2. Information We Collect</h2>
+          <h2 className="text-2xl font-semibold mb-4">{text.privacyCollectTitle}</h2>
           <p className="text-lg text-grey1 mb-4">
-            By default, all data processing happens locally in your browser and <strong>no data is collected or shared</strong>. If you encounter an issue with the data extraction, you may optionally send an anonymous report containing only the file structure of your data package (not its contents) to help us improve the tool.
+            {text.privacyCollectBefore}<strong>{text.privacyCollectStrong}</strong>{text.privacyCollectAfter}
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-4">3. Your Rights</h2>
+          <h2 className="text-2xl font-semibold mb-4">{text.privacyRightsTitle}</h2>
           <p className="text-lg text-grey1 mb-4">
-            If you have any questions or remarks{" "}
-            <a className="underline" href="mailto:l.boeschoten@uu.nl">please contact us</a>
+            {text.privacyRightsBody}{" "}
+            <a className="underline" href="mailto:l.boeschoten@uu.nl">{text.privacyContact}</a>
           </p>
         </section>
       </main>

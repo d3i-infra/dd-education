@@ -11,13 +11,15 @@ export interface PropsUIPromptInstructions {
   description: { translations: Record<string, string> }
   imageUrl: string
   imageUrls?: string[]
+  linkUrl?: string
+  linkNote?: { translations: Record<string, string> } | null
 }
 
 type Props = PropsUIPromptInstructions & ReactFactoryContext
 
 export const Instructions = (props: Props): JSX.Element => {
   const [waiting, setWaiting] = useState<boolean>(false)
-  const { imageUrl, imageUrls, resolve, locale } = props
+  const { imageUrl, imageUrls, linkUrl, linkNote, resolve, locale } = props
   const description = Translator.translate(props.description, locale)
   const continueButton = Translator.translate(continueButtonLabel, locale)
 
@@ -74,6 +76,22 @@ export const Instructions = (props: Props): JSX.Element => {
           {description}
         </div>
       </div>
+      {linkUrl !== undefined && linkUrl !== "" && (
+        <a
+          href={linkUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-6 inline-flex items-center gap-2 rounded-full border-2 border-primary bg-primarylight px-5 py-2.5 font-label text-label text-primary hover:bg-primary hover:text-white transition-colors"
+        >
+          {Translator.translate(openExportLabel, locale)}
+          <span aria-hidden="true">↗</span>
+        </a>
+      )}
+      {linkNote != null && (
+        <p className="mt-2 max-w-2xl text-caption font-body text-grey2">
+          {Translator.translate(linkNote, locale)}
+        </p>
+      )}
       {steps !== undefined && (
         <div className="mt-4 text-center text-label font-label text-grey1" aria-live="polite" aria-atomic="true">
           {Translator.translate(stepLabel(stepIndex + 1, steps.length), locale)}
@@ -129,6 +147,10 @@ export const Instructions = (props: Props): JSX.Element => {
 const continueButtonLabel = new TextBundle()
   .add("en", "Continue")
   .add("nl", "Doorgaan")
+
+const openExportLabel = new TextBundle()
+  .add("en", "Open the export page in a new tab")
+  .add("nl", "Open de exportpagina in een nieuw tabblad")
 
 const previousLabel = new TextBundle()
   .add("en", "Previous")
