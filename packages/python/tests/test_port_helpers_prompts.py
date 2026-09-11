@@ -99,9 +99,9 @@ def test_retry_prompt_multiple_ok_cancel_labels_unchanged():
 def test_render_instructions_page_single_image_shape():
     """A bare string builds imageUrl, leaving imageUrls empty — the shape
     single-image platforms (Netflix, LinkedIn, WhatsApp, each a one-step deck under public/instructions/) still use."""
-    body = ph.render_instructions_page("Netflix", "netflix_instructions.webp").toDict()["page"]["body"][0]
+    body = ph.render_instructions_page("Netflix", "instructions/netflix/step-01.webp").toDict()["page"]["body"][0]
     assert body["__type__"] == "PropsUIPromptInstructions"
-    assert body["imageUrl"] == "netflix_instructions.webp"
+    assert body["imageUrl"] == "instructions/netflix/step-01.webp"
     assert body["imageUrls"] == []
     assert set(body["description"]["translations"]) >= {"en", "nl"}
 
@@ -118,10 +118,10 @@ def test_render_instructions_page_step_list_shape():
 
 def test_render_instructions_page_carries_the_export_link():
     page = ph.render_instructions_page("Netflix", "instructions/netflix/step-01.webp",
-                                       url="https://www.netflix.com/account/getmyinfo")
+                                       url="https://www.netflix.com/account")
     prompt = page.toDict()["page"]["body"][0]
     assert prompt["__type__"] == "PropsUIPromptInstructions"
-    assert prompt["linkUrl"] == "https://www.netflix.com/account/getmyinfo"
+    assert prompt["linkUrl"] == "https://www.netflix.com/account"
 
 
 def test_render_instructions_page_without_link_sends_empty_string():

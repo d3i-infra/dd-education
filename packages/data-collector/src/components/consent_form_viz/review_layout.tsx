@@ -5,21 +5,15 @@ import { TableWithContext } from "./types"
 import { TableContainer } from "./table_container"
 
 // Design pass (frontend-design skill, Task 19 — review-only education mode):
-// - Type scale: card titles keep study mode's Title4 (28px, via
-//   table_container's "review" variant) so a card reads at the same weight
-//   as its upstream counterpart; the description drops to caption (14px) so
-//   neither it nor the platform header competes with the figures above them —
-//   the header is a plain wrapping paragraph, no line clamp; chips use
-//   label/labelsmall — small enough that a dozen still fit across a phone
-//   width.
+// - Type scale: card titles are title5 on phones and title4 from md (Task 8)
+//   so a card reads at the same weight as its upstream counterpart on a
+//   desktop; the description drops to caption (14px) so neither it nor the
+//   platform header competes with the figures above them.
 // - Card treatment: white surface with the same grey4 hairline border and
 //   radius table_container's study card already uses, so review mode reads
 //   as a continuation of the fork's visual language rather than a new one.
 //   An empty table gets a flatter grey6 strip instead of a full card — there
 //   is nothing to look at, so it shouldn't claim card-sized weight.
-// - Chip style: rounded pill toggles — primarylight fill + primary text/
-//   border for the section currently in view, grey4 border otherwise. No
-//   drop shadow, no new hue: just the two states a "where am I" strip needs.
 //
 // Design pass (frontend-design skill, Task 21 fix round 2, variant A —
 // approved mockup): the pill chip strip is gone. One sticky navigation row

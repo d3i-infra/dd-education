@@ -271,7 +271,10 @@ export const Table = ({
             {/* Sideways-scroll hint: only when the table is actually wider than
                 the space it has (jsdom has no ResizeObserver, so availableWidth
                 stays 0 and this branch never renders there). */}
-            {tableWidth > availableWidth && (
+            {/* +1: distributeColumnWidths sums to availableWidth only to floating-point
+                precision, so a fitting table can read a hair wider and show a
+                fade over nothing (final review). */}
+            {tableWidth > availableWidth + 1 && (
               <div
                 aria-hidden='true'
                 className='pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-grey6'

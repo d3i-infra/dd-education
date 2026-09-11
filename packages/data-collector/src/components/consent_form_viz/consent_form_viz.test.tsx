@@ -144,9 +144,12 @@ describe("ConsentFormViz", () => {
     })
 
     // Locks down the exact markup study mode produced before the review-ui
-    // layout work (Task 19) — the review-only branch is a separate tree
-    // entirely, so this DOM must never move as review mode evolves.
-    test("layout DOM is unchanged by the review-layout work", () => {
+    // layout work — the review-only branch is a separate tree, so nothing
+    // review-specific may reach this DOM. What study mode does share with
+    // review mode is the Table and Figure internals (header font, hairline
+    // rows, the scroll-fade wrapper, caption style); a change there updates
+    // this snapshot on purpose and must be named in the task report.
+    test("study-mode DOM changes only through the shared Table/Figure internals", () => {
       const resolve = jest.fn()
       root = renderConsentFormViz(container, baseProps(resolve))
 
@@ -220,7 +223,7 @@ describe("ConsentFormViz", () => {
     // Regression: figure.tsx's chart/heatmap wrappers carry `relative z-50`
     // (upstream, not to be changed here), which painted over the chip strip
     // while scrolling unless the strip sits above them and stays opaque.
-    test("the sticky chip strip stays above figures and opaque while scrolling", () => {
+    test("the sticky navigation row stays above figures and opaque while scrolling", () => {
       const resolve = jest.fn()
       root = renderConsentFormViz(container, multiTableProps(resolve))
 
@@ -234,7 +237,7 @@ describe("ConsentFormViz", () => {
       expect(classes).toContain("bg-white")
     })
 
-    test("renders one chip per table with its row count", () => {
+    test("renders one jump-line entry per grouped table with its row count", () => {
       const resolve = jest.fn()
       root = renderConsentFormViz(container, multiTableProps(resolve))
 

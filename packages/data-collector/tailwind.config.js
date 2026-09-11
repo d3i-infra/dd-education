@@ -193,15 +193,6 @@ module.exports = {
         ".h-viewport": {
           height: "calc(var(--vh, 1vh) * 100)",
         },
-        ".scrollbar-hide": {
-          /* Firefox */
-          "scrollbar-width": "thin",
-
-          /* Safari and Chrome */
-          "&::-webkit-scrollbar": {
-            display: "none",
-          },
-        },
       };
       addUtilities(newUtilities);
 

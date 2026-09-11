@@ -18,7 +18,7 @@ export default function StatTiles ({ visualizationData, locale }: Props): ReactE
   if (tiles.length === 0) return null
 
   return (
-    <div className='w-full h-full grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] items-stretch gap-3 p-1 overflow-auto'>
+    <div className='w-full h-full grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] items-stretch gap-3 p-1 overflow-auto'>
       {tiles.map((tile, i) => (
         <div
           key={i}
