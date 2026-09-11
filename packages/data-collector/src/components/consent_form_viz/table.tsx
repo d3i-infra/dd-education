@@ -131,6 +131,7 @@ export const Table = ({
   // table.
   const charCounts = useMemo(
     () => longestCellChars(table, columnNames),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberately keyed on originalBody and headers only (ADR-0031): `table` changes on every search/delete/page and must not re-run the width pass
     [table.originalBody, table.headers, columnNames]
   )
 

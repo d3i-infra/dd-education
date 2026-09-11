@@ -1,5 +1,5 @@
 /** @jest-environment jsdom */
-import { act } from "react"
+import { act, type ReactElement } from "react"
 import { createRoot, type Root } from "react-dom/client"
 import { MemoryRouter } from "react-router-dom"
 
@@ -28,7 +28,7 @@ describe("static pages follow the site's en/nl toggle", () => {
     container.remove()
   })
 
-  function mount(element: React.ReactElement): void {
+  function mount(element: ReactElement): void {
     root = createRoot(container)
     act(() => {
       root.render(<MemoryRouter>{element}</MemoryRouter>)

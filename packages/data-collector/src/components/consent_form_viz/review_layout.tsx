@@ -43,7 +43,7 @@ interface ReviewLayoutProps {
 // A table dense enough to want its own page: a thread figure's two-pane
 // list+transcript needs room the overview grid can't give it, and four or
 // more figures of any kind crowd a shared scroll just as much.
-export function isFeaturedTable(table: TableWithContext): boolean {
+function isFeaturedTable(table: TableWithContext): boolean {
   const vis = table.visualizations ?? []
   return vis.some((v: any) => v?.type === "thread") || vis.length >= 4
 }
